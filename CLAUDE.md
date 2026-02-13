@@ -33,9 +33,18 @@ Before marking any task as complete:
 - **task-dispatcher**: Dispatch tasks with model selection
 - **report-generator**: Generate daily/weekly activity reports
 
+## Session Directives
+- At the end of each session, add meaningful lessons learned to the **Lessons Learned** section below (only if they do not conflict with existing directives)
+- After each session, add any ideas for improving the orchestrator itself (new skills, features, integrations) to `backlog.md` in the repo root
+- Always work within virtual environments (Python `venv`, Node local installs, etc.) — never install dependencies into the global system environment
+
 ## File Structure
 - `backlogs/` - Per-workspace task backlogs (markdown)
 - `changelogs/` - Per-workspace changelogs (Keep a Changelog format)
 - `reports/` - Generated daily and weekly reports
 - `logs/` - Dispatch logs and cron output
 - `config/` - Workspace, model, and schedule configuration
+- `backlog.md` - Self-improvement ideas and feature backlog for the orchestrator itself
+
+## Lessons Learned
+<!-- Lessons from past sessions are appended here -->
