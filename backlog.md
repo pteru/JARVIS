@@ -10,6 +10,7 @@ Ideas for new features, skills, and integrations. Full specs live in `backlog/`.
 |------|--------|------|
 | ClickUp Connector | Idea | [backlog/clickup-connector.md](backlog/clickup-connector.md) |
 | Changelog Reviewer | Idea | [backlog/changelog-reviewer.md](backlog/changelog-reviewer.md) |
+| Orchestrator Dashboard | Idea | [backlog/orchestrator-dashboard.md](backlog/orchestrator-dashboard.md) |
 
 ---
 
