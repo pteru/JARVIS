@@ -1,0 +1,31 @@
+{
+  "schedules": {
+    "daily": [
+      {
+        "time": "09:00",
+        "task": "process_backlogs",
+        "workspaces": ["all"],
+        "max_tasks_per_workspace": 1
+      },
+      {
+        "time": "17:00",
+        "task": "generate_daily_report",
+        "workspaces": ["all"]
+      }
+    ],
+    "weekly": [
+      {
+        "day": "friday",
+        "time": "16:00",
+        "task": "generate_weekly_report",
+        "workspaces": ["all"]
+      },
+      {
+        "day": "monday",
+        "time": "08:00",
+        "task": "suggest_weekly_goals",
+        "workspaces": ["all"]
+      }
+    ]
+  }
+}

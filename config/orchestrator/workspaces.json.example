@@ -1,0 +1,22 @@
+{
+  "workspaces": {
+    "api-backend": {
+      "path": "/Users/you/projects/api-backend",
+      "type": "nodejs",
+      "priority": "high",
+      "auto_review": true
+    },
+    "frontend-app": {
+      "path": "/Users/you/projects/frontend-app",
+      "type": "react",
+      "priority": "medium",
+      "auto_review": false
+    },
+    "data-pipeline": {
+      "path": "/Users/you/projects/data-pipeline",
+      "type": "python",
+      "priority": "high",
+      "auto_review": true
+    }
+  }
+}

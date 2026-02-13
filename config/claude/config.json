@@ -1,0 +1,40 @@
+{
+  "mcpServers": {
+    "backlog-manager": {
+      "command": "node",
+      "args": ["{{MCP_SERVERS_PATH}}/backlog-manager/index.js"],
+      "env": {
+        "ORCHESTRATOR_HOME": "{{ORCHESTRATOR_HOME}}"
+      }
+    },
+    "changelog-writer": {
+      "command": "node",
+      "args": ["{{MCP_SERVERS_PATH}}/changelog-writer/index.js"],
+      "env": {
+        "ORCHESTRATOR_HOME": "{{ORCHESTRATOR_HOME}}"
+      }
+    },
+    "workspace-analyzer": {
+      "command": "node",
+      "args": ["{{MCP_SERVERS_PATH}}/workspace-analyzer/index.js"],
+      "env": {
+        "ORCHESTRATOR_HOME": "{{ORCHESTRATOR_HOME}}"
+      }
+    },
+    "task-dispatcher": {
+      "command": "node",
+      "args": ["{{MCP_SERVERS_PATH}}/task-dispatcher/index.js"],
+      "env": {
+        "ORCHESTRATOR_HOME": "{{ORCHESTRATOR_HOME}}"
+      }
+    },
+    "report-generator": {
+      "command": "node",
+      "args": ["{{MCP_SERVERS_PATH}}/report-generator/index.js"],
+      "env": {
+        "ORCHESTRATOR_HOME": "{{ORCHESTRATOR_HOME}}"
+      }
+    }
+  },
+  "allowedDirectories": ["{{ORCHESTRATOR_HOME}}", "{{HOME}}/projects"]
+}

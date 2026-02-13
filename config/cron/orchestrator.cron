@@ -1,0 +1,14 @@
+# Claude Orchestrator - Automated Schedules
+# Install with: crontab -l | cat - orchestrator.cron | crontab -
+
+# Daily: Process backlogs at 9:00 AM
+0 9 * * * ORCHESTRATOR_HOME={{ORCHESTRATOR_HOME}} {{ORCHESTRATOR_HOME}}/scripts/orchestrator.sh process-backlogs >> {{ORCHESTRATOR_HOME}}/logs/cron-daily.log 2>&1
+
+# Daily: Generate daily report at 5:00 PM
+0 17 * * * ORCHESTRATOR_HOME={{ORCHESTRATOR_HOME}} {{ORCHESTRATOR_HOME}}/scripts/orchestrator.sh daily-report >> {{ORCHESTRATOR_HOME}}/logs/cron-report.log 2>&1
+
+# Weekly: Generate weekly report on Friday at 4:00 PM
+0 16 * * 5 ORCHESTRATOR_HOME={{ORCHESTRATOR_HOME}} {{ORCHESTRATOR_HOME}}/scripts/orchestrator.sh weekly-report >> {{ORCHESTRATOR_HOME}}/logs/cron-weekly.log 2>&1
+
+# Weekly: Suggest weekly goals on Monday at 8:00 AM
+0 8 * * 1 ORCHESTRATOR_HOME={{ORCHESTRATOR_HOME}} {{ORCHESTRATOR_HOME}}/scripts/orchestrator.sh suggest-goals >> {{ORCHESTRATOR_HOME}}/logs/cron-goals.log 2>&1

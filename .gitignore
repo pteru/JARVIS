@@ -1,0 +1,38 @@
+# Machine-specific config
+config/orchestrator/workspaces.json
+
+# Logs
+logs/*.log
+!logs/.gitkeep
+
+# Backlogs and changelogs (choose based on preference)
+# Option 1: Don't track (regenerate on each machine)
+backlogs/*.md
+!backlogs/.gitkeep
+changelogs/*.md
+!changelogs/.gitkeep
+
+# Option 2: Track backlogs but not changelogs
+# changelogs/*.md
+# !changelogs/.gitkeep
+
+# Reports (generated content)
+reports/*.md
+!reports/.gitkeep
+
+# Node modules
+mcp-servers/*/node_modules/
+mcp-servers/*/package-lock.json
+
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+
+# Editor files
+.vscode/
+.idea/
+
+# Backup files
+*.backup
+*.bak

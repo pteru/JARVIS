@@ -1,0 +1,30 @@
+{
+  "task_complexity": {
+    "simple": {
+      "model": "claude-haiku-4-5-20251001",
+      "examples": ["update docs", "fix typo", "add logging", "simple bug fix"]
+    },
+    "medium": {
+      "model": "claude-sonnet-4-5-20250929",
+      "examples": ["implement feature", "refactor module", "add tests", "bug investigation"]
+    },
+    "complex": {
+      "model": "claude-opus-4-5-20251101",
+      "examples": ["architecture change", "complex algorithm", "multi-file refactor", "security audit"]
+    }
+  },
+  "rules": [
+    {
+      "if": "task contains 'architecture' or 'design'",
+      "use": "opus"
+    },
+    {
+      "if": "task contains 'documentation' or 'readme'",
+      "use": "haiku"
+    },
+    {
+      "if": "estimated_files > 5",
+      "use": "opus"
+    }
+  ]
+}

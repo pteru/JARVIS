@@ -1,0 +1,10 @@
+{
+  "name": "task-dispatcher-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for dispatching tasks to Claude Code workspaces",
+  "main": "index.js",
+  "type": "module",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.5.0"
+  }
+}
