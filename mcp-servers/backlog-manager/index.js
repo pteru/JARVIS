@@ -35,6 +35,36 @@ class BacklogManagerServer {
     });
   }
 
+  // Returns the workspace's local path from workspaces.json, or null if not found.
+  async getWorkspacePath(workspace) {
+    try {
+      const configPath = path.join(
+        ORCHESTRATOR_HOME,
+        "config",
+        "workspaces.json",
+      );
+      const config = JSON.parse(await fs.readFile(configPath, "utf-8"));
+      return config.workspaces?.[workspace]?.path || null;
+    } catch {
+      return null;
+    }
+  }
+
+  // Pushes backlog content to <workspace-path>/.claude/backlog.md.
+  // Silently skips if the workspace path is not configured or not accessible.
+  async pushToWorkspace(workspace, content) {
+    const wsPath = await this.getWorkspacePath(workspace);
+    if (!wsPath) return;
+
+    try {
+      const targetDir = path.join(wsPath, ".claude");
+      await fs.mkdir(targetDir, { recursive: true });
+      await fs.writeFile(path.join(targetDir, "backlog.md"), content, "utf-8");
+    } catch {
+      // Workspace path may not be mounted on this machine — silently skip.
+    }
+  }
+
   setupToolHandlers() {
     this.server.setRequestHandler(ListToolsRequestSchema, async () => ({
       tools: [
@@ -213,6 +243,7 @@ class BacklogManagerServer {
     if (updated) {
       content = sections.join("\n## ");
       await fs.writeFile(backlogPath, content, "utf-8");
+      await this.pushToWorkspace(workspace, content);
     }
 
     return {
@@ -243,6 +274,7 @@ class BacklogManagerServer {
 
     if (updated !== content) {
       await fs.writeFile(backlogPath, updated, "utf-8");
+      await this.pushToWorkspace(workspace, updated);
       return {
         content: [
           {
