@@ -5,16 +5,11 @@ config/orchestrator/workspaces.json
 logs/*.log
 !logs/.gitkeep
 
-# Backlogs and changelogs (choose based on preference)
-# Option 1: Don't track (regenerate on each machine)
-backlogs/*.md
-!backlogs/.gitkeep
+# Changelogs (generated content, not tracked centrally)
 changelogs/*.md
 !changelogs/.gitkeep
 
-# Option 2: Track backlogs but not changelogs
-# changelogs/*.md
-# !changelogs/.gitkeep
+# Backlogs are tracked (versioned centrally and per-workspace)
 
 # Reports (generated content)
 reports/*.md
