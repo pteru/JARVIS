@@ -7,16 +7,21 @@ for i in $(seq 1 10); do
   sleep 1
 done
 
-# Launch Chrome in app mode
-google-chrome --app=http://localhost:3000/mini.html --window-size=320,340 &
+# Launch Chrome in app mode with transparency support
+google-chrome \
+  --app=http://localhost:3000/mini.html \
+  --window-size=280,280 \
+  --enable-transparent-visuals \
+  --disable-background-timer-throttling &
 CHROME_PID=$!
 
 # Wait for window to appear, then set always-on-top
 sleep 2
 WID=$(xdotool search --pid $CHROME_PID --name "JARVIS" 2>/dev/null | head -1)
+if [[ -z "$WID" ]]; then
+  sleep 2
+  WID=$(xdotool search --pid $CHROME_PID 2>/dev/null | head -1)
+fi
 if [[ -n "$WID" ]]; then
-  xdotool set_window --overrideredirect 0 "$WID"
-  # Set always on top via wmctrl-style property
-  xprop -id "$WID" -f _NET_WM_STATE 32a -set _NET_WM_STATE _NET_WM_STATE_ABOVE 2>/dev/null || \
-    xdotool windowactivate "$WID" key --clearmodifiers super+t 2>/dev/null || true
+  xprop -id "$WID" -f _NET_WM_STATE 32a -set _NET_WM_STATE _NET_WM_STATE_ABOVE 2>/dev/null || true
 fi
