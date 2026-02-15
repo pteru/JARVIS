@@ -129,6 +129,70 @@
         </div>
       </div>
     </div>
+
+    <!-- Changelog + System Info Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+      <!-- Recent Changelog Entries -->
+      <div class="lg:col-span-2 bg-card rounded-xl p-5 border border-gray-700">
+        <h2 class="text-sm font-semibold text-gray-300 uppercase tracking-wide mb-4">Recent Changes</h2>
+        <div id="changelog-entries" class="space-y-2 max-h-80 overflow-y-auto custom-scrollbar">
+          <div class="text-gray-500 text-sm">Loading...</div>
+        </div>
+      </div>
+
+      <!-- MCP Servers -->
+      <div class="bg-card rounded-xl p-5 border border-gray-700">
+        <h2 class="text-sm font-semibold text-gray-300 uppercase tracking-wide mb-4">MCP Servers</h2>
+        <div class="space-y-2">
+          <div class="flex justify-between items-center text-sm">
+            <span class="text-gray-300">task-dispatcher</span>
+            <span class="badge badge-success">v1.3.0</span>
+          </div>
+          <div class="flex justify-between items-center text-sm">
+            <span class="text-gray-300">backlog-manager</span>
+            <span class="badge badge-success">v1.1.0</span>
+          </div>
+          <div class="flex justify-between items-center text-sm">
+            <span class="text-gray-300">changelog-writer</span>
+            <span class="badge badge-success">v1.0.0</span>
+          </div>
+          <div class="flex justify-between items-center text-sm">
+            <span class="text-gray-300">workspace-analyzer</span>
+            <span class="badge badge-success">v1.1.0</span>
+          </div>
+          <div class="flex justify-between items-center text-sm">
+            <span class="text-gray-300">notifier</span>
+            <span class="badge badge-success">v1.2.0</span>
+          </div>
+          <div class="flex justify-between items-center text-sm">
+            <span class="text-gray-300">model-learning-analyzer</span>
+            <span class="badge badge-success">v1.0.0</span>
+          </div>
+          <div class="flex justify-between items-center text-sm">
+            <span class="text-gray-300">self-improvement-miner</span>
+            <span class="badge badge-success">v1.0.0</span>
+          </div>
+          <div class="flex justify-between items-center text-sm">
+            <span class="text-gray-300">changelog-reviewer</span>
+            <span class="badge badge-success">v1.0.0</span>
+          </div>
+          <div class="flex justify-between items-center text-sm">
+            <span class="text-gray-300">clickup-connector</span>
+            <span class="badge badge-success">v1.0.0</span>
+          </div>
+        </div>
+        <div class="mt-4 pt-3 border-t border-gray-700">
+          <div class="flex justify-between text-xs text-gray-400">
+            <span>Workspaces</span>
+            <span class="text-white font-medium">97</span>
+          </div>
+          <div class="flex justify-between text-xs text-gray-400 mt-1">
+            <span>Hooks active</span>
+            <span class="text-white font-medium">5</span>
+          </div>
+        </div>
+      </div>
+    </div>
   </main>
 
   <script src="/app.js"></script>

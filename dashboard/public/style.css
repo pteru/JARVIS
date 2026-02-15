@@ -29,10 +29,17 @@
   color: #9ca3af;
 }
 
+.badge-accent {
+  background-color: rgba(108, 99, 255, 0.15);
+  color: #6c63ff;
+}
+
 /* Notification border colors */
 .border-l-success { border-left-color: #22c55e; }
 .border-l-danger { border-left-color: #ef4444; }
 .border-l-accent { border-left-color: #6c63ff; }
+.border-l-warning { border-left-color: #f59e0b; }
+.border-l-gray-500 { border-left-color: #6b7280; }
 
 /* Dark scrollbars */
 .custom-scrollbar::-webkit-scrollbar {

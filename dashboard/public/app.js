@@ -32,6 +32,12 @@ function formatTime(ts) {
   return d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
+function formatDate(dateStr) {
+  if (!dateStr) return '--';
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
 function shortModel(model) {
   if (!model) return 'unknown';
   if (model.includes('opus')) return 'Opus';
@@ -69,6 +75,7 @@ async function loadAll() {
   renderWorkspaceChart(dispatches);
   renderDispatchTable(dispatches);
   renderBacklogHealth(backlogs);
+  renderChangelog(changelogs);
   renderNotifications(notifications);
 
   document.getElementById('last-updated').textContent = 'Updated ' + new Date().toLocaleTimeString();
@@ -173,10 +180,12 @@ function renderDispatchTable(data) {
   tbody.innerHTML = data.recent.map(d => {
     const status = (d.status || 'unknown').toLowerCase();
     const cls = STATUS_CLASSES[status] || 'badge-neutral';
+    const task = d.display_task || d.original_task || d.task || '--';
+    const time = d.display_time || d.created_at || d.timestamp;
     return `<tr class="border-b border-gray-700/50 hover:bg-gray-800/30">
-      <td class="py-2 px-2 text-xs text-gray-400 whitespace-nowrap">${formatTime(d.timestamp)}</td>
+      <td class="py-2 px-2 text-xs text-gray-400 whitespace-nowrap">${formatTime(time)}</td>
       <td class="py-2 px-2 text-xs font-mono">${shortWorkspace(d.workspace)}</td>
-      <td class="py-2 px-2 text-xs max-w-[200px] truncate" title="${(d.task || '').replace(/"/g, '&quot;')}">${d.task || '--'}</td>
+      <td class="py-2 px-2 text-xs max-w-[200px] truncate" title="${task.replace(/"/g, '&quot;')}">${task.slice(0, 80)}</td>
       <td class="py-2 px-2 text-xs">${shortModel(d.model)}</td>
       <td class="py-2 px-2"><span class="badge ${cls}">${status}</span></td>
       <td class="py-2 px-2 text-xs text-right text-gray-400">${formatDuration(d.duration_seconds)}</td>
@@ -253,6 +262,47 @@ function renderNotifications(data) {
     return `<div class="border-l-2 ${cls} pl-3 py-1">
       <div class="text-xs text-gray-400">${formatTime(n.timestamp)}</div>
       <div class="text-sm text-gray-200 truncate" title="${(n.message || n.text || '').replace(/"/g, '&quot;')}">${n.message || n.text || n.event || '--'}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderChangelog(data) {
+  const el = document.getElementById('changelog-entries');
+  if (!el) return;
+  if (!data || !data.recentEntries || data.recentEntries.length === 0) {
+    el.innerHTML = '<div class="text-gray-500 text-sm">No changelog entries</div>';
+    return;
+  }
+
+  // Flatten section entries (each has items array) into individual lines
+  const flat = [];
+  for (const e of data.recentEntries) {
+    const items = e.items || [];
+    for (const item of items) {
+      flat.push({ section: e.section, date: e.date, workspace: e.workspace, text: item });
+      if (flat.length >= 20) break;
+    }
+    if (flat.length >= 20) break;
+  }
+
+  el.innerHTML = flat.map(e => {
+    const type = (e.section || '').toLowerCase();
+    const color = type.includes('added') ? 'border-l-success'
+      : type.includes('fixed') ? 'border-l-accent'
+      : type.includes('changed') ? 'border-l-warning'
+      : type.includes('removed') ? 'border-l-danger'
+      : 'border-l-gray-500';
+    const badge = type.includes('added') ? 'badge-success'
+      : type.includes('fixed') ? 'badge-accent'
+      : type.includes('changed') ? 'badge-warning'
+      : 'badge-neutral';
+    return `<div class="border-l-2 ${color} pl-3 py-1">
+      <div class="flex items-center gap-2">
+        <span class="badge ${badge} text-[10px]">${e.section || 'change'}</span>
+        <span class="text-xs text-gray-400">${e.date ? formatDate(e.date) : ''}</span>
+        ${e.workspace ? `<span class="text-xs text-gray-500">${shortWorkspace(e.workspace)}</span>` : ''}
+      </div>
+      <div class="text-sm text-gray-200 mt-0.5" title="${e.text.replace(/"/g, '&quot;')}">${e.text}</div>
     </div>`;
   }).join('');
 }
