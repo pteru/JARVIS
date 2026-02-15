@@ -8,8 +8,8 @@ Ideas for new features, skills, and integrations. Full specs live in `backlog/`.
 
 | Item | Status | Spec |
 |------|--------|------|
-| ClickUp Connector | Idea | [backlog/clickup-connector.md](backlog/clickup-connector.md) |
-| Changelog Reviewer | Idea | [backlog/changelog-reviewer.md](backlog/changelog-reviewer.md) |
+| ClickUp Connector | **Done** | [backlog/completed/clickup-connector.md](backlog/completed/clickup-connector.md) |
+| Changelog Reviewer | **Done** | [backlog/completed/changelog-reviewer.md](backlog/completed/changelog-reviewer.md) |
 | Orchestrator Dashboard | **Done** | [backlog/completed/orchestrator-dashboard.md](backlog/completed/orchestrator-dashboard.md) |
 
 ---

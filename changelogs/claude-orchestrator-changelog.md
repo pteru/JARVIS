@@ -6,6 +6,25 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## 2026-02-15
 
+### Added (changelog-reviewer v1.0.0)
+- New MCP server for analyzing unreleased changelog entries and proposing deployment plans
+- `review_changelog` tool — parse and summarize unreleased entries by workspace
+- `propose_deployment_plan` tool — group changes into logical branches with conventional commit messages
+- `execute_deployment_plan` tool — generate git commands for approved plans (no auto-execution)
+- `list_unreleased_changes` tool — quick count of unreleased entries across workspaces
+- Plan persistence in `logs/deployment-plans.json` with status tracking
+
+### Added (clickup-connector v1.0.0)
+- New MCP server for bidirectional ClickUp integration with PT-BR/English translation
+- `discover_clickup_structure` tool — traverse and cache ClickUp workspace hierarchy
+- `fetch_clickup_task` tool — fetch task details with translation marking
+- `push_task_to_clickup` tool — create tasks in correct Space/Folder/List with product routing
+- `sync_task_status` tool — bidirectional status mapping (local ↔ ClickUp)
+- `post_progress_update` tool — post `[Orchestrator]` comments to ClickUp tasks
+- `update_task_description` tool — update task descriptions with translation marking
+- `link_backlog_to_clickup` tool — cross-reference local backlog entries with ClickUp task IDs
+- Configuration template at `config/orchestrator/clickup.json`
+
 ### Added (dashboard v1.1.0)
 - Compact mini dashboard view at `/mini.html` for floating always-on-top window
 - Live-updating stats (running/pending/done), status bar, recent dispatches, backlog summary

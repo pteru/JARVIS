@@ -1,0 +1,17 @@
+{
+  "api_token_env": "CLICKUP_API_TOKEN",
+  "team_id": null,
+  "spaces": {
+    "tecnico": { "name": "TÉCNICO", "id": null },
+    "roadmap": { "name": "ROADMAP", "id": null }
+  },
+  "product_mapping": {
+    "smart-die": { "folder_prefix": "[01]", "list_prefix": "[01" },
+    "spot-fusion": { "folder_prefix": "[02]", "list_prefix": "[02" },
+    "vision-king": { "folder_prefix": "[03]", "list_prefix": "[03" }
+  },
+  "language": {
+    "clickup": "pt-BR",
+    "local": "en"
+  }
+}
