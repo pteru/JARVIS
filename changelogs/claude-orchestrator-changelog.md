@@ -6,6 +6,25 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## 2026-02-15
 
+### Added (task-dispatcher v1.3.0)
+- `dispatch_batch` tool — dispatch tasks to multiple workspaces in parallel with configurable concurrency
+- `get_batch_status` tool — query batch execution progress with aggregated counts
+- `cancel_batch` tool — cancel running batches, marking pending tasks as failed
+- `scripts/execute-batch.mjs` — standalone batch executor with semaphore-based concurrency control
+- Workspace locking via `logs/workspace-locks.json` with 30-minute stale lock detection
+- Per-dispatch log files under `logs/<batch_id>/` directories
+- SIGINT/SIGTERM handling for graceful batch cancellation
+- `config/orchestrator/dispatcher.json` — concurrency and timeout configuration
+
+### Added (hook system v1.0.0)
+- Claude Code hook system with 5 hooks registered in `.claude/settings.local.json`
+- `PreDispatchValidator` hook — blocks dispatch to non-existent workspaces or inaccessible paths
+- `BacklogPreloader` hook — auto-syncs workspace-local backlogs to central store before dispatch/list operations
+- `DashboardSummary` hook — displays orchestrator health dashboard (dispatch status, pending backlogs) at session start
+- `CompletionNotifier` hook — announces task completion or failure via PostToolUse on `update_task_status`
+- `ChangelogVerifier` hook — warns if no changelog entry exists for today when completing a backlog task
+- Shared hook utilities library at `.claude/hooks/lib/utils.sh`
+
 ### Added (task-dispatcher v1.2.0)
 - Task lifecycle state machine (`pending → running → verifying → complete | failed`) with transition validation and status history
 - `update_task_status` tool — transition tasks through lifecycle with notes and error tracking

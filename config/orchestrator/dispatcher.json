@@ -1,0 +1,5 @@
+{
+  "max_parallel_workers": 4,
+  "workspace_lock_timeout_minutes": 30,
+  "batch_timeout_minutes": 120
+}

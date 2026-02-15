@@ -463,6 +463,62 @@ class TaskDispatcherServer {
             required: ["task_id", "reason"],
           },
         },
+        {
+          name: "dispatch_batch",
+          description: "Dispatch tasks to multiple workspaces in parallel",
+          inputSchema: {
+            type: "object",
+            properties: {
+              tasks: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    workspace: { type: "string", description: "Target workspace name" },
+                    task: { type: "string", description: "Task description" },
+                    complexity: { type: "string", enum: ["simple", "medium", "complex"], description: "Task complexity (default: medium)" },
+                    priority: { type: "string", enum: ["high", "medium", "low"], description: "Task priority (default: medium)" },
+                  },
+                  required: ["workspace", "task"],
+                },
+                description: "Array of tasks to dispatch",
+              },
+              max_parallel: {
+                type: "number",
+                description: "Maximum parallel workers (default: 4)",
+              },
+            },
+            required: ["tasks"],
+          },
+        },
+        {
+          name: "get_batch_status",
+          description: "Get status and progress of a batch dispatch",
+          inputSchema: {
+            type: "object",
+            properties: {
+              batch_id: {
+                type: "string",
+                description: "Batch dispatch ID",
+              },
+            },
+            required: ["batch_id"],
+          },
+        },
+        {
+          name: "cancel_batch",
+          description: "Cancel a running batch dispatch",
+          inputSchema: {
+            type: "object",
+            properties: {
+              batch_id: {
+                type: "string",
+                description: "Batch dispatch ID",
+              },
+            },
+            required: ["batch_id"],
+          },
+        },
       ],
     }));
 
@@ -509,6 +565,15 @@ class TaskDispatcherServer {
               args.task_id,
               args.reason,
             );
+
+          case "dispatch_batch":
+            return await this.dispatchBatch(args.tasks, args.max_parallel);
+
+          case "get_batch_status":
+            return await this.getBatchStatus(args.batch_id);
+
+          case "cancel_batch":
+            return await this.cancelBatch(args.batch_id);
 
           default:
             throw new Error(`Unknown tool: ${name}`);
@@ -880,6 +945,210 @@ class TaskDispatcherServer {
               task_id: taskId,
               reason,
               status: "complete",
+            },
+            null,
+            2,
+          ),
+        },
+      ],
+    };
+  }
+
+  async dispatchBatch(tasks, maxParallel = 4) {
+    // Validate all workspaces exist first (fail fast)
+    const config = await this.loadWorkspaces();
+    for (const t of tasks) {
+      const ws = config.workspaces?.[t.workspace];
+      if (!ws) {
+        throw new Error(`Workspace "${t.workspace}" not found in workspaces.json`);
+      }
+    }
+
+    const batchId = `batch-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const now = new Date().toISOString();
+    const dispatchIds = [];
+    const dispatches = await this.loadDispatches();
+
+    for (const t of tasks) {
+      const ws = config.workspaces[t.workspace];
+      const complexity = t.complexity || "medium";
+      const priority = t.priority || "medium";
+      const model = await this.selectModel(complexity, t.task);
+      const taskId = `dispatch-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+      const context = await this.loadWorkspaceContext(ws.path);
+      let augmentedTask = t.task;
+      if (context) {
+        augmentedTask = `<workspace-context>\n${context}\n</workspace-context>\n\n${t.task}`;
+      }
+
+      const extractedCriteria = this.extractAcceptanceCriteria(t.task);
+      const universalCriteria = await this.generateUniversalCriteria(ws.path);
+
+      const dispatch = {
+        id: taskId,
+        batch_id: batchId,
+        workspace: t.workspace,
+        workspace_path: ws.path,
+        task: augmentedTask,
+        original_task: t.task,
+        complexity,
+        priority,
+        model,
+        has_context: !!context,
+        task_keywords: this.extractTaskKeywords(t.task),
+        status: "pending",
+        created_at: now,
+        updated_at: now,
+        started_at: null,
+        completed_at: null,
+        status_history: [
+          { status: "pending", timestamp: now, note: "Batch dispatched" },
+        ],
+        error_message: null,
+        verification_log: null,
+        acceptance_criteria: [...extractedCriteria, ...universalCriteria],
+        universal_criteria: true,
+      };
+
+      dispatches.push(dispatch);
+      dispatchIds.push(taskId);
+    }
+
+    // Create batch record
+    const batchRecord = {
+      id: batchId,
+      type: "batch",
+      status: "pending",
+      created_at: now,
+      max_parallel: maxParallel,
+      task_count: tasks.length,
+      tasks_completed: 0,
+      tasks_failed: 0,
+      tasks_pending: tasks.length,
+      dispatches: dispatchIds,
+    };
+
+    dispatches.push(batchRecord);
+    await this.saveDispatches(dispatches);
+
+    const executeCommand = `node /home/teruel/claude-orchestrator/scripts/execute-batch.mjs ${batchId}`;
+
+    return {
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify(
+            {
+              message: `Batch dispatched with ${tasks.length} tasks`,
+              batch_id: batchId,
+              dispatch_ids: dispatchIds,
+              max_parallel: maxParallel,
+              command: executeCommand,
+            },
+            null,
+            2,
+          ),
+        },
+      ],
+    };
+  }
+
+  async getBatchStatus(batchId) {
+    const dispatches = await this.loadDispatches();
+    const batch = dispatches.find((d) => d.id === batchId && d.type === "batch");
+
+    if (!batch) {
+      throw new Error(`Batch "${batchId}" not found`);
+    }
+
+    // Recalculate counts from individual dispatches
+    const batchDispatches = dispatches.filter(
+      (d) => d.batch_id === batchId && d.type !== "batch",
+    );
+
+    const counts = {
+      pending: 0,
+      running: 0,
+      verifying: 0,
+      complete: 0,
+      failed: 0,
+    };
+
+    for (const d of batchDispatches) {
+      if (counts[d.status] !== undefined) {
+        counts[d.status]++;
+      }
+    }
+
+    batch.tasks_completed = counts.complete;
+    batch.tasks_failed = counts.failed;
+    batch.tasks_pending = counts.pending;
+
+    return {
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify(
+            {
+              batch_id: batchId,
+              status: batch.status,
+              task_count: batch.task_count,
+              ...counts,
+              dispatches: batchDispatches.map((d) => ({
+                id: d.id,
+                workspace: d.workspace,
+                status: d.status,
+                model: d.model,
+              })),
+            },
+            null,
+            2,
+          ),
+        },
+      ],
+    };
+  }
+
+  async cancelBatch(batchId) {
+    const dispatches = await this.loadDispatches();
+    const batch = dispatches.find((d) => d.id === batchId && d.type === "batch");
+
+    if (!batch) {
+      throw new Error(`Batch "${batchId}" not found`);
+    }
+
+    const now = new Date().toISOString();
+    batch.status = "cancelled";
+
+    // Cancel all pending dispatches in the batch
+    let cancelledCount = 0;
+    for (const d of dispatches) {
+      if (d.batch_id === batchId && d.status === "pending") {
+        d.status = "failed";
+        d.error_message = "Batch cancelled";
+        d.updated_at = now;
+        d.completed_at = now;
+        d.status_history.push({
+          status: "failed",
+          timestamp: now,
+          note: "Batch cancelled",
+        });
+        cancelledCount++;
+      }
+    }
+
+    await this.saveDispatches(dispatches);
+
+    return {
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify(
+            {
+              message: `Batch ${batchId} cancelled`,
+              batch_id: batchId,
+              tasks_cancelled: cancelledCount,
             },
             null,
             2,
