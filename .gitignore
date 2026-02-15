@@ -1,5 +1,6 @@
 # Machine-specific config
 config/orchestrator/workspaces.json
+config/orchestrator/notifications.json
 
 # Logs
 logs/*.log
@@ -31,3 +32,5 @@ Thumbs.db
 # Backup files
 *.backup
 *.bak
+
+workspaces/*
