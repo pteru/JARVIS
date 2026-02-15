@@ -7,21 +7,27 @@ for i in $(seq 1 10); do
   sleep 1
 done
 
-# Launch Chrome in app mode with transparency support
-google-chrome \
+# Launch Chrome in app mode
+nohup google-chrome \
   --app=http://localhost:3000/mini.html \
-  --window-size=280,280 \
+  --new-window \
   --enable-transparent-visuals \
-  --disable-background-timer-throttling &
-CHROME_PID=$!
+  --disable-background-timer-throttling >/dev/null 2>&1 &
 
-# Wait for window to appear, then set always-on-top
-sleep 2
-WID=$(xdotool search --pid $CHROME_PID --name "JARVIS" 2>/dev/null | head -1)
-if [[ -z "$WID" ]]; then
-  sleep 2
-  WID=$(xdotool search --pid $CHROME_PID 2>/dev/null | head -1)
-fi
+# Wait for window to appear
+WID=""
+for i in $(seq 1 10); do
+  sleep 1
+  WID=$(xdotool search --name "JARVIS" 2>/dev/null | tail -1)
+  [[ -n "$WID" ]] && break
+done
+
 if [[ -n "$WID" ]]; then
-  xprop -id "$WID" -f _NET_WM_STATE 32a -set _NET_WM_STATE _NET_WM_STATE_ABOVE 2>/dev/null || true
+  # Get screen size for positioning
+  read -r SW SH <<< "$(xdotool getdisplaygeometry 2>/dev/null || echo '1920 1080')"
+
+  # Resize, position bottom-right, and set always-on-top (all via wmctrl)
+  wmctrl -i -r "$WID" -e 0,$((SW - 400)),$((SH - 460)),360,350
+  sleep 0.3
+  wmctrl -i -r "$WID" -b add,above
 fi
