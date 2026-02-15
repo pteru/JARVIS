@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orchestrator</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: #1a1b2e;
+      color: #e2e8f0;
+      font-size: 12px;
+      overflow: hidden;
+      user-select: none;
+      -webkit-app-region: drag;
+    }
+    .container { padding: 10px 12px; }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #334155;
+    }
+    .header h1 { font-size: 11px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
+    .header .pulse { width: 6px; height: 6px; border-radius: 50%; background: #22c55e; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+    .stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 8px; }
+    .stat {
+      background: #242640;
+      border-radius: 6px;
+      padding: 6px 8px;
+      text-align: center;
+    }
+    .stat .value { font-size: 18px; font-weight: 700; line-height: 1.2; }
+    .stat .label { font-size: 9px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.3px; }
+    .stat.running .value { color: #6c63ff; }
+    .stat.pending .value { color: #f59e0b; }
+    .stat.done .value { color: #22c55e; }
+
+    .section-label { font-size: 9px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+
+    .recent { margin-bottom: 6px; }
+    .task {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 0;
+      font-size: 11px;
+      border-bottom: 1px solid #1e293b;
+    }
+    .task:last-child { border-bottom: none; }
+    .badge {
+      font-size: 8px;
+      font-weight: 600;
+      padding: 1px 5px;
+      border-radius: 3px;
+      text-transform: uppercase;
+      flex-shrink: 0;
+    }
+    .badge.running { background: #6c63ff33; color: #a5b4fc; }
+    .badge.pending { background: #f59e0b22; color: #fbbf24; }
+    .badge.complete { background: #22c55e22; color: #4ade80; }
+    .badge.failed { background: #ef444422; color: #f87171; }
+    .badge.verifying { background: #8b5cf622; color: #c4b5fd; }
+    .task .ws { color: #94a3b8; flex-shrink: 0; max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .task .desc { color: #cbd5e1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+
+    .bar-row { display: flex; gap: 1px; height: 4px; border-radius: 2px; overflow: hidden; margin-bottom: 8px; }
+    .bar-seg { min-width: 2px; }
+    .bar-seg.complete { background: #22c55e; }
+    .bar-seg.running { background: #6c63ff; }
+    .bar-seg.pending { background: #f59e0b; }
+    .bar-seg.failed { background: #ef4444; }
+    .bar-seg.verifying { background: #8b5cf6; }
+
+    .footer { font-size: 9px; color: #475569; text-align: right; }
+
+    .backlog-row { display: flex; justify-content: space-between; padding: 2px 0; font-size: 11px; }
+    .backlog-row .name { color: #94a3b8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 70%; }
+    .backlog-row .count { color: #fbbf24; font-weight: 600; }
+
+    .empty { color: #475569; font-style: italic; font-size: 10px; padding: 4px 0; }
+  </style>
+</head>
+<body>
+  <div class="container" id="app">
+    <div class="header">
+      <h1>Orchestrator</h1>
+      <div class="pulse"></div>
+    </div>
+
+    <div class="stats">
+      <div class="stat running">
+        <div class="value" id="running">-</div>
+        <div class="label">Running</div>
+      </div>
+      <div class="stat pending">
+        <div class="value" id="pending">-</div>
+        <div class="label">Pending</div>
+      </div>
+      <div class="stat done">
+        <div class="value" id="done">-</div>
+        <div class="label">Done 24h</div>
+      </div>
+    </div>
+
+    <div class="bar-row" id="status-bar"></div>
+
+    <div class="section-label">Recent</div>
+    <div class="recent" id="recent-tasks"></div>
+
+    <div class="section-label">Backlog</div>
+    <div id="backlog-summary"></div>
+
+    <div class="footer" id="updated"></div>
+  </div>
+
+  <script>
+    const API = window.location.origin;
+
+    async function fetchJSON(url) {
+      try {
+        const r = await fetch(url);
+        return await r.json();
+      } catch { return null; }
+    }
+
+    function timeSince(iso) {
+      const s = Math.floor((Date.now() - new Date(iso)) / 1000);
+      if (s < 60) return s + 's ago';
+      if (s < 3600) return Math.floor(s / 60) + 'm ago';
+      if (s < 86400) return Math.floor(s / 3600) + 'h ago';
+      return Math.floor(s / 86400) + 'd ago';
+    }
+
+    function shortWs(name) {
+      const parts = name.split('.');
+      return parts[parts.length - 1] || name;
+    }
+
+    async function refresh() {
+      const [dispatches, backlogs] = await Promise.all([
+        fetchJSON(API + '/api/dispatches'),
+        fetchJSON(API + '/api/backlogs'),
+      ]);
+
+      if (dispatches) {
+        const sc = dispatches.statusCounts || {};
+        document.getElementById('running').textContent = (sc.running || 0) + (sc.verifying || 0);
+        document.getElementById('pending').textContent = sc.pending || 0;
+        document.getElementById('done').textContent = dispatches.last24h || 0;
+
+        // Status bar
+        const total = dispatches.total || 1;
+        const bar = document.getElementById('status-bar');
+        bar.innerHTML = '';
+        for (const status of ['complete', 'running', 'verifying', 'pending', 'failed']) {
+          const count = sc[status] || 0;
+          if (count > 0) {
+            const seg = document.createElement('div');
+            seg.className = 'bar-seg ' + status;
+            seg.style.flex = count;
+            bar.appendChild(seg);
+          }
+        }
+
+        // Recent tasks
+        const container = document.getElementById('recent-tasks');
+        const recent = (dispatches.recent || []).slice(0, 4);
+        if (recent.length === 0) {
+          container.innerHTML = '<div class="empty">No dispatches yet</div>';
+        } else {
+          container.innerHTML = recent.map(d => {
+            const desc = (d.original_task || d.task || '').replace(/<workspace-context>[\s\S]*?<\/workspace-context>\s*/g, '');
+            return `<div class="task">
+              <span class="badge ${d.status}">${d.status}</span>
+              <span class="ws">${shortWs(d.workspace || '')}</span>
+              <span class="desc">${desc.slice(0, 50)}</span>
+            </div>`;
+          }).join('');
+        }
+      }
+
+      if (backlogs) {
+        const container = document.getElementById('backlog-summary');
+        const ws = (backlogs.workspaces || [])
+          .filter(w => w.pending > 0)
+          .sort((a, b) => b.pending - a.pending)
+          .slice(0, 3);
+        if (ws.length === 0) {
+          container.innerHTML = '<div class="empty">No pending tasks</div>';
+        } else {
+          container.innerHTML = ws.map(w =>
+            `<div class="backlog-row"><span class="name">${w.name}</span><span class="count">${w.pending}</span></div>`
+          ).join('');
+        }
+      }
+
+      const now = new Date();
+      document.getElementById('updated').textContent = 'Updated ' + now.toLocaleTimeString();
+    }
+
+    refresh();
+    setInterval(refresh, 15000);
+  </script>
+</body>
+</html>
