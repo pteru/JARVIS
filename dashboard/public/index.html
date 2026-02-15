@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claude Orchestrator Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="/style.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            surface: '#1a1b2e',
+            card: '#242640',
+            accent: '#6c63ff',
+            success: '#22c55e',
+            danger: '#ef4444',
+            warning: '#f59e0b'
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-surface text-gray-200 min-h-screen">
+  <!-- Header -->
+  <header class="bg-card border-b border-gray-700 px-6 py-4 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 bg-accent rounded-lg flex items-center justify-center text-white font-bold text-sm">CO</div>
+      <h1 class="text-xl font-semibold text-white">Claude Orchestrator Dashboard</h1>
+    </div>
+    <div class="flex items-center gap-4">
+      <span id="last-updated" class="text-xs text-gray-400">Loading...</span>
+      <span id="status-dot" class="w-2 h-2 rounded-full bg-success animate-pulse"></span>
+    </div>
+  </header>
+
+  <main class="p-6 max-w-screen-2xl mx-auto">
+    <!-- Top Stats Row -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div class="bg-card rounded-xl p-4 border border-gray-700">
+        <div class="text-xs text-gray-400 uppercase tracking-wide">Total Dispatches</div>
+        <div id="stat-total" class="text-2xl font-bold text-white mt-1">--</div>
+      </div>
+      <div class="bg-card rounded-xl p-4 border border-gray-700">
+        <div class="text-xs text-gray-400 uppercase tracking-wide">Last 24h</div>
+        <div id="stat-24h" class="text-2xl font-bold text-accent mt-1">--</div>
+      </div>
+      <div class="bg-card rounded-xl p-4 border border-gray-700">
+        <div class="text-xs text-gray-400 uppercase tracking-wide">Last 7d</div>
+        <div id="stat-7d" class="text-2xl font-bold text-accent mt-1">--</div>
+      </div>
+      <div class="bg-card rounded-xl p-4 border border-gray-700">
+        <div class="text-xs text-gray-400 uppercase tracking-wide">Avg Duration</div>
+        <div id="stat-duration" class="text-2xl font-bold text-white mt-1">--</div>
+      </div>
+    </div>
+
+    <!-- Dispatch Summary + Charts -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+      <!-- Dispatch Summary -->
+      <div class="bg-card rounded-xl p-5 border border-gray-700">
+        <h2 class="text-sm font-semibold text-gray-300 uppercase tracking-wide mb-4">Dispatch Summary</h2>
+        <div id="dispatch-summary" class="space-y-3">
+          <div class="text-gray-500 text-sm">Loading...</div>
+        </div>
+      </div>
+
+      <!-- Model Usage Pie -->
+      <div class="bg-card rounded-xl p-5 border border-gray-700">
+        <h2 class="text-sm font-semibold text-gray-300 uppercase tracking-wide mb-4">Model Usage</h2>
+        <div class="h-56 flex items-center justify-center">
+          <canvas id="chart-models"></canvas>
+        </div>
+      </div>
+
+      <!-- Workspace Activity Bar -->
+      <div class="bg-card rounded-xl p-5 border border-gray-700">
+        <h2 class="text-sm font-semibold text-gray-300 uppercase tracking-wide mb-4">Workspace Activity</h2>
+        <div class="h-56">
+          <canvas id="chart-workspaces"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Recent Dispatches Table -->
+      <div class="lg:col-span-2 bg-card rounded-xl p-5 border border-gray-700">
+        <h2 class="text-sm font-semibold text-gray-300 uppercase tracking-wide mb-4">Recent Dispatches</h2>
+        <div class="overflow-x-auto custom-scrollbar">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="text-gray-400 border-b border-gray-700">
+                <th class="text-left py-2 px-2">Time</th>
+                <th class="text-left py-2 px-2">Workspace</th>
+                <th class="text-left py-2 px-2">Task</th>
+                <th class="text-left py-2 px-2">Model</th>
+                <th class="text-left py-2 px-2">Status</th>
+                <th class="text-right py-2 px-2">Duration</th>
+              </tr>
+            </thead>
+            <tbody id="dispatch-table">
+              <tr><td colspan="6" class="text-gray-500 py-4 text-center">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Right Sidebar -->
+      <div class="space-y-6">
+        <!-- Backlog Health -->
+        <div class="bg-card rounded-xl p-5 border border-gray-700">
+          <h2 class="text-sm font-semibold text-gray-300 uppercase tracking-wide mb-4">Backlog Health</h2>
+          <div id="backlog-health" class="space-y-2">
+            <div class="text-gray-500 text-sm">Loading...</div>
+          </div>
+        </div>
+
+        <!-- Recent Notifications -->
+        <div class="bg-card rounded-xl p-5 border border-gray-700">
+          <h2 class="text-sm font-semibold text-gray-300 uppercase tracking-wide mb-4">Recent Notifications</h2>
+          <div id="notifications-list" class="space-y-2 max-h-64 overflow-y-auto custom-scrollbar">
+            <div class="text-gray-500 text-sm">Loading...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>

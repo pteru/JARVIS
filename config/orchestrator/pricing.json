@@ -1,0 +1,27 @@
+{
+  "models": {
+    "claude-opus-4-5-20251101": {
+      "display_name": "Claude Opus 4.5",
+      "input_per_mtok": 15.00,
+      "output_per_mtok": 75.00,
+      "context_window": 200000,
+      "tier": "complex"
+    },
+    "claude-sonnet-4-5-20250929": {
+      "display_name": "Claude Sonnet 4.5",
+      "input_per_mtok": 3.00,
+      "output_per_mtok": 15.00,
+      "context_window": 200000,
+      "tier": "medium"
+    },
+    "claude-haiku-4-5-20251001": {
+      "display_name": "Claude Haiku 4.5",
+      "input_per_mtok": 0.80,
+      "output_per_mtok": 4.00,
+      "context_window": 200000,
+      "tier": "simple"
+    }
+  },
+  "currency": "USD",
+  "updated": "2026-02-15"
+}
