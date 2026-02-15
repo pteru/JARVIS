@@ -18,7 +18,7 @@ class WorkspaceAnalyzerServer {
     this.server = new Server(
       {
         name: "workspace-analyzer",
-        version: "1.0.0",
+        version: "1.1.0",
       },
       {
         capabilities: {
@@ -88,6 +88,18 @@ class WorkspaceAnalyzerServer {
             required: ["workspace_path"],
           },
         },
+        {
+          name: "generate_workspace_context",
+          description: "Generate initial context.md for a workspace based on codebase analysis",
+          inputSchema: {
+            type: "object",
+            properties: {
+              workspace_path: { type: "string", description: "Path to workspace root" },
+              overwrite: { type: "boolean", description: "Overwrite existing context.md (default false)" },
+            },
+            required: ["workspace_path"],
+          },
+        },
       ],
     }));
 
@@ -107,6 +119,9 @@ class WorkspaceAnalyzerServer {
 
           case "get_workspace_stats":
             return await this.getWorkspaceStats(args.workspace_path);
+
+          case "generate_workspace_context":
+            return await this.generateWorkspaceContext(args.workspace_path, args.overwrite);
 
           default:
             throw new Error(`Unknown tool: ${name}`);
@@ -315,6 +330,147 @@ class WorkspaceAnalyzerServer {
           text: JSON.stringify(stats, null, 2),
         },
       ],
+    };
+  }
+
+  async detectTechStack(workspacePath) {
+    const stack = [];
+
+    // Node.js / JavaScript
+    try {
+      const pkg = JSON.parse(await fs.readFile(path.join(workspacePath, "package.json"), "utf-8"));
+      const allDeps = { ...pkg.dependencies, ...pkg.devDependencies };
+      let framework = "Node.js";
+      if (allDeps["@angular/core"]) framework = "Angular";
+      else if (allDeps["react"]) framework = "React";
+      else if (allDeps["vue"]) framework = "Vue";
+      else if (allDeps["express"]) framework = "Node.js (Express)";
+      else if (allDeps["next"]) framework = "Next.js";
+      else if (allDeps["nestjs"] || allDeps["@nestjs/core"]) framework = "NestJS";
+      stack.push(framework);
+    } catch { /* no package.json */ }
+
+    // Python
+    for (const f of ["requirements.txt", "pyproject.toml", "setup.py"]) {
+      if (await this.fileExists(path.join(workspacePath, f))) {
+        stack.push("Python");
+        break;
+      }
+    }
+
+    // Rust
+    if (await this.fileExists(path.join(workspacePath, "Cargo.toml"))) {
+      stack.push("Rust");
+    }
+
+    // Go
+    if (await this.fileExists(path.join(workspacePath, "go.mod"))) {
+      stack.push("Go");
+    }
+
+    // Java
+    if (await this.fileExists(path.join(workspacePath, "pom.xml"))) {
+      stack.push("Java");
+    }
+
+    // C/C++
+    if (await this.fileExists(path.join(workspacePath, "Makefile"))) {
+      try {
+        const { stdout } = await execAsync(
+          `find . -maxdepth 2 -name "*.c" -o -name "*.cpp" -o -name "*.h" | head -1`,
+          { cwd: workspacePath },
+        );
+        if (stdout.trim()) stack.push("C/C++");
+      } catch { /* ignore */ }
+    }
+
+    // Docker
+    if (await this.fileExists(path.join(workspacePath, "Dockerfile")) ||
+        await this.fileExists(path.join(workspacePath, "docker-compose.yml"))) {
+      stack.push("Docker");
+    }
+
+    return stack.length > 0 ? stack : ["Unknown"];
+  }
+
+  async extractPurpose(workspacePath) {
+    try {
+      const readme = await fs.readFile(path.join(workspacePath, "README.md"), "utf-8");
+      const lines = readme.split("\n");
+      let heading = "";
+      let paragraph = "";
+      let foundHeading = false;
+
+      for (const line of lines) {
+        if (!foundHeading && line.startsWith("#")) {
+          heading = line.replace(/^#+\s*/, "").trim();
+          foundHeading = true;
+          continue;
+        }
+        if (foundHeading && line.trim() && !line.startsWith("#")) {
+          paragraph = line.trim();
+          break;
+        }
+      }
+
+      if (heading || paragraph) {
+        return [heading, paragraph].filter(Boolean).join(" - ");
+      }
+    } catch { /* no README */ }
+    return "No description available (add README.md or update this field)";
+  }
+
+  async generateWorkspaceContext(workspacePath, overwrite = false) {
+    const contextDir = path.join(workspacePath, ".claude");
+    const contextPath = path.join(contextDir, "context.md");
+
+    // Check if already exists
+    if (!overwrite && await this.fileExists(contextPath)) {
+      return {
+        content: [{
+          type: "text",
+          text: `Error: ${contextPath} already exists. Use overwrite=true to replace it.`,
+        }],
+      };
+    }
+
+    const techStack = await this.detectTechStack(workspacePath);
+    const purpose = await this.extractPurpose(workspacePath);
+
+    const content = `# Workspace Context
+
+## Purpose
+${purpose}
+
+## Tech Stack
+${techStack.map(t => `- ${t}`).join("\n")}
+
+## Active Goals
+<!-- Current development priorities for this workspace -->
+- (none yet -- add goals here)
+
+## Constraints
+<!-- Important constraints or rules for this workspace -->
+- (none yet -- add constraints here)
+
+## Related Workspaces
+<!-- Other workspaces this one depends on or interacts with -->
+- (none yet -- add related workspaces here)
+`;
+
+    await fs.mkdir(contextDir, { recursive: true });
+    await fs.writeFile(contextPath, content, "utf-8");
+
+    return {
+      content: [{
+        type: "text",
+        text: JSON.stringify({
+          message: `Generated context.md for ${workspacePath}`,
+          path: contextPath,
+          tech_stack: techStack,
+          purpose,
+        }, null, 2),
+      }],
     };
   }
 
