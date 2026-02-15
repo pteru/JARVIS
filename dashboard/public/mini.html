@@ -195,7 +195,7 @@
           container.innerHTML = '<div class="empty">No pending tasks</div>';
         } else {
           container.innerHTML = ws.map(w =>
-            `<div class="backlog-row"><span class="name">${w.name}</span><span class="count">${w.pending}</span></div>`
+            `<div class="backlog-row"><span class="name">${w.workspace || w.name}</span><span class="count">${w.pending}</span></div>`
           ).join('');
         }
       }
