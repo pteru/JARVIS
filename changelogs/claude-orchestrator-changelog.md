@@ -6,6 +6,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## 2026-02-15
 
+### Added (dashboard v1.1.0)
+- Compact mini dashboard view at `/mini.html` for floating always-on-top window
+- Live-updating stats (running/pending/done), status bar, recent dispatches, backlog summary
+- Auto-refresh every 15 seconds
+- systemd user service for persistent dashboard (`orchestrator-dashboard.service`)
+
 ### Added (task-dispatcher v1.3.0)
 - `dispatch_batch` tool — dispatch tasks to multiple workspaces in parallel with configurable concurrency
 - `get_batch_status` tool — query batch execution progress with aggregated counts
