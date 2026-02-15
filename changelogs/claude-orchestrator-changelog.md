@@ -6,7 +6,44 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## 2026-02-15
 
-### Added (v1.2.0)
+### Added (task-dispatcher v1.2.0)
+- Task lifecycle state machine (`pending → running → verifying → complete | failed`) with transition validation and status history
+- `update_task_status` tool — transition tasks through lifecycle with notes and error tracking
+- `verify_task_completion` tool — run extracted acceptance criteria checks (file_exists, test_pass, content_match, command_success)
+- `mark_task_complete_override` tool — manually complete tasks bypassing verification
+- `update_task_outcome` tool — record outcome (success/failure/partial), execution time, and token usage
+- Acceptance criteria extraction from task descriptions (file paths, test mentions, must-contain patterns, command mentions)
+- Universal criteria generation from workspace package.json/pyproject.toml (test/lint commands)
+- Workspace context injection — reads `.claude/context.md` and prepends to dispatched task prompts in `<workspace-context>` tags
+- Task keyword extraction for categorization (architecture, design, refactor, bug, fix, test, docs, api, database, performance, security)
+- Legacy dispatch record migration on load
+
+### Added (workspace-analyzer v1.1.0)
+- `generate_workspace_context` tool — generates `.claude/context.md` with purpose, tech stack, goals, and constraints
+- Tech stack detection (Node.js/React/Angular/Vue/Next.js/NestJS/Express, Python, Rust, Go, Java, C/C++, Docker)
+- Purpose extraction from README.md
+- `scripts/bootstrap-context-files.mjs` — standalone script to bootstrap context files for all configured workspaces (97 created)
+
+### Added (model-learning-analyzer v1.0.0)
+- New MCP server for model selection optimization based on dispatch history
+- `analyze_model_performance` tool — aggregates success rates, execution times, and token usage by model
+- `suggest_model_rules` tool — generates routing rule suggestions from performance patterns
+- `apply_model_suggestion` / `reject_model_suggestion` tools — accept or dismiss suggested rules
+
+### Added (self-improvement-miner v1.0.0)
+- New MCP server for orchestrator self-analysis and improvement proposals
+- `analyze_patterns` tool — mines dispatch patterns, workspace health, and model routing data
+- `generate_meta_report` tool — produces comprehensive improvement reports with scored proposals
+- `apply_proposal` tool — applies accepted improvement proposals
+- Three analyzer modules: dispatch-patterns, workspace-health, model-routing
+
+### Added (observability dashboard v1.0.0)
+- Express.js dashboard at `dashboard/` with Chart.js visualizations
+- Dispatch history timeline, model usage breakdown, workspace activity, and cost tracking
+- Parsers for backlogs, changelogs, and dispatch logs
+- Claude model pricing configuration at `config/orchestrator/pricing.json`
+
+### Added (notifier v1.2.0)
 - `check_telegram_inbox` tool — polls Telegram for inbound messages, parses commands (`/status`, `/dispatch`, `/cancel`), transcribes voice messages via Groq Whisper API, stores unroutable messages in inbox
 - `get_inbox` tool — retrieves stored inbox messages with optional status filter and mark-read support
 - `reply_telegram` tool — sends freeform replies to Telegram with optional message threading
