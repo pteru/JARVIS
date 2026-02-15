@@ -17,8 +17,11 @@ reports/*.md
 !reports/.gitkeep
 
 # Node modules
+node_modules/
 mcp-servers/*/node_modules/
 mcp-servers/*/package-lock.json
+dashboard/node_modules/
+dashboard/package-lock.json
 
 # OS files
 .DS_Store
