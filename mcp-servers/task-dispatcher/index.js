@@ -58,6 +58,7 @@ class TaskDispatcherServer {
     const configPath = path.join(
       ORCHESTRATOR_HOME,
       "config",
+      "orchestrator",
       "workspaces.json",
     );
     const content = await fs.readFile(configPath, "utf-8");
@@ -68,6 +69,7 @@ class TaskDispatcherServer {
     const modelsPath = path.join(
       ORCHESTRATOR_HOME,
       "config",
+      "orchestrator",
       "models.json",
     );
     const content = await fs.readFile(modelsPath, "utf-8");

@@ -221,6 +221,7 @@ class ChangelogWriterServer {
       const configPath = path.join(
         ORCHESTRATOR_HOME,
         "config",
+        "orchestrator",
         "workspaces.json",
       );
       const config = JSON.parse(await fs.readFile(configPath, "utf-8"));
