@@ -12,8 +12,7 @@ changelogs/*.md
 
 # Backlogs are tracked (versioned centrally and per-workspace)
 
-# Reports (generated content)
-reports/*.md
+# Reports (generated content - daily/weekly are ephemeral, reference reports are tracked)
 !reports/.gitkeep
 
 # Node modules
