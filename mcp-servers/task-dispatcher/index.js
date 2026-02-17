@@ -106,6 +106,26 @@ class TaskDispatcherServer {
     }
   }
 
+  async loadProductContext(product, workspacePath) {
+    if (!product) return null;
+
+    const productMonorepos = {
+      visionking: "/home/teruel/claude-orchestrator/workspaces/strokmatic/visionking",
+      spotfusion: "/home/teruel/claude-orchestrator/workspaces/strokmatic/spotfusion",
+      diemaster: "/home/teruel/claude-orchestrator/workspaces/strokmatic/diemaster",
+    };
+
+    const monorepoPath = productMonorepos[product];
+    if (!monorepoPath || monorepoPath === workspacePath) return null;
+
+    try {
+      const contextPath = path.join(monorepoPath, ".claude", "context.md");
+      return await fs.readFile(contextPath, "utf-8");
+    } catch {
+      return null;
+    }
+  }
+
   extractTaskKeywords(description) {
     const patterns = [
       /\barchitectur(e|al)\b/i, /\bdesign\b/i, /\brefactor(ing)?\b/i,
@@ -610,11 +630,15 @@ class TaskDispatcherServer {
     const taskId = `dispatch-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     const now = new Date().toISOString();
 
-    // Load and inject workspace context
+    // Load and inject workspace context + product context
     const context = await this.loadWorkspaceContext(ws.path);
+    const productContext = await this.loadProductContext(ws.product, ws.path);
     let augmentedTask = task;
+    if (productContext) {
+      augmentedTask = `<product-context product="${ws.product}">\n${productContext}\n</product-context>\n\n${augmentedTask}`;
+    }
     if (context) {
-      augmentedTask = `<workspace-context>\n${context}\n</workspace-context>\n\n${task}`;
+      augmentedTask = `<workspace-context>\n${context}\n</workspace-context>\n\n${augmentedTask}`;
     }
 
     // Extract acceptance criteria from task description
@@ -631,6 +655,7 @@ class TaskDispatcherServer {
       priority,
       model,
       has_context: !!context,
+      has_product_context: !!productContext,
       task_keywords: this.extractTaskKeywords(task),
       status: "pending",
       created_at: now,
@@ -977,9 +1002,13 @@ class TaskDispatcherServer {
       const taskId = `dispatch-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
       const context = await this.loadWorkspaceContext(ws.path);
+      const productContext = await this.loadProductContext(ws.product, ws.path);
       let augmentedTask = t.task;
+      if (productContext) {
+        augmentedTask = `<product-context product="${ws.product}">\n${productContext}\n</product-context>\n\n${augmentedTask}`;
+      }
       if (context) {
-        augmentedTask = `<workspace-context>\n${context}\n</workspace-context>\n\n${t.task}`;
+        augmentedTask = `<workspace-context>\n${context}\n</workspace-context>\n\n${augmentedTask}`;
       }
 
       const extractedCriteria = this.extractAcceptanceCriteria(t.task);
@@ -996,6 +1025,7 @@ class TaskDispatcherServer {
         priority,
         model,
         has_context: !!context,
+        has_product_context: !!productContext,
         task_keywords: this.extractTaskKeywords(t.task),
         status: "pending",
         created_at: now,
