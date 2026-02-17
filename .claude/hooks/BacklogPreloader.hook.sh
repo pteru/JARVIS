@@ -23,6 +23,10 @@ fi
 
 local_backlog="${ws_path}/.claude/backlog.md"
 central_backlog="${BACKLOG_DIR}/${workspace}.md"
+# Also check with strokmatic prefix
+if [[ ! -f "$central_backlog" ]]; then
+  central_backlog="${BACKLOG_DIR}/strokmatic.${workspace}.md"
+fi
 
 # Sync local backlog to central if local is newer
 if [[ -f "$local_backlog" ]]; then

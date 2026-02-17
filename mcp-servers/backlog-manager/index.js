@@ -243,7 +243,8 @@ class BacklogManagerServer {
     const centralPath = path.join(
       ORCHESTRATOR_HOME,
       "backlogs",
-      `${workspace}-backlog.md`,
+      "products",
+      `${workspace}.md`,
     );
     const workspacePath = path.join(wsPath, ".claude", "backlog.md");
     const baselinePath = path.join(wsPath, ".claude", "backlog.md.baseline");
@@ -441,7 +442,8 @@ class BacklogManagerServer {
     const backlogPath = path.join(
       ORCHESTRATOR_HOME,
       "backlogs",
-      `${workspace}-backlog.md`,
+      "products",
+      `${workspace}.md`,
     );
 
     const content = await fs.readFile(backlogPath, "utf-8");
@@ -482,7 +484,8 @@ class BacklogManagerServer {
     const backlogPath = path.join(
       ORCHESTRATOR_HOME,
       "backlogs",
-      `${workspace}-backlog.md`,
+      "products",
+      `${workspace}.md`,
     );
 
     let content = await fs.readFile(backlogPath, "utf-8");
@@ -523,7 +526,8 @@ class BacklogManagerServer {
     const backlogPath = path.join(
       ORCHESTRATOR_HOME,
       "backlogs",
-      `${workspace}-backlog.md`,
+      "products",
+      `${workspace}.md`,
     );
 
     let content = await fs.readFile(backlogPath, "utf-8");

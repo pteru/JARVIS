@@ -9,7 +9,7 @@ ORCHESTRATOR_HOME="${ORCHESTRATOR_HOME:-/home/teruel/claude-orchestrator}"
 WORKSPACES_CONFIG="${ORCHESTRATOR_HOME}/config/orchestrator/workspaces.json"
 MODELS_CONFIG="${ORCHESTRATOR_HOME}/config/orchestrator/models.json"
 DISPATCHES_LOG="${ORCHESTRATOR_HOME}/logs/dispatches.json"
-BACKLOG_DIR="${ORCHESTRATOR_HOME}/backlog"
+BACKLOG_DIR="${ORCHESTRATOR_HOME}/backlogs/products"
 CHANGELOG_DIR="${ORCHESTRATOR_HOME}/changelogs"
 
 # Check that jq is available; fail-open if missing

@@ -88,7 +88,7 @@ process_backlogs() {
 
         log_info "Priority: $WS_PRIORITY | Auto-review: $AUTO_REVIEW"
 
-        BACKLOG="$ORCHESTRATOR_HOME/backlogs/${ws}-backlog.md"
+        BACKLOG="$ORCHESTRATOR_HOME/backlogs/products/${ws}.md"
         if [[ ! -f "$BACKLOG" ]]; then
             log_warn "No backlog for $ws — skipping"
             continue
@@ -196,7 +196,7 @@ suggest_weekly_goals() {
     for ws in $WORKSPACES; do
         log_info "Workspace: $ws"
 
-        BACKLOG="$ORCHESTRATOR_HOME/backlogs/${ws}-backlog.md"
+        BACKLOG="$ORCHESTRATOR_HOME/backlogs/products/${ws}.md"
         if [[ -f "$BACKLOG" ]]; then
             PENDING=$(grep -c '^\- \[ \]' "$BACKLOG" 2>/dev/null || echo 0)
             log_info "  Pending tasks: $PENDING"
@@ -224,12 +224,14 @@ case "$MODE" in
     daily-report)     generate_daily_report ;;
     weekly-report)    generate_weekly_report ;;
     suggest-goals)    suggest_weekly_goals ;;
+    fetch-remotes)    "$SCRIPT_DIR/fetch-all-remotes.sh" ;;
+    update-access)    "$SCRIPT_DIR/update-access-matrix.sh" ;;
     manual)           run_manual "$@" ;;
     # Legacy aliases
     daily)            process_backlogs ;;
     weekly)           generate_weekly_report ;;
     *)
-        echo "Usage: orchestrator.sh <process-backlogs|daily-report|weekly-report|suggest-goals|manual> [args...]"
+        echo "Usage: orchestrator.sh <process-backlogs|daily-report|weekly-report|suggest-goals|fetch-remotes|update-access|manual> [args...]"
         exit 1
         ;;
 esac
