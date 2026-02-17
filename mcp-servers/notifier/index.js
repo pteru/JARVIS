@@ -10,7 +10,7 @@ import path from "path";
 
 const ORCHESTRATOR_HOME =
   process.env.ORCHESTRATOR_HOME ||
-  path.join(process.env.HOME, "claude-orchestrator");
+  path.join(process.env.HOME, "JARVIS");
 
 class NotifierServer {
   constructor() {
