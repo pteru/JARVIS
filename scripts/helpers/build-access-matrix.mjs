@@ -93,6 +93,6 @@ for (const repo of repoList) {
   md += '| ' + repo + ' | ' + protCell + ' | ' + cells.join(' | ') + ' |\n';
 }
 
-writeFileSync('/home/teruel/claude-orchestrator/reports/github-access-matrix.md', md);
+writeFileSync('/home/teruel/JARVIS/reports/github-access-matrix.md', md);
 console.log(`Users: ${userList.length}, Repos: ${repoList.length}, Entries: ${lines.length}`);
 console.log(`Protected: ${protectedRepos.length}, Partial: ${partialRepos.length}, Unprotected: ${unprotectedService.length}`);

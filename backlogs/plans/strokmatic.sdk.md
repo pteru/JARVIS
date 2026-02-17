@@ -28,10 +28,10 @@ This document provides deep-dive implementation plans for FEAT-01 through FEAT-0
 - This is real-time Class 1 I/O, not polling -- the PLC pushes data cyclically
 
 **Key files:**
-- `/home/teruel/claude-orchestrator/workspaces/strokmatic/visionking/services/plc-monitor-eip/plc/plc_connector.py` -- pylogix wrapper
-- `/home/teruel/claude-orchestrator/workspaces/strokmatic/spotfusion/services/plc-monitor-camera-opener/opener/` -- Full OpENer C source tree
-- `/home/teruel/claude-orchestrator/workspaces/strokmatic/spotfusion/services/plc-monitor-camera-opener/opener/src/ports/POSIX/sample_application/Iplc/plc_connector.py` -- Python Adapter-based connector (Class 1)
-- `/home/teruel/claude-orchestrator/workspaces/strokmatic/spotfusion/services/plc-monitor-camera-opener/opener/src/ports/POSIX/sample_application/Iplc/plc_connector_class3.py` -- pylogix-based connector (Class 3)
+- `/home/teruel/JARVIS/workspaces/strokmatic/visionking/services/plc-monitor-eip/plc/plc_connector.py` -- pylogix wrapper
+- `/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/services/plc-monitor-camera-opener/opener/` -- Full OpENer C source tree
+- `/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/services/plc-monitor-camera-opener/opener/src/ports/POSIX/sample_application/Iplc/plc_connector.py` -- Python Adapter-based connector (Class 1)
+- `/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/services/plc-monitor-camera-opener/opener/src/ports/POSIX/sample_application/Iplc/plc_connector_class3.py` -- pylogix-based connector (Class 3)
 
 ### 2. Scope of Work
 
@@ -118,7 +118,7 @@ The SDK library must unify both approaches behind a clean Python API:
 
 ### 1. Current State
 
-The observability stack at `/home/teruel/claude-orchestrator/workspaces/strokmatic/sdk/sdk-observability-stack/` contains:
+The observability stack at `/home/teruel/JARVIS/workspaces/strokmatic/sdk/sdk-observability-stack/` contains:
 
 **Docker Compose services (docker-compose.yml):**
 - **Prometheus** (port 8110) -- metrics scraping at 15s interval
@@ -222,7 +222,7 @@ The observability stack at `/home/teruel/claude-orchestrator/workspaces/strokmat
 
 ### 1. Current State
 
-The library **already exists and is feature-complete** at `/home/teruel/claude-orchestrator/workspaces/strokmatic/sdk/sdk-lib-logging/`.
+The library **already exists and is feature-complete** at `/home/teruel/JARVIS/workspaces/strokmatic/sdk/sdk-lib-logging/`.
 
 **Package:** `strokmatic-logging` v1.0.0
 
@@ -308,7 +308,7 @@ The library code is **done**. The remaining work is deployment and adoption:
 
 ### 1. Current State
 
-The library **already exists and is feature-complete** at `/home/teruel/claude-orchestrator/workspaces/strokmatic/sdk/sdk-lib-rabbit-client/`.
+The library **already exists and is feature-complete** at `/home/teruel/JARVIS/workspaces/strokmatic/sdk/sdk-lib-rabbit-client/`.
 
 **Package:** `strokmatic-rabbit-client` v1.0.0
 

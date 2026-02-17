@@ -18,10 +18,10 @@ The task-dispatcher MCP injects this context when generating the `claude --model
 Each workspace gets a `.claude/context.md` file at its root:
 
 ```
-/home/teruel/claude-orchestrator/workspaces/strokmatic/visionking/services/visionking-backend/.claude/context.md
+/home/teruel/JARVIS/workspaces/strokmatic/visionking/services/visionking-backend/.claude/context.md
 ```
 
-The orchestrator **already pushes** `backlog.md` to `<workspace>/.claude/backlog.md` via the backlog-manager MCP (see `/home/teruel/claude-orchestrator/mcp-servers/backlog-manager/index.js` lines 53-66), establishing precedent for the `.claude/` directory pattern.
+The orchestrator **already pushes** `backlog.md` to `<workspace>/.claude/backlog.md` via the backlog-manager MCP (see `/home/teruel/JARVIS/mcp-servers/backlog-manager/index.js` lines 53-66), establishing precedent for the `.claude/` directory pattern.
 
 ### Context File Structure
 
@@ -57,7 +57,7 @@ Brief description of what this workspace does (1-2 sentences).
 
 ### Integration with Task Dispatcher
 
-The task-dispatcher MCP at `/home/teruel/claude-orchestrator/mcp-servers/task-dispatcher/index.js` currently generates:
+The task-dispatcher MCP at `/home/teruel/JARVIS/mcp-servers/task-dispatcher/index.js` currently generates:
 
 ```javascript
 command: `claude --model ${model} --print "${task}"`
@@ -79,7 +79,7 @@ try {
 command: `claude --model ${model} --print "${enrichedTask}"`;
 ```
 
-This approach mirrors how workspace-analyzer already reads workspace metadata (package.json, README.md, CLAUDE.md) in `/home/teruel/claude-orchestrator/mcp-servers/workspace-analyzer/index.js` lines 135-163.
+This approach mirrors how workspace-analyzer already reads workspace metadata (package.json, README.md, CLAUDE.md) in `/home/teruel/JARVIS/mcp-servers/workspace-analyzer/index.js` lines 135-163.
 
 ---
 
@@ -89,7 +89,7 @@ This approach mirrors how workspace-analyzer already reads workspace metadata (p
 
 **New MCP Tool:** Add `generate_workspace_context` to the workspace-analyzer MCP.
 
-**Location:** `/home/teruel/claude-orchestrator/mcp-servers/workspace-analyzer/index.js`
+**Location:** `/home/teruel/JARVIS/mcp-servers/workspace-analyzer/index.js`
 
 **Logic:**
 1. Analyze workspace using existing `analyzeWorkspaceHealth` method (detects package.json, README, test dirs, git status)
@@ -129,7 +129,7 @@ This approach mirrors how workspace-analyzer already reads workspace metadata (p
 
 ### 2. Modify Task Dispatcher to Inject Context
 
-**Location:** `/home/teruel/claude-orchestrator/mcp-servers/task-dispatcher/index.js`
+**Location:** `/home/teruel/JARVIS/mcp-servers/task-dispatcher/index.js`
 
 **Changes:**
 
@@ -212,14 +212,14 @@ async dispatchTask(workspace, task, complexity = "medium", priority = "medium") 
 
 **Manual workflow:**
 
-1. List all configured workspaces from `/home/teruel/claude-orchestrator/config/orchestrator/workspaces.json`
+1. List all configured workspaces from `/home/teruel/JARVIS/config/orchestrator/workspaces.json`
 2. For each workspace, use the new `generate_workspace_context` tool to create initial drafts
 3. Review and refine each generated `context.md` manually or with assistance from Claude
 4. Commit the `.claude/context.md` files to each workspace's git repository
 
 **Automation (optional):**
 
-Create a one-time orchestrator script: `/home/teruel/claude-orchestrator/scripts/bootstrap-context-files.js`
+Create a one-time orchestrator script: `/home/teruel/JARVIS/scripts/bootstrap-context-files.js`
 
 ```javascript
 #!/usr/bin/env node
@@ -230,7 +230,7 @@ This follows the pattern established by the existing workspace-analyzer's sugges
 
 ### 4. Documentation
 
-Update `/home/teruel/claude-orchestrator/CLAUDE.md`:
+Update `/home/teruel/JARVIS/CLAUDE.md`:
 
 **File Structure section:**
 ```markdown
@@ -264,12 +264,12 @@ Update `/home/teruel/claude-orchestrator/CLAUDE.md`:
 
 ### New Tool: `generate_workspace_context`
 
-**Server:** workspace-analyzer (`/home/teruel/claude-orchestrator/mcp-servers/workspace-analyzer/index.js`)
+**Server:** workspace-analyzer (`/home/teruel/JARVIS/mcp-servers/workspace-analyzer/index.js`)
 
 **Input:**
 ```json
 {
-  "workspace_path": "/home/teruel/claude-orchestrator/workspaces/strokmatic/visionking/services/visionking-backend",
+  "workspace_path": "/home/teruel/JARVIS/workspaces/strokmatic/visionking/services/visionking-backend",
   "overwrite": false
 }
 ```
@@ -278,7 +278,7 @@ Update `/home/teruel/claude-orchestrator/CLAUDE.md`:
 ```json
 {
   "status": "created",
-  "path": "/home/teruel/claude-orchestrator/workspaces/strokmatic/visionking/services/visionking-backend/.claude/context.md",
+  "path": "/home/teruel/JARVIS/workspaces/strokmatic/visionking/services/visionking-backend/.claude/context.md",
   "detected": {
     "tech_stack": "Node.js (Express)",
     "purpose": "VisionKing backend API service",
@@ -296,7 +296,7 @@ Update `/home/teruel/claude-orchestrator/CLAUDE.md`:
 
 ### Modified Tool: `dispatch_task`
 
-**Server:** task-dispatcher (`/home/teruel/claude-orchestrator/mcp-servers/task-dispatcher/index.js`)
+**Server:** task-dispatcher (`/home/teruel/JARVIS/mcp-servers/task-dispatcher/index.js`)
 
 **Input:** (unchanged)
 ```json
@@ -314,7 +314,7 @@ Update `/home/teruel/claude-orchestrator/CLAUDE.md`:
   "message": "Task dispatched to strokmatic.visionking.services.visionking-backend",
   "task_id": "dispatch-1707856234567-a3f9c2",
   "model": "claude-sonnet-4-5-20250929",
-  "workspace_path": "/home/teruel/claude-orchestrator/workspaces/strokmatic/visionking/services/visionking-backend",
+  "workspace_path": "/home/teruel/JARVIS/workspaces/strokmatic/visionking/services/visionking-backend",
   "context_injected": true,
   "command": "claude --model claude-sonnet-4-5-20250929 --print \"# Workspace Context\n\n[...context.md contents...]\n\n---\n\n# Task\n\nAdd rate limiting to the /api/inference endpoint\""
 }
@@ -379,20 +379,20 @@ Update `/home/teruel/claude-orchestrator/CLAUDE.md`:
 
 ### Existing Infrastructure
 
-- **backlog-manager MCP** already creates `.claude/` directories and writes `backlog.md` (lines 53-66 of `/home/teruel/claude-orchestrator/mcp-servers/backlog-manager/index.js`)
-- **workspace-analyzer MCP** already analyzes package.json, README, tests, git status (lines 127-206 of `/home/teruel/claude-orchestrator/mcp-servers/workspace-analyzer/index.js`)
-- **task-dispatcher MCP** already reads workspace paths from `/home/teruel/claude-orchestrator/config/orchestrator/workspaces.json` (lines 57-65 of `/home/teruel/claude-orchestrator/mcp-servers/task-dispatcher/index.js`)
+- **backlog-manager MCP** already creates `.claude/` directories and writes `backlog.md` (lines 53-66 of `/home/teruel/JARVIS/mcp-servers/backlog-manager/index.js`)
+- **workspace-analyzer MCP** already analyzes package.json, README, tests, git status (lines 127-206 of `/home/teruel/JARVIS/mcp-servers/workspace-analyzer/index.js`)
+- **task-dispatcher MCP** already reads workspace paths from `/home/teruel/JARVIS/config/orchestrator/workspaces.json` (lines 57-65 of `/home/teruel/JARVIS/mcp-servers/task-dispatcher/index.js`)
 
 ### Configuration File
 
-**Location:** `/home/teruel/claude-orchestrator/config/orchestrator/workspaces.json`
+**Location:** `/home/teruel/JARVIS/config/orchestrator/workspaces.json`
 
 Each workspace entry has a `path` field:
 ```json
 {
   "workspaces": {
     "strokmatic.visionking.services.visionking-backend": {
-      "path": "/home/teruel/claude-orchestrator/workspaces/strokmatic/visionking/services/visionking-backend",
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/visionking/services/visionking-backend",
       "type": "nodejs",
       "category": "service",
       "product": "visionking",
@@ -431,8 +431,8 @@ All required modules already present in both MCPs:
 
 ## References
 
-- **PAI TELOS System:** `/home/teruel/claude-orchestrator/references/Personal_AI_Infrastructure/Releases/v2.3/.claude/CLAUDE.md` (lines 1-84)
-- **backlog-manager `pushToWorkspace`:** `/home/teruel/claude-orchestrator/mcp-servers/backlog-manager/index.js` (lines 53-66)
-- **workspace-analyzer `analyzeWorkspaceHealth`:** `/home/teruel/claude-orchestrator/mcp-servers/workspace-analyzer/index.js` (lines 127-206)
-- **task-dispatcher `dispatchTask`:** `/home/teruel/claude-orchestrator/mcp-servers/task-dispatcher/index.js` (lines 235-288)
-- **Workspace configuration:** `/home/teruel/claude-orchestrator/config/orchestrator/workspaces.json`
+- **PAI TELOS System:** `/home/teruel/JARVIS/references/Personal_AI_Infrastructure/Releases/v2.3/.claude/CLAUDE.md` (lines 1-84)
+- **backlog-manager `pushToWorkspace`:** `/home/teruel/JARVIS/mcp-servers/backlog-manager/index.js` (lines 53-66)
+- **workspace-analyzer `analyzeWorkspaceHealth`:** `/home/teruel/JARVIS/mcp-servers/workspace-analyzer/index.js` (lines 127-206)
+- **task-dispatcher `dispatchTask`:** `/home/teruel/JARVIS/mcp-servers/task-dispatcher/index.js` (lines 235-288)
+- **Workspace configuration:** `/home/teruel/JARVIS/config/orchestrator/workspaces.json`

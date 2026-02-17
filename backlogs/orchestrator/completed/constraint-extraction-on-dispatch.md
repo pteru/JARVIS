@@ -15,7 +15,7 @@ Inspired by PAI's Build Drift Prevention pattern: constraints are extracted up-f
 
 ### 1. Constraint Extraction at Dispatch Time
 
-When `dispatch_task` is called in `/home/teruel/claude-orchestrator/mcp-servers/task-dispatcher/index.js`, the system performs the following:
+When `dispatch_task` is called in `/home/teruel/JARVIS/mcp-servers/task-dispatcher/index.js`, the system performs the following:
 
 1. **Parse the task description** for explicit acceptance criteria, including:
    - File existence checks (e.g., "create a file at X")
@@ -54,7 +54,7 @@ When `dispatch_task` is called in `/home/teruel/claude-orchestrator/mcp-servers/
    }
    ```
 
-3. **Augment the dispatch record** in `/home/teruel/claude-orchestrator/logs/dispatches.json` with an `acceptance_criteria` array and a `universal_criteria` flag (defaults to true, enforces the CLAUDE.md checklist).
+3. **Augment the dispatch record** in `/home/teruel/JARVIS/logs/dispatches.json` with an `acceptance_criteria` array and a `universal_criteria` flag (defaults to true, enforces the CLAUDE.md checklist).
 
 **Enhanced dispatch record schema**:
 ```json
@@ -94,7 +94,7 @@ When `dispatch_task` is called in `/home/teruel/claude-orchestrator/mcp-servers/
 
 ### 2. Universal Criteria (from CLAUDE.md)
 
-The existing **Task Completion Checklist** in `/home/teruel/claude-orchestrator/CLAUDE.md` defines universal criteria for all tasks:
+The existing **Task Completion Checklist** in `/home/teruel/JARVIS/CLAUDE.md` defines universal criteria for all tasks:
 
 1. Code changes are implemented and working
 2. Existing tests still pass
@@ -145,7 +145,7 @@ When `universal_criteria: true`, the system automatically appends these as verif
 
 When the executing Claude Code session reaches the end of a task, it:
 
-1. **Loads the dispatch record** from `/home/teruel/claude-orchestrator/logs/dispatches.json` using the task ID
+1. **Loads the dispatch record** from `/home/teruel/JARVIS/logs/dispatches.json` using the task ID
 2. **Iterates through each criterion** in `acceptance_criteria` and verifies it programmatically:
    - `file_exists` → use `Read` tool or `test -f`
    - `test_pass` → run the command via `Bash`, check exit code
@@ -195,7 +195,7 @@ If verification fails:
 
 ### Step 1: Extend task-dispatcher MCP server
 
-**File**: `/home/teruel/claude-orchestrator/mcp-servers/task-dispatcher/index.js`
+**File**: `/home/teruel/JARVIS/mcp-servers/task-dispatcher/index.js`
 
 1. Add a new method `extractAcceptanceCriteria(taskDescription, workspace)`:
    - Use a small language model or regex patterns to identify common constraint patterns
@@ -225,7 +225,7 @@ If verification fails:
 
 ### Step 2: Create constraint verification library
 
-**File**: `/home/teruel/claude-orchestrator/mcp-servers/task-dispatcher/lib/verify-criteria.js` (new)
+**File**: `/home/teruel/JARVIS/mcp-servers/task-dispatcher/lib/verify-criteria.js` (new)
 
 1. Implement verifier functions for each criterion type:
    ```javascript
@@ -272,7 +272,7 @@ If verification fails:
 
 ### Step 3: Update CLAUDE.md checklist
 
-**File**: `/home/teruel/claude-orchestrator/CLAUDE.md`
+**File**: `/home/teruel/JARVIS/CLAUDE.md`
 
 1. Add a new section under **Task Completion Checklist**:
    ```markdown
@@ -297,7 +297,7 @@ If verification fails:
 
 ### Step 4: Create constraint extraction prompt
 
-**File**: `/home/teruel/claude-orchestrator/mcp-servers/task-dispatcher/lib/extract-criteria-prompt.txt` (new)
+**File**: `/home/teruel/JARVIS/mcp-servers/task-dispatcher/lib/extract-criteria-prompt.txt` (new)
 
 This prompt is used internally by the `extractAcceptanceCriteria()` function to guide criterion extraction:
 
@@ -343,7 +343,7 @@ Return an empty array if no explicit criteria are found.
 
 ### Step 5: Update dispatch workflow documentation
 
-**File**: `/home/teruel/claude-orchestrator/README.md` (if exists, otherwise add to CLAUDE.md)
+**File**: `/home/teruel/JARVIS/README.md` (if exists, otherwise add to CLAUDE.md)
 
 Document the enhanced dispatch flow:
 1. Task is dispatched → criteria extracted → stored in dispatch record
@@ -470,23 +470,23 @@ Document the enhanced dispatch flow:
 ## Dependencies & Prerequisites
 
 ### Required Changes
-1. **task-dispatcher MCP server** (`/home/teruel/claude-orchestrator/mcp-servers/task-dispatcher/index.js`):
+1. **task-dispatcher MCP server** (`/home/teruel/JARVIS/mcp-servers/task-dispatcher/index.js`):
    - Add `extractAcceptanceCriteria()` method
    - Add `generateUniversalCriteria()` method
    - Extend `dispatchTask()` to populate `acceptance_criteria` in dispatch record
    - Add `verify_task_completion` tool
    - Add `mark_task_complete_override` tool
 
-2. **New verification library** (`/home/teruel/claude-orchestrator/mcp-servers/task-dispatcher/lib/verify-criteria.js`):
+2. **New verification library** (`/home/teruel/JARVIS/mcp-servers/task-dispatcher/lib/verify-criteria.js`):
    - Implement verifier functions for each criterion type
    - Export unified verification dispatcher
 
-3. **Dispatch record schema** (`/home/teruel/claude-orchestrator/logs/dispatches.json`):
+3. **Dispatch record schema** (`/home/teruel/JARVIS/logs/dispatches.json`):
    - Add `acceptance_criteria` array field
    - Add `universal_criteria` boolean field (default true)
    - Add `verification_results` object field (null until verified)
 
-4. **CLAUDE.md** (`/home/teruel/claude-orchestrator/CLAUDE.md`):
+4. **CLAUDE.md** (`/home/teruel/JARVIS/CLAUDE.md`):
    - Update Task Completion Checklist to reference constraint verification
    - Add new Constraint Verification Protocol section
 

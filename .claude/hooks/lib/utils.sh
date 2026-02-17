@@ -3,7 +3,7 @@ set -euo pipefail
 
 # Shared utilities for Claude Code hooks
 
-ORCHESTRATOR_HOME="${ORCHESTRATOR_HOME:-/home/teruel/claude-orchestrator}"
+ORCHESTRATOR_HOME="${ORCHESTRATOR_HOME:-/home/teruel/JARVIS}"
 
 # Config paths
 WORKSPACES_CONFIG="${ORCHESTRATOR_HOME}/config/orchestrator/workspaces.json"

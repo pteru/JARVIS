@@ -6,7 +6,7 @@ argument-hint: "<service-name>"
 
 Look up details about the VisionKing service: $ARGUMENTS
 
-Search the visionking workspace at `/home/teruel/claude-orchestrator/workspaces/strokmatic/visionking/` for information about the requested service.
+Search the visionking workspace at `/home/teruel/JARVIS/workspaces/strokmatic/visionking/` for information about the requested service.
 
 Check these sources:
 1. `services/<service-name>/` — README, Dockerfile, requirements, entry point

@@ -66,15 +66,15 @@ Telegram supports inbound messages via the `getUpdates` long-polling API. This e
 
 ### Phase 1: Core Notifier MCP Server
 
-**File:** `/home/teruel/claude-orchestrator/mcp-servers/notifier/index.js`
+**File:** `/home/teruel/JARVIS/mcp-servers/notifier/index.js`
 
 1. **Scaffold MCP Server**
    - Initialize new Node.js MCP server using `@modelcontextprotocol/sdk`
-   - Follow existing patterns from `/home/teruel/claude-orchestrator/mcp-servers/task-dispatcher/index.js`
+   - Follow existing patterns from `/home/teruel/JARVIS/mcp-servers/task-dispatcher/index.js`
    - Set up stdio transport and error handling
 
 2. **Configuration Schema**
-   - Create `/home/teruel/claude-orchestrator/config/orchestrator/notifications.json`:
+   - Create `/home/teruel/JARVIS/config/orchestrator/notifications.json`:
      ```json
      {
        "enabled": true,
@@ -151,7 +151,7 @@ Telegram supports inbound messages via the `getUpdates` long-polling API. This e
 
 ### Phase 2: Integration with task-dispatcher
 
-**File:** `/home/teruel/claude-orchestrator/mcp-servers/task-dispatcher/index.js`
+**File:** `/home/teruel/JARVIS/mcp-servers/task-dispatcher/index.js`
 
 5. **Instrument Dispatch Lifecycle**
    - After task status changes (via future `update_task_status` tool from the task-lifecycle-tracking spec), call `send_notification` with the appropriate event
@@ -161,7 +161,7 @@ Telegram supports inbound messages via the `getUpdates` long-polling API. This e
 ### Phase 3: Optional Enhancements
 
 6. **Rate Limiting** — CallMeBot allows ~1 msg/2s; queue messages and flush with delay if multiple tasks complete simultaneously
-7. **Notification History** — Log all sent notifications to `/home/teruel/claude-orchestrator/logs/notifications.json`
+7. **Notification History** — Log all sent notifications to `/home/teruel/JARVIS/logs/notifications.json`
 8. **Batching** — Group multiple quick task completions into a single summary message (configurable batch window)
 9. **DND Mode** — Config toggle to suppress all notifications during specified hours
 
@@ -277,7 +277,7 @@ Sends a test notification to verify backend configuration.
 - Node.js built-in `fetch` (Node 18+, no additional packages)
 
 ### Configuration Files
-- **New:** `/home/teruel/claude-orchestrator/config/orchestrator/notifications.json`
+- **New:** `/home/teruel/JARVIS/config/orchestrator/notifications.json`
 
 ### User Setup (One-Time)
 1. Open Telegram and search for **@BotFather**
@@ -295,9 +295,9 @@ Add to `~/.claude/config.json`:
   "mcpServers": {
     "notifier": {
       "command": "node",
-      "args": ["/home/teruel/claude-orchestrator/mcp-servers/notifier/index.js"],
+      "args": ["/home/teruel/JARVIS/mcp-servers/notifier/index.js"],
       "env": {
-        "ORCHESTRATOR_HOME": "/home/teruel/claude-orchestrator"
+        "ORCHESTRATOR_HOME": "/home/teruel/JARVIS"
       }
     }
   }
