@@ -515,7 +515,7 @@ For high-confidence, low-risk proposals (e.g., adding a simple routing rule):
 **Output:**
 ```json
 {
-  "report_path": "/home/teruel/claude-orchestrator/reports/meta-2026-02-15.md",
+  "report_path": "/home/teruel/JARVIS/reports/meta-2026-02-15.md",
   "proposals_count": 4,
   "high_priority_count": 2,
   "backlog_appended": false

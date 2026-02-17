@@ -36,24 +36,24 @@ User/Scheduler → task-dispatcher MCP (dispatch_batch)
 
 **Key Components:**
 
-1. **task-dispatcher MCP** (`/home/teruel/claude-orchestrator/mcp-servers/task-dispatcher/index.js`)
+1. **task-dispatcher MCP** (`/home/teruel/JARVIS/mcp-servers/task-dispatcher/index.js`)
    - New tool: `dispatch_batch` — accepts array of workspace+task pairs
    - New tool: `get_batch_status` — query batch execution status
    - Generates shell script for parallel execution coordination
    - Writes batch metadata to `logs/dispatches.json`
 
-2. **Batch Executor Script** (`/home/teruel/claude-orchestrator/scripts/execute-batch.sh`)
+2. **Batch Executor Script** (`/home/teruel/JARVIS/scripts/execute-batch.sh`)
    - Spawns N parallel Claude Code subprocesses (configurable concurrency limit)
    - Manages process lifecycle and captures exit codes
    - Coordinates output to individual per-workspace log files
    - Updates batch status in real-time
 
-3. **Dispatch Log Schema Extension** (`/home/teruel/claude-orchestrator/logs/dispatches.json`)
+3. **Dispatch Log Schema Extension** (`/home/teruel/JARVIS/logs/dispatches.json`)
    - Add `batch_id` field to individual dispatches
    - Add batch-level entries tracking overall batch state
    - Store concurrency settings and execution timeline
 
-4. **Configuration** (`/home/teruel/claude-orchestrator/config/orchestrator/dispatcher.json` — new file)
+4. **Configuration** (`/home/teruel/JARVIS/config/orchestrator/dispatcher.json` — new file)
    - Max parallel workers (default: 4, respects API limits)
    - Per-workspace concurrency locks (prevent multiple simultaneous dispatches to same workspace)
    - Timeout settings for batch operations
@@ -90,7 +90,7 @@ User/Scheduler → task-dispatcher MCP (dispatch_batch)
   "id": "dispatch-1739617800-001",
   "batch_id": "batch-1739617800-abc123",
   "workspace": "strokmatic.diemaster.services.smartdie-back-end",
-  "workspace_path": "/home/teruel/claude-orchestrator/workspaces/strokmatic/diemaster/services/smartdie-back-end",
+  "workspace_path": "/home/teruel/JARVIS/workspaces/strokmatic/diemaster/services/smartdie-back-end",
   "task": "Update dependencies to latest minor versions",
   "complexity": "medium",
   "priority": "medium",
@@ -100,7 +100,7 @@ User/Scheduler → task-dispatcher MCP (dispatch_batch)
   "started_at": "2026-02-15T16:30:05Z",
   "completed_at": "2026-02-15T16:31:42Z",
   "exit_code": 0,
-  "log_file": "/home/teruel/claude-orchestrator/logs/batch-1739617800-abc123/dispatch-1739617800-001.log"
+  "log_file": "/home/teruel/JARVIS/logs/batch-1739617800-abc123/dispatch-1739617800-001.log"
 }
 ```
 
@@ -127,7 +127,7 @@ User/Scheduler → task-dispatcher MCP (dispatch_batch)
 
 ### Phase 1: Core Batch Dispatch (MCP Extension)
 
-**File:** `/home/teruel/claude-orchestrator/mcp-servers/task-dispatcher/index.js`
+**File:** `/home/teruel/JARVIS/mcp-servers/task-dispatcher/index.js`
 
 1. Add `dispatch_batch` tool to `setupToolHandlers()`
    - Input schema: `{ tasks: Array<{workspace, task, complexity?, priority?}>, max_parallel?: number }`
@@ -144,7 +144,7 @@ User/Scheduler → task-dispatcher MCP (dispatch_batch)
 
 3. Add batch execution command generation
    - Output shell script path or direct execution via spawn
-   - Command format: `/home/teruel/claude-orchestrator/scripts/execute-batch.sh <batch_id>`
+   - Command format: `/home/teruel/JARVIS/scripts/execute-batch.sh <batch_id>`
 
 **Testing:**
 ```javascript
@@ -161,7 +161,7 @@ dispatch_batch({
 
 ### Phase 2: Batch Execution Script
 
-**File:** `/home/teruel/claude-orchestrator/scripts/execute-batch.sh`
+**File:** `/home/teruel/JARVIS/scripts/execute-batch.sh`
 
 ```bash
 #!/usr/bin/env bash
@@ -211,7 +211,7 @@ update-batch-status.js "$BATCH_ID"
 
 ### Phase 3: Status Update Utilities
 
-**File:** `/home/teruel/claude-orchestrator/scripts/update-dispatch-status.js`
+**File:** `/home/teruel/JARVIS/scripts/update-dispatch-status.js`
 ```javascript
 #!/usr/bin/env node
 const fs = require('fs/promises');
@@ -248,7 +248,7 @@ const [dispatchId, status, exitCode] = process.argv.slice(2);
 updateDispatchStatus(dispatchId, status, exitCode ? parseInt(exitCode) : null);
 ```
 
-**File:** `/home/teruel/claude-orchestrator/scripts/update-batch-status.js`
+**File:** `/home/teruel/JARVIS/scripts/update-batch-status.js`
 ```javascript
 #!/usr/bin/env node
 const fs = require('fs/promises');
@@ -286,7 +286,7 @@ updateBatchStatus(batchId);
 
 ### Phase 4: Configuration & Safety
 
-**File:** `/home/teruel/claude-orchestrator/config/orchestrator/dispatcher.json`
+**File:** `/home/teruel/JARVIS/config/orchestrator/dispatcher.json`
 ```json
 {
   "max_parallel_workers": 4,
@@ -480,11 +480,11 @@ updateBatchStatus(batchId);
 
 ### Configuration Files to Create
 
-1. `/home/teruel/claude-orchestrator/config/orchestrator/dispatcher.json` — Concurrency settings
-2. `/home/teruel/claude-orchestrator/logs/workspace-locks.json` — Active locks registry
-3. `/home/teruel/claude-orchestrator/scripts/execute-batch.sh` — Batch executor
-4. `/home/teruel/claude-orchestrator/scripts/update-dispatch-status.js` — Status updater
-5. `/home/teruel/claude-orchestrator/scripts/update-batch-status.js` — Batch aggregator
+1. `/home/teruel/JARVIS/config/orchestrator/dispatcher.json` — Concurrency settings
+2. `/home/teruel/JARVIS/logs/workspace-locks.json` — Active locks registry
+3. `/home/teruel/JARVIS/scripts/execute-batch.sh` — Batch executor
+4. `/home/teruel/JARVIS/scripts/update-dispatch-status.js` — Status updater
+5. `/home/teruel/JARVIS/scripts/update-batch-status.js` — Batch aggregator
 
 ### Integration Points
 

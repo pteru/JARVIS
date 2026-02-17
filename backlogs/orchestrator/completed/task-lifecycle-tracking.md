@@ -51,7 +51,7 @@ Current `dispatches.json` entry:
 {
   "id": "dispatch-1234567890-abc123",
   "workspace": "strokmatic.sdk.project-organizer",
-  "workspace_path": "/home/teruel/claude-orchestrator/workspaces/strokmatic/sdk/project-organizer",
+  "workspace_path": "/home/teruel/JARVIS/workspaces/strokmatic/sdk/project-organizer",
   "task": "Add unit tests for file scanner",
   "complexity": "medium",
   "priority": "medium",
@@ -67,7 +67,7 @@ Enhanced entry:
 {
   "id": "dispatch-1234567890-abc123",
   "workspace": "strokmatic.sdk.project-organizer",
-  "workspace_path": "/home/teruel/claude-orchestrator/workspaces/strokmatic/sdk/project-organizer",
+  "workspace_path": "/home/teruel/JARVIS/workspaces/strokmatic/sdk/project-organizer",
   "task": "Add unit tests for file scanner",
   "complexity": "medium",
   "priority": "medium",
@@ -105,7 +105,7 @@ New fields:
 
 ### 1. Extend task-dispatcher schema
 
-**File:** `/home/teruel/claude-orchestrator/mcp-servers/task-dispatcher/index.js`
+**File:** `/home/teruel/JARVIS/mcp-servers/task-dispatcher/index.js`
 
 **Changes:**
 - Update `dispatchTask()` method to initialize new fields (`started_at: null`, `completed_at: null`, `status_history: [{ status: "pending", timestamp: ..., note: "Task dispatched" }]`, `error_message: null`, `verification_log: null`)
@@ -113,7 +113,7 @@ New fields:
 
 ### 2. Add `update_task_status` tool
 
-**File:** `/home/teruel/claude-orchestrator/mcp-servers/task-dispatcher/index.js`
+**File:** `/home/teruel/JARVIS/mcp-servers/task-dispatcher/index.js`
 
 **Tool definition:**
 ```javascript
@@ -245,7 +245,7 @@ case "update_task_status":
 
 ### 3. Migration for existing dispatches
 
-**File:** `/home/teruel/claude-orchestrator/mcp-servers/task-dispatcher/index.js`
+**File:** `/home/teruel/JARVIS/mcp-servers/task-dispatcher/index.js`
 
 Add a migration check in `loadDispatches()`:
 ```javascript
@@ -294,7 +294,7 @@ Use the task-dispatcher MCP server to make these calls.
 
 ### 5. Add status query shortcuts
 
-**File:** `/home/teruel/claude-orchestrator/mcp-servers/task-dispatcher/index.js`
+**File:** `/home/teruel/JARVIS/mcp-servers/task-dispatcher/index.js`
 
 Enhance `list_dispatched_tasks` to support common queries:
 ```javascript
@@ -335,7 +335,7 @@ async listDispatchedTasks(workspace, status, limit = 20) {
 
 ### 6. Create logs directory if needed
 
-**File:** `/home/teruel/claude-orchestrator/mcp-servers/task-dispatcher/index.js`
+**File:** `/home/teruel/JARVIS/mcp-servers/task-dispatcher/index.js`
 
 The current implementation already handles this in `saveDispatches()` via `fs.mkdir(path.dirname(logPath), { recursive: true })`. No changes needed.
 
@@ -508,7 +508,7 @@ Then dispatch again (reuse same task ID or create new dispatch).
 
 ### Code Dependencies
 
-- Existing task-dispatcher at `/home/teruel/claude-orchestrator/mcp-servers/task-dispatcher/index.js`
+- Existing task-dispatcher at `/home/teruel/JARVIS/mcp-servers/task-dispatcher/index.js`
 - `@modelcontextprotocol/sdk` (already installed)
 - Node.js `fs/promises`, `path` (built-in)
 
@@ -520,7 +520,7 @@ Then dispatch again (reuse same task ID or create new dispatch).
 ### Runtime Prerequisites
 
 - Node.js >= 18 (for `fs/promises` support)
-- Write permissions to `/home/teruel/claude-orchestrator/logs/`
+- Write permissions to `/home/teruel/JARVIS/logs/`
 
 ### Testing Prerequisites
 

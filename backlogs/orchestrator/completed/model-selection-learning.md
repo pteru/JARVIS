@@ -5,7 +5,7 @@
 
 ## Overview
 
-Build a feedback loop for the task dispatcher to track which model + complexity + task-type combinations succeed, fail, or require retries. After N completions, surface patterns to automatically suggest updates to `/home/teruel/claude-orchestrator/config/orchestrator/models.json` rules.
+Build a feedback loop for the task dispatcher to track which model + complexity + task-type combinations succeed, fail, or require retries. After N completions, surface patterns to automatically suggest updates to `/home/teruel/JARVIS/config/orchestrator/models.json` rules.
 
 **Inspiration:** PAI's implicit signal capture — learning from outcomes without explicit feedback.
 
@@ -17,7 +17,7 @@ Build a feedback loop for the task dispatcher to track which model + complexity 
 
 ### Data Model
 
-Extend `/home/teruel/claude-orchestrator/logs/dispatches.json` schema:
+Extend `/home/teruel/JARVIS/logs/dispatches.json` schema:
 
 **Current schema:**
 ```json
@@ -61,7 +61,7 @@ Extend `/home/teruel/claude-orchestrator/logs/dispatches.json` schema:
 
 ### Learning Metrics
 
-Track aggregates in `/home/teruel/claude-orchestrator/logs/model-learning.json`:
+Track aggregates in `/home/teruel/JARVIS/logs/model-learning.json`:
 
 ```json
 {
@@ -134,7 +134,7 @@ Track aggregates in `/home/teruel/claude-orchestrator/logs/model-learning.json`:
 **Goal:** Capture task outcomes without breaking existing dispatches.
 
 1. **Extend task-dispatcher schema**
-   - File: `/home/teruel/claude-orchestrator/mcp-servers/task-dispatcher/index.js`
+   - File: `/home/teruel/JARVIS/mcp-servers/task-dispatcher/index.js`
    - Add fields to dispatch object (lines 253-264): `outcome`, `retry_count`, `execution_time_seconds`, `tokens_used`, `task_keywords`, `model_was_sufficient`, `notes`
    - Defaults: `outcome: null`, `retry_count: 0`, others `null`
 
@@ -171,12 +171,12 @@ Track aggregates in `/home/teruel/claude-orchestrator/logs/model-learning.json`:
 **Goal:** Aggregate outcomes and detect patterns.
 
 4. **Create `model-learning-analyzer` MCP tool**
-   - New server: `/home/teruel/claude-orchestrator/mcp-servers/model-learning-analyzer/index.js`
+   - New server: `/home/teruel/JARVIS/mcp-servers/model-learning-analyzer/index.js`
    - Package.json, install dependencies (same as other MCP servers)
-   - Register in `/home/teruel/claude-orchestrator/config/claude/config.json`
+   - Register in `/home/teruel/JARVIS/config/claude/config.json`
 
 5. **Implement `analyze_model_performance` tool**
-   - Reads `/home/teruel/claude-orchestrator/logs/dispatches.json`
+   - Reads `/home/teruel/JARVIS/logs/dispatches.json`
    - Filters to completed tasks (outcome != null, sample_size >= 5)
    - Groups by:
      - `complexity` + `model`
@@ -185,7 +185,7 @@ Track aggregates in `/home/teruel/claude-orchestrator/logs/model-learning.json`:
      - Success rate: `count(outcome == "success") / count(total)`
      - Avg tokens, avg execution time
      - Confidence: `min(sample_size / 20, 1.0)` (20 samples = high confidence)
-   - Writes to `/home/teruel/claude-orchestrator/logs/model-learning.json`
+   - Writes to `/home/teruel/JARVIS/logs/model-learning.json`
 
 6. **Implement `suggest_model_rules` tool**
    - Reads `model-learning.json`
@@ -203,13 +203,13 @@ Track aggregates in `/home/teruel/claude-orchestrator/logs/model-learning.json`:
 7. **Implement `apply_model_suggestion` tool**
    - Takes a suggestion ID from `model-learning.json`
    - Validates suggestion (confidence >= 0.70)
-   - Backs up `/home/teruel/claude-orchestrator/config/orchestrator/models.json` to `models.json.bak.<timestamp>`
+   - Backs up `/home/teruel/JARVIS/config/orchestrator/models.json` to `models.json.bak.<timestamp>`
    - Applies change:
      - `new_rule`: Append to `rules` array
      - `upgrade_complexity`: Update `task_complexity` mapping
      - `modify_rule`: Edit existing rule
    - Writes updated `models.json`
-   - Logs change to `/home/teruel/claude-orchestrator/logs/model-config-changes.log`
+   - Logs change to `/home/teruel/JARVIS/logs/model-config-changes.log`
 
 8. **Manual review workflow**
    - Run `analyze_model_performance` weekly (cron or manual)
@@ -369,24 +369,24 @@ Track aggregates in `/home/teruel/claude-orchestrator/logs/model-learning.json`:
 
 ### Existing Files & Schemas
 
-- `/home/teruel/claude-orchestrator/mcp-servers/task-dispatcher/index.js`
+- `/home/teruel/JARVIS/mcp-servers/task-dispatcher/index.js`
   - Modify: `dispatchTask()` method (lines 235-288)
   - Add: `updateTaskOutcome()` method
   - Add: Keyword extraction in dispatch flow
 
-- `/home/teruel/claude-orchestrator/config/orchestrator/models.json`
+- `/home/teruel/JARVIS/config/orchestrator/models.json`
   - Schema reference for rules
   - Will be read and written by learning system
 
-- `/home/teruel/claude-orchestrator/logs/dispatches.json`
+- `/home/teruel/JARVIS/logs/dispatches.json`
   - Extend schema (backwards compatible — new fields default to null)
 
 ### New Files
 
-- `/home/teruel/claude-orchestrator/logs/model-learning.json` (auto-generated)
-- `/home/teruel/claude-orchestrator/logs/model-config-changes.log` (append-only log)
-- `/home/teruel/claude-orchestrator/mcp-servers/model-learning-analyzer/index.js` (new MCP server)
-- `/home/teruel/claude-orchestrator/mcp-servers/model-learning-analyzer/package.json`
+- `/home/teruel/JARVIS/logs/model-learning.json` (auto-generated)
+- `/home/teruel/JARVIS/logs/model-config-changes.log` (append-only log)
+- `/home/teruel/JARVIS/mcp-servers/model-learning-analyzer/index.js` (new MCP server)
+- `/home/teruel/JARVIS/mcp-servers/model-learning-analyzer/package.json`
 
 ### External Dependencies
 
@@ -400,7 +400,7 @@ Track aggregates in `/home/teruel/claude-orchestrator/logs/model-learning.json`:
 
 ### Configuration Changes
 
-- Add `model-learning-analyzer` to `/home/teruel/claude-orchestrator/config/claude/config.json` MCP servers list
+- Add `model-learning-analyzer` to `/home/teruel/JARVIS/config/claude/config.json` MCP servers list
 
 ### Workflow Prerequisites
 

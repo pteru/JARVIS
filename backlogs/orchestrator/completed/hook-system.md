@@ -52,8 +52,8 @@ Hooks will read from:
 
 1. **Create `.claude/hooks/` directory structure**
    ```bash
-   mkdir -p /home/teruel/claude-orchestrator/.claude/hooks
-   mkdir -p /home/teruel/claude-orchestrator/.claude/hooks/lib
+   mkdir -p /home/teruel/JARVIS/.claude/hooks
+   mkdir -p /home/teruel/JARVIS/.claude/hooks/lib
    ```
 
 2. **Create shared utility library** (`hooks/lib/utils.sh`)
@@ -138,7 +138,7 @@ Hooks will read from:
   "hooks": [
     {
       "type": "command",
-      "command": "/home/teruel/claude-orchestrator/.claude/hooks/PreDispatchValidator.hook.sh"
+      "command": "/home/teruel/JARVIS/.claude/hooks/PreDispatchValidator.hook.sh"
     }
   ]
 }
@@ -204,7 +204,7 @@ exit 0
   "hooks": [
     {
       "type": "command",
-      "command": "/home/teruel/claude-orchestrator/.claude/hooks/BacklogPreloader.hook.sh"
+      "command": "/home/teruel/JARVIS/.claude/hooks/BacklogPreloader.hook.sh"
     }
   ]
 },
@@ -213,7 +213,7 @@ exit 0
   "hooks": [
     {
       "type": "command",
-      "command": "/home/teruel/claude-orchestrator/.claude/hooks/BacklogPreloader.hook.sh"
+      "command": "/home/teruel/JARVIS/.claude/hooks/BacklogPreloader.hook.sh"
     }
   ]
 }
@@ -286,7 +286,7 @@ exit 0
   "hooks": [
     {
       "type": "command",
-      "command": "/home/teruel/claude-orchestrator/.claude/hooks/DispatchTracker.hook.sh"
+      "command": "/home/teruel/JARVIS/.claude/hooks/DispatchTracker.hook.sh"
     }
   ]
 }
@@ -347,7 +347,7 @@ exit 0
   "hooks": [
     {
       "type": "command",
-      "command": "/home/teruel/claude-orchestrator/.claude/hooks/DashboardSummary.hook.sh"
+      "command": "/home/teruel/JARVIS/.claude/hooks/DashboardSummary.hook.sh"
     }
   ]
 }
@@ -426,7 +426,7 @@ exit 0
   "hooks": [
     {
       "type": "command",
-      "command": "/home/teruel/claude-orchestrator/.claude/hooks/CompletionNotifier.hook.sh"
+      "command": "/home/teruel/JARVIS/.claude/hooks/CompletionNotifier.hook.sh"
     }
   ]
 }
@@ -481,7 +481,7 @@ exit 0
   "hooks": [
     {
       "type": "command",
-      "command": "/home/teruel/claude-orchestrator/.claude/hooks/ChangelogVerifier.hook.sh"
+      "command": "/home/teruel/JARVIS/.claude/hooks/ChangelogVerifier.hook.sh"
     }
   ]
 }
@@ -555,7 +555,7 @@ exit 0
         "hooks": [
           {
             "type": "command",
-            "command": "/home/teruel/claude-orchestrator/.claude/hooks/DashboardSummary.hook.sh"
+            "command": "/home/teruel/JARVIS/.claude/hooks/DashboardSummary.hook.sh"
           }
         ]
       }
@@ -566,11 +566,11 @@ exit 0
         "hooks": [
           {
             "type": "command",
-            "command": "/home/teruel/claude-orchestrator/.claude/hooks/PreDispatchValidator.hook.sh"
+            "command": "/home/teruel/JARVIS/.claude/hooks/PreDispatchValidator.hook.sh"
           },
           {
             "type": "command",
-            "command": "/home/teruel/claude-orchestrator/.claude/hooks/BacklogPreloader.hook.sh"
+            "command": "/home/teruel/JARVIS/.claude/hooks/BacklogPreloader.hook.sh"
           }
         ]
       },
@@ -579,7 +579,7 @@ exit 0
         "hooks": [
           {
             "type": "command",
-            "command": "/home/teruel/claude-orchestrator/.claude/hooks/BacklogPreloader.hook.sh"
+            "command": "/home/teruel/JARVIS/.claude/hooks/BacklogPreloader.hook.sh"
           }
         ]
       }
@@ -590,7 +590,7 @@ exit 0
         "hooks": [
           {
             "type": "command",
-            "command": "/home/teruel/claude-orchestrator/.claude/hooks/DispatchTracker.hook.sh"
+            "command": "/home/teruel/JARVIS/.claude/hooks/DispatchTracker.hook.sh"
           }
         ]
       },
@@ -599,11 +599,11 @@ exit 0
         "hooks": [
           {
             "type": "command",
-            "command": "/home/teruel/claude-orchestrator/.claude/hooks/CompletionNotifier.hook.sh"
+            "command": "/home/teruel/JARVIS/.claude/hooks/CompletionNotifier.hook.sh"
           },
           {
             "type": "command",
-            "command": "/home/teruel/claude-orchestrator/.claude/hooks/ChangelogVerifier.hook.sh"
+            "command": "/home/teruel/JARVIS/.claude/hooks/ChangelogVerifier.hook.sh"
           }
         ]
       }

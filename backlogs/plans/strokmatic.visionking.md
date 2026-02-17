@@ -1,7 +1,7 @@
 # VisionKing Product Backlog - Detailed Implementation Plans
 
 **Generated**: 2026-02-16
-**Workspace**: `/home/teruel/claude-orchestrator/workspaces/strokmatic/visionking/`
+**Workspace**: `/home/teruel/JARVIS/workspaces/strokmatic/visionking/`
 
 ---
 

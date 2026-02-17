@@ -5,7 +5,7 @@
 
 ## Overview
 
-Enable bidirectional backlog synchronization between the central orchestrator backlogs (`/home/teruel/claude-orchestrator/backlogs/<workspace>-backlog.md`) and workspace-local backlogs (`<workspace>/.claude/backlog.md`). Currently, the backlog-manager only pushes changes from central to workspace. This spec adds the ability to pull changes back when a collaborator (human or Claude session) edits the workspace backlog directly, such as through a PR, during local development, or from a different orchestrator instance.
+Enable bidirectional backlog synchronization between the central orchestrator backlogs (`/home/teruel/JARVIS/backlogs/<workspace>-backlog.md`) and workspace-local backlogs (`<workspace>/.claude/backlog.md`). Currently, the backlog-manager only pushes changes from central to workspace. This spec adds the ability to pull changes back when a collaborator (human or Claude session) edits the workspace backlog directly, such as through a PR, during local development, or from a different orchestrator instance.
 
 The reconciliation strategy must handle three cases: (1) workspace unchanged, (2) central unchanged, (3) both changed (conflict). The goal is to preserve work from both sides when possible, with clear conflict markers when automatic merge is unsafe.
 
@@ -77,7 +77,7 @@ For each task line in the backlog:
 
 ### 1. Add Baseline Write to Existing Push Logic
 
-**File**: `/home/teruel/claude-orchestrator/mcp-servers/backlog-manager/index.js`
+**File**: `/home/teruel/JARVIS/mcp-servers/backlog-manager/index.js`
 
 **Changes**:
 - Modify `pushToWorkspace(workspace, content)` to also write `<workspace>/.claude/backlog.md.baseline` with the same content
@@ -370,7 +370,7 @@ async syncBacklog(workspace) {
 
 ### 6. Add Session-Start Reconciliation Script
 
-**File**: `/home/teruel/claude-orchestrator/scripts/reconcile-all-backlogs.sh`
+**File**: `/home/teruel/JARVIS/scripts/reconcile-all-backlogs.sh`
 
 ```bash
 #!/bin/bash
@@ -394,7 +394,7 @@ done
 echo "All backlogs reconciled."
 ```
 
-Make executable: `chmod +x /home/teruel/claude-orchestrator/scripts/reconcile-all-backlogs.sh`
+Make executable: `chmod +x /home/teruel/JARVIS/scripts/reconcile-all-backlogs.sh`
 
 ### 7. Integrate into Session Initialization
 
@@ -403,16 +403,16 @@ Make executable: `chmod +x /home/teruel/claude-orchestrator/scripts/reconcile-al
 Append to the "Session Directives" section:
 
 ```markdown
-- At the start of each session, run `/home/teruel/claude-orchestrator/scripts/reconcile-all-backlogs.sh` to pull any workspace backlog changes
+- At the start of each session, run `/home/teruel/JARVIS/scripts/reconcile-all-backlogs.sh` to pull any workspace backlog changes
 ```
 
 **Option B: Use a Claude Code hook** (if available in future)
 
-Create `/home/teruel/claude-orchestrator/.claude/hooks/session-start.sh`:
+Create `/home/teruel/JARVIS/.claude/hooks/session-start.sh`:
 
 ```bash
 #!/bin/bash
-/home/teruel/claude-orchestrator/scripts/reconcile-all-backlogs.sh
+/home/teruel/JARVIS/scripts/reconcile-all-backlogs.sh
 ```
 
 ### 8. Update Workspace `.gitignore`
@@ -547,23 +547,23 @@ async pushToWorkspace(workspace, content) {
 
 ### Existing Components Required
 
-1. **Workspace Configuration**: `/home/teruel/claude-orchestrator/config/orchestrator/workspaces.json`
+1. **Workspace Configuration**: `/home/teruel/JARVIS/config/orchestrator/workspaces.json`
    - Must contain valid workspace paths
-2. **Central Backlog Structure**: `/home/teruel/claude-orchestrator/backlogs/<workspace>-backlog.md`
+2. **Central Backlog Structure**: `/home/teruel/JARVIS/backlogs/<workspace>-backlog.md`
    - Must follow the standard format: `## High Priority`, `## Medium Priority`, `## Low Priority` sections with `- [ ] [COMPLEXITY] task` items
 3. **Workspace Backlog Structure**: `<workspace>/.claude/backlog.md`
    - Same format as central backlog
-4. **MCP Infrastructure**: `@modelcontextprotocol/sdk` installed in `/home/teruel/claude-orchestrator/mcp-servers/backlog-manager/`
+4. **MCP Infrastructure**: `@modelcontextprotocol/sdk` installed in `/home/teruel/JARVIS/mcp-servers/backlog-manager/`
 
 ### New Files Created
 
 1. `<workspace>/.claude/backlog.md.baseline` — baseline tracking file (auto-generated)
 2. `<workspace>/.claude/.gitignore` — updated to exclude baseline
-3. `/home/teruel/claude-orchestrator/scripts/reconcile-all-backlogs.sh` — session-start sync script
+3. `/home/teruel/JARVIS/scripts/reconcile-all-backlogs.sh` — session-start sync script
 
 ### Configuration Changes
 
-- Add session-start directive to `/home/teruel/claude-orchestrator/CLAUDE.md` or implement as a hook
+- Add session-start directive to `/home/teruel/JARVIS/CLAUDE.md` or implement as a hook
 
 ### Testing Prerequisites
 

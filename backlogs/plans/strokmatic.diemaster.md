@@ -22,7 +22,7 @@ Firmware (Hub/Switch) --> get-data (binary decode + Redis/RabbitMQ) --> data-pro
 - `SmartDie@@2022` -- Redis password, RabbitMQ password (in services/connect, data-processing, get-data, loader, status, trigger, plc-monitor, firmware-switch, firmware-hub, infra-setup YAMLs, legacy code, toolkit)
 - `skm@@2022` -- WiFi password in `firmware/firmware-switch/src/main.cpp`, RabbitMQ in `services/database-writer/.env`, legacy compose files
 - `writer@@2022` -- DB password in `services/database-writer/.env`
-- GCP service account JSON: `/home/teruel/claude-orchestrator/workspaces/strokmatic/diemaster/smart-die-4f1b2a81536c.json` (2.3KB, in repo root)
+- GCP service account JSON: `/home/teruel/JARVIS/workspaces/strokmatic/diemaster/smart-die-4f1b2a81536c.json` (2.3KB, in repo root)
 
 **Scope of Work**:
 1. Replace all hardcoded env defaults in Python services with empty strings or raise-on-missing patterns

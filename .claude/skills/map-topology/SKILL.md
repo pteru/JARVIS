@@ -9,7 +9,7 @@ Map the running production topology from remote machines via SSH. This command h
 Output directory (if provided): $ARGUMENTS
 
 Steps:
-1. Check if the mapping script exists at `/home/teruel/claude-orchestrator/workspaces/strokmatic/visionking/scripts/map-production-topology.sh`
+1. Check if the mapping script exists at `/home/teruel/JARVIS/workspaces/strokmatic/visionking/scripts/map-production-topology.sh`
 2. Ask the user for: node IPs/hostnames, SSH user, SSH port, output directory
 3. Run the script or equivalent SSH commands to collect: system info (CPU, RAM, GPU, disk), docker container list with env vars, infrastructure service details
 4. Save JSON output per node to the specified directory

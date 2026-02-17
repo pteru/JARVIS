@@ -33,14 +33,14 @@ The implementation leverages existing data sources (`logs/`, `config/`, `backlog
 
 **Deployment:**
 - Runs on `localhost:3000` (configurable port)
-- Started via `npm run dashboard` from `/home/teruel/claude-orchestrator/`
+- Started via `npm run dashboard` from `/home/teruel/JARVIS/`
 - No authentication required for v1 (local-only access)
 
 ---
 
 ## Data Sources & Schemas
 
-### 1. Dispatch Log — `/home/teruel/claude-orchestrator/logs/dispatches.json`
+### 1. Dispatch Log — `/home/teruel/JARVIS/logs/dispatches.json`
 
 **Current Status:** Does not exist yet. Must be created by task-dispatcher MCP server.
 
@@ -77,7 +77,7 @@ The implementation leverages existing data sources (`logs/`, `config/`, `backlog
 
 **Status Values:** `pending`, `running`, `completed`, `failed`
 
-### 2. Usage Log — `/home/teruel/claude-orchestrator/logs/usage.json`
+### 2. Usage Log — `/home/teruel/JARVIS/logs/usage.json`
 
 **Current Status:** Does not exist. Must be created during dispatch execution.
 
@@ -105,21 +105,21 @@ The implementation leverages existing data sources (`logs/`, `config/`, `backlog
 }
 ```
 
-**Cost Calculation:** Based on pricing table in `/home/teruel/claude-orchestrator/config/orchestrator/pricing.json` (new file).
+**Cost Calculation:** Based on pricing table in `/home/teruel/JARVIS/config/orchestrator/pricing.json` (new file).
 
-### 3. Workspace Config — `/home/teruel/claude-orchestrator/config/orchestrator/workspaces.json`
+### 3. Workspace Config — `/home/teruel/JARVIS/config/orchestrator/workspaces.json`
 
 Already exists. Used for workspace metadata (name, category, priority).
 
-### 4. Schedules Config — `/home/teruel/claude-orchestrator/config/orchestrator/schedules.json`
+### 4. Schedules Config — `/home/teruel/JARVIS/config/orchestrator/schedules.json`
 
 Already exists. Used to display upcoming scheduled tasks.
 
-### 5. Models Config — `/home/teruel/claude-orchestrator/config/orchestrator/models.json`
+### 5. Models Config — `/home/teruel/JARVIS/config/orchestrator/models.json`
 
 Already exists. Used for model selection context.
 
-### 6. Backlog Files — `/home/teruel/claude-orchestrator/backlogs/*.md`
+### 6. Backlog Files — `/home/teruel/JARVIS/backlogs/*.md`
 
 **Current Status:** Does not exist yet. Will be created by backlog-manager MCP server.
 
@@ -139,7 +139,7 @@ Already exists. Used for model selection context.
 
 **Parsing Logic:** Count unchecked `- [ ]` items under each priority heading.
 
-### 7. Changelog Files — `/home/teruel/claude-orchestrator/changelogs/*.md`
+### 7. Changelog Files — `/home/teruel/JARVIS/changelogs/*.md`
 
 **Current Status:** Does not exist yet. Will be created by changelog-writer MCP server.
 
@@ -172,7 +172,7 @@ Already exists. Used for model selection context.
 
 1. **Create dashboard directory structure**
    ```
-   /home/teruel/claude-orchestrator/dashboard/
+   /home/teruel/JARVIS/dashboard/
    ├── server.js          # Express server with SSE support
    ├── public/
    │   ├── index.html     # Main dashboard page
@@ -190,7 +190,7 @@ Already exists. Used for model selection context.
 
 2. **Initialize Node.js project**
    ```bash
-   cd /home/teruel/claude-orchestrator/dashboard
+   cd /home/teruel/JARVIS/dashboard
    npm init -y
    npm install express chokidar
    ```
@@ -237,14 +237,14 @@ Already exists. Used for model selection context.
    - Create `scripts/start-dashboard.sh`:
      ```bash
      #!/bin/bash
-     cd /home/teruel/claude-orchestrator/dashboard
+     cd /home/teruel/JARVIS/dashboard
      node server.js
      ```
    - Make executable: `chmod +x scripts/start-dashboard.sh`
    - Add to orchestrator README
 
 8. **Create pricing config**
-   - File: `/home/teruel/claude-orchestrator/config/orchestrator/pricing.json`
+   - File: `/home/teruel/JARVIS/config/orchestrator/pricing.json`
    - Schema:
      ```json
      {
@@ -377,7 +377,7 @@ Capture usage data:
 **2. backlog-manager MCP Server**
 
 Ensure backlog files are written to:
-- `/home/teruel/claude-orchestrator/backlogs/<workspace-slug>.md`
+- `/home/teruel/JARVIS/backlogs/<workspace-slug>.md`
 
 Format must be parseable:
 - Use `- [ ]` for pending tasks
@@ -387,7 +387,7 @@ Format must be parseable:
 **3. changelog-writer MCP Server**
 
 Ensure changelog files are written to:
-- `/home/teruel/claude-orchestrator/changelogs/<workspace-slug>.md`
+- `/home/teruel/JARVIS/changelogs/<workspace-slug>.md`
 
 Follow Keep a Changelog format strictly:
 - `## YYYY-MM-DD` date headers
@@ -466,18 +466,18 @@ Follow Keep a Changelog format strictly:
 
 ### Infrastructure
 
-1. **Node.js 18+ installed** at `/home/teruel/claude-orchestrator/dashboard/`
-2. **Logs directory exists:** `/home/teruel/claude-orchestrator/logs/`
-3. **Config directory exists:** `/home/teruel/claude-orchestrator/config/orchestrator/`
-4. **Backlog directory created:** `/home/teruel/claude-orchestrator/backlogs/`
-5. **Changelog directory created:** `/home/teruel/claude-orchestrator/changelogs/`
+1. **Node.js 18+ installed** at `/home/teruel/JARVIS/dashboard/`
+2. **Logs directory exists:** `/home/teruel/JARVIS/logs/`
+3. **Config directory exists:** `/home/teruel/JARVIS/config/orchestrator/`
+4. **Backlog directory created:** `/home/teruel/JARVIS/backlogs/`
+5. **Changelog directory created:** `/home/teruel/JARVIS/changelogs/`
 
 ### Data Sources
 
 1. **task-dispatcher MCP server updated** to write `logs/dispatches.json` and `logs/usage.json`
 2. **backlog-manager MCP server** writes backlogs to `backlogs/*.md`
 3. **changelog-writer MCP server** writes changelogs to `changelogs/*.md`
-4. **Pricing config created:** `/home/teruel/claude-orchestrator/config/orchestrator/pricing.json`
+4. **Pricing config created:** `/home/teruel/JARVIS/config/orchestrator/pricing.json`
 
 ### External Dependencies
 
