@@ -13,6 +13,7 @@ Ideas for new features, skills, and integrations. Full specs live in this direct
 | Orchestrator Dashboard | **Done** | [completed/orchestrator-dashboard.md](completed/orchestrator-dashboard.md) |
 | PR Inbox & Reviewer | **Planned** | [pr-inbox-reviewer.md](pr-inbox-reviewer.md) |
 | Mechanical File Tool | **Done** | [completed/mechanical-tool.md](completed/mechanical-tool.md) |
+| Email Organizer Tool + MCP | **Done** | [completed/email-organizer.md](completed/email-organizer.md) |
 
 ---
 
