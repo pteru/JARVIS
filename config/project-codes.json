@@ -1,0 +1,143 @@
+{
+  "01001": {
+    "name": "GM São José dos Campos - S10 CC PUBX LH",
+    "keywords": [],
+    "senders": [],
+    "pmo_path": "workspaces/strokmatic/pmo/01001"
+  },
+  "01002": {
+    "name": "GM Flint - Bravada Fender",
+    "keywords": [],
+    "senders": [],
+    "pmo_path": "workspaces/strokmatic/pmo/01002"
+  },
+  "01003": {
+    "name": "DEV Joinville - Novo Corsa Caixa de Roda",
+    "keywords": [],
+    "senders": [],
+    "pmo_path": "workspaces/strokmatic/pmo/01003"
+  },
+  "01004": {
+    "name": "Stellantis Demo",
+    "keywords": [],
+    "senders": [],
+    "pmo_path": "workspaces/strokmatic/pmo/01004"
+  },
+  "01005": {
+    "name": "FUNDEP - DEMESTAA/DECOLAB 2",
+    "keywords": [],
+    "senders": [],
+    "pmo_path": "workspaces/strokmatic/pmo/01005"
+  },
+  "02001": {
+    "name": "GM São José dos Campos - Trailblazer Liftgate",
+    "keywords": [],
+    "senders": [],
+    "pmo_path": "workspaces/strokmatic/pmo/02001"
+  },
+  "02002": {
+    "name": "GM Gravataí - BSO_LH",
+    "keywords": [],
+    "senders": [],
+    "pmo_path": "workspaces/strokmatic/pmo/02002"
+  },
+  "02003": {
+    "name": "GM Factory Zero - Framing Outer",
+    "keywords": [],
+    "senders": [],
+    "pmo_path": "workspaces/strokmatic/pmo/02003"
+  },
+  "02004": {
+    "name": "GM Gravataí - B-SIDE",
+    "keywords": [],
+    "senders": [],
+    "pmo_path": "workspaces/strokmatic/pmo/02004"
+  },
+  "02005": {
+    "name": "GM São Caetano do Sul - Portas",
+    "keywords": [],
+    "senders": [],
+    "pmo_path": "workspaces/strokmatic/pmo/02005"
+  },
+  "02006": {
+    "name": "Hyundai Piracicaba - Floor Complete",
+    "keywords": [],
+    "senders": [],
+    "pmo_path": "workspaces/strokmatic/pmo/02006"
+  },
+  "02007": {
+    "name": "VWCO",
+    "keywords": [],
+    "senders": [],
+    "pmo_path": "workspaces/strokmatic/pmo/02007"
+  },
+  "02008": {
+    "name": "Nissan Smyrna Spot Fusion",
+    "keywords": [
+      "nissan",
+      "smyrna",
+      "spot fusion",
+      "comau",
+      "spotfusion"
+    ],
+    "senders": [
+      "joshua.young@nissan",
+      "kirk.cumbo@comau"
+    ],
+    "pmo_path": "workspaces/strokmatic/pmo/02008"
+  },
+  "03001": {
+    "name": "Usiminas (Inovaí) - Corpo Estranho",
+    "keywords": [],
+    "senders": [],
+    "pmo_path": "workspaces/strokmatic/pmo/03001"
+  },
+  "03002": {
+    "name": "ArcelorMittal Barra Mansa - TL1",
+    "keywords": [],
+    "senders": [],
+    "pmo_path": "workspaces/strokmatic/pmo/03002"
+  },
+  "03003": {
+    "name": "GM Gravataí - Underbody",
+    "keywords": [],
+    "senders": [],
+    "pmo_path": "workspaces/strokmatic/pmo/03003"
+  },
+  "03005": {
+    "name": "GM São Caetano do Sul - Paint - IRIS PoC",
+    "keywords": [],
+    "senders": [],
+    "pmo_path": "workspaces/strokmatic/pmo/03005"
+  },
+  "03006": {
+    "name": "GM Gravataí - Body/Paint - IRIS PoC",
+    "keywords": [],
+    "senders": [],
+    "pmo_path": "workspaces/strokmatic/pmo/03006"
+  },
+  "03007": {
+    "name": "GM São Caetano do Sul - Paint - IRIS",
+    "keywords": [],
+    "senders": [],
+    "pmo_path": "workspaces/strokmatic/pmo/03007"
+  },
+  "03008": {
+    "name": "Hyundai Piracicaba - Sealer",
+    "keywords": [],
+    "senders": [],
+    "pmo_path": "workspaces/strokmatic/pmo/03008"
+  },
+  "03009": {
+    "name": "ArcelorMittal Barra Mansa - TL2",
+    "keywords": [],
+    "senders": [],
+    "pmo_path": "workspaces/strokmatic/pmo/03009"
+  },
+  "03010": {
+    "name": "Stellantis Goiana - Paint",
+    "keywords": [],
+    "senders": [],
+    "pmo_path": "workspaces/strokmatic/pmo/03010"
+  }
+}

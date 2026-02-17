@@ -4,6 +4,32 @@ All notable changes to the claude-orchestrator system.
 
 Format: [Keep a Changelog](https://keepachangelog.com/)
 
+## 2026-02-17
+
+### Added (email-organizer v1.0.0)
+- New Python CLI tool (`tools/email-organizer/`) for IMAP email ingestion into PMO project folders
+- Subcommands: `fetch`, `classify`, `parse`, `ingest`, `list`, `reprocess`
+- Rule-based classification using `config/project-codes.json` (keyword + sender matching)
+- SHA-256 content-based deduplication, attachment extraction, thread tracking
+- Heuristic extraction of action items, dates, and participants from email body
+- Storage layout: `pmo/{code}/emails/raw/`, `emails/parsed/`, `emails/index.json`, `attachments/`
+
+### Added (email-analyzer MCP server v1.0.0)
+- New MCP server (`mcp-servers/email-analyzer/`) for AI-powered email analysis
+- `classify_email` tool — classify ambiguous emails to project + category
+- `extract_entities` tool — write extracted entities (dates, actions, decisions) to parsed JSON
+- `update_project_report` tool — write/update `technical_report.md` with report history backup
+- `extract_timeline` tool — write/merge timeline events to `timeline.json` with deduplication
+- `get_project_emails` tool — retrieve parsed emails for analysis (with body/unanalyzed filters)
+- `get_project_context` tool — get project stats, report preview, and timeline summary
+
+### Added (skills)
+- `/email-organizer` skill — documents CLI tool usage for email data plumbing
+- `/email-analyze` skill — orchestrates AI analysis workflows (classify, extract, report, timeline)
+
+### Added (config)
+- `config/project-codes.json` — project code map for email classification, seeded with 02008 (Nissan Smyrna)
+
 ## 2026-02-15
 
 ### Added (changelog-reviewer v1.0.0)
