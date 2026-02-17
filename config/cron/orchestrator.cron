@@ -10,5 +10,11 @@
 # Weekly: Generate weekly report on Friday at 4:00 PM
 0 16 * * 5 ORCHESTRATOR_HOME={{ORCHESTRATOR_HOME}} {{ORCHESTRATOR_HOME}}/scripts/orchestrator.sh weekly-report >> {{ORCHESTRATOR_HOME}}/logs/cron-weekly.log 2>&1
 
+# Daily: Fetch all remotes at 7:30 AM (before backlog processing)
+30 7 * * * ORCHESTRATOR_HOME={{ORCHESTRATOR_HOME}} {{ORCHESTRATOR_HOME}}/scripts/orchestrator.sh fetch-remotes >> {{ORCHESTRATOR_HOME}}/logs/cron-fetch.log 2>&1
+
+# Daily: Update GitHub access matrix at 6:00 AM
+0 6 * * * ORCHESTRATOR_HOME={{ORCHESTRATOR_HOME}} {{ORCHESTRATOR_HOME}}/scripts/orchestrator.sh update-access >> {{ORCHESTRATOR_HOME}}/logs/cron-access.log 2>&1
+
 # Weekly: Suggest weekly goals on Monday at 8:00 AM
 0 8 * * 1 ORCHESTRATOR_HOME={{ORCHESTRATOR_HOME}} {{ORCHESTRATOR_HOME}}/scripts/orchestrator.sh suggest-goals >> {{ORCHESTRATOR_HOME}}/logs/cron-goals.log 2>&1
