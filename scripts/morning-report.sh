@@ -2,6 +2,8 @@
 # JARVIS Morning Report — runs claude CLI with /jarvis prompt, sends summary via Telegram
 set -euo pipefail
 
+export PATH="$HOME/.local/bin:$PATH"
+
 ORCHESTRATOR_HOME="${ORCHESTRATOR_HOME:-$HOME/JARVIS}"
 CONFIG="$ORCHESTRATOR_HOME/config/orchestrator/notifications.json"
 LOG_DIR="$ORCHESTRATOR_HOME/logs"

@@ -26,8 +26,8 @@ echo ""
 log_info "Date: $DATE"
 log_info "Mode: $MODE"
 
-WORKSPACES_CONFIG="$ORCHESTRATOR_HOME/config/workspaces.json"
-SCHEDULES_CONFIG="$ORCHESTRATOR_HOME/config/schedules.json"
+WORKSPACES_CONFIG="$ORCHESTRATOR_HOME/config/orchestrator/workspaces.json"
+SCHEDULES_CONFIG="$ORCHESTRATOR_HOME/config/orchestrator/schedules.json"
 
 if [[ ! -f "$WORKSPACES_CONFIG" ]]; then
     log_error "workspaces.json not found at $WORKSPACES_CONFIG"
