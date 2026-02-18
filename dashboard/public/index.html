@@ -130,6 +130,41 @@
       </div>
     </div>
 
+    <!-- PR Inbox -->
+    <div class="bg-card rounded-xl p-5 border border-gray-700 mt-6">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-sm font-semibold text-gray-300 uppercase tracking-wide">PR Inbox</h2>
+        <span id="pr-fetched" class="text-xs text-gray-500"></span>
+      </div>
+      <!-- Stats bar -->
+      <div id="pr-stats" class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
+        <div class="text-center py-2 rounded-lg bg-gray-800/50">
+          <div class="text-lg font-bold text-white" id="pr-stat-total">--</div>
+          <div class="text-xs text-gray-400">Open</div>
+        </div>
+        <div class="text-center py-2 rounded-lg bg-gray-800/50">
+          <div class="text-lg font-bold text-warning" id="pr-stat-needs-review">--</div>
+          <div class="text-xs text-gray-400">Needs Review</div>
+        </div>
+        <div class="text-center py-2 rounded-lg bg-gray-800/50">
+          <div class="text-lg font-bold text-success" id="pr-stat-approved">--</div>
+          <div class="text-xs text-gray-400">Approved</div>
+        </div>
+        <div class="text-center py-2 rounded-lg bg-gray-800/50">
+          <div class="text-lg font-bold text-danger" id="pr-stat-changes">--</div>
+          <div class="text-xs text-gray-400">Changes Req.</div>
+        </div>
+        <div class="text-center py-2 rounded-lg bg-gray-800/50">
+          <div class="text-lg font-bold text-gray-400" id="pr-stat-stale">--</div>
+          <div class="text-xs text-gray-400">Stale (>7d)</div>
+        </div>
+      </div>
+      <!-- PR table grouped by product -->
+      <div id="pr-inbox-content" class="overflow-x-auto custom-scrollbar">
+        <div class="text-gray-500 text-sm">Loading...</div>
+      </div>
+    </div>
+
     <!-- Changelog + System Info Row -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
       <!-- Recent Changelog Entries -->

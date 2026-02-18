@@ -1,1 +1,22 @@
-[]
+[
+  {
+    "type": "pr-review",
+    "task": "Review visionking-inference#14: fix: Shutdown graceful com watchdog event",
+    "workspace": "strokmatic.visionking.services.inference",
+    "model": "claude-sonnet-4-5-20250929",
+    "status": "complete",
+    "created_at": "2026-02-18T14:57:36.740Z",
+    "started_at": "2026-02-18T14:57:36.740Z",
+    "completed_at": "2026-02-18T14:57:36.740Z"
+  },
+  {
+    "type": "pr-review",
+    "task": "Review diemaster-status#7: chore: merge develop into master — single-DB routing + DB2 mirror",
+    "workspace": "strokmatic.diemaster.services.status",
+    "model": "claude-haiku-4-5-20251001",
+    "status": "complete",
+    "created_at": "2026-02-18T14:58:54.998Z",
+    "started_at": "2026-02-18T14:58:54.998Z",
+    "completed_at": "2026-02-18T14:58:54.998Z"
+  }
+]
