@@ -62,11 +62,12 @@ async function fetchJSON(url) {
 }
 
 async function loadAll() {
-  const [dispatches, backlogs, changelogs, notifications] = await Promise.all([
+  const [dispatches, backlogs, changelogs, notifications, prInbox] = await Promise.all([
     fetchJSON('/api/dispatches'),
     fetchJSON('/api/backlogs'),
     fetchJSON('/api/changelogs'),
     fetchJSON('/api/notifications'),
+    fetchJSON('/api/pr-inbox'),
   ]);
 
   renderStats(dispatches);
@@ -77,6 +78,7 @@ async function loadAll() {
   renderBacklogHealth(backlogs);
   renderChangelog(changelogs);
   renderNotifications(notifications);
+  renderPrInbox(prInbox);
 
   document.getElementById('last-updated').textContent = 'Updated ' + new Date().toLocaleTimeString();
 }
@@ -305,6 +307,88 @@ function renderChangelog(data) {
       <div class="text-sm text-gray-200 mt-0.5" title="${e.text.replace(/"/g, '&quot;')}">${e.text}</div>
     </div>`;
   }).join('');
+}
+
+function renderPrInbox(data) {
+  const content = document.getElementById('pr-inbox-content');
+  if (!data || data.total === 0) {
+    document.getElementById('pr-stat-total').textContent = '0';
+    document.getElementById('pr-stat-needs-review').textContent = '0';
+    document.getElementById('pr-stat-approved').textContent = '0';
+    document.getElementById('pr-stat-changes').textContent = '0';
+    document.getElementById('pr-stat-stale').textContent = '0';
+    content.innerHTML = '<div class="text-gray-500 text-sm">No open pull requests</div>';
+    return;
+  }
+
+  // Stats
+  document.getElementById('pr-stat-total').textContent = data.total;
+  document.getElementById('pr-stat-needs-review').textContent = data.needsReview;
+  document.getElementById('pr-stat-approved').textContent = data.approved;
+  document.getElementById('pr-stat-changes').textContent = data.changesRequested;
+  document.getElementById('pr-stat-stale').textContent = data.stale;
+
+  // Fetched timestamp
+  if (data.fetched_at) {
+    const ago = Math.round((Date.now() - new Date(data.fetched_at).getTime()) / 60000);
+    document.getElementById('pr-fetched').textContent = ago <= 1 ? 'Fetched just now' : `Fetched ${ago}m ago`;
+  }
+
+  // Build tables grouped by product
+  const productOrder = ['Visionking', 'Diemaster', 'Spotfusion', 'Sdk', 'Other'];
+  const products = Object.keys(data.byProduct).sort((a, b) => {
+    const ai = productOrder.indexOf(a);
+    const bi = productOrder.indexOf(b);
+    return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+  });
+
+  let html = '';
+  for (const product of products) {
+    const prs = data.byProduct[product];
+    html += `<div class="mb-4">
+      <div class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">${product} <span class="text-gray-500">(${prs.length})</span></div>
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-gray-400 border-b border-gray-700">
+            <th class="text-left py-1.5 px-2">#</th>
+            <th class="text-left py-1.5 px-2">Repo</th>
+            <th class="text-left py-1.5 px-2">Title</th>
+            <th class="text-left py-1.5 px-2">Author</th>
+            <th class="text-right py-1.5 px-2">Age</th>
+            <th class="text-right py-1.5 px-2">Size</th>
+            <th class="text-left py-1.5 px-2">Review</th>
+          </tr>
+        </thead>
+        <tbody>`;
+
+    for (const pr of prs) {
+      const reviewStatus = getPrReviewStatus(pr);
+      const sizeStr = `+${pr.additions} / -${pr.deletions}`;
+      const ageStr = pr.age_days === 0 ? 'today' : pr.age_days === 1 ? '1d' : `${pr.age_days}d`;
+      const staleClass = pr.age_days > 7 ? 'text-danger' : pr.age_days > 3 ? 'text-warning' : 'text-gray-400';
+      html += `<tr class="border-b border-gray-700/50 hover:bg-gray-800/30">
+        <td class="py-1.5 px-2 text-xs text-gray-400">${pr.number}</td>
+        <td class="py-1.5 px-2 text-xs font-mono text-gray-300">${pr.repo}</td>
+        <td class="py-1.5 px-2 text-xs max-w-[280px] truncate"><a href="${pr.url}" target="_blank" class="text-accent hover:underline" title="${pr.title.replace(/"/g, '&quot;')}">${pr.title}</a></td>
+        <td class="py-1.5 px-2 text-xs text-gray-400">${pr.author}</td>
+        <td class="py-1.5 px-2 text-xs text-right ${staleClass}">${ageStr}</td>
+        <td class="py-1.5 px-2 text-xs text-right text-gray-400" title="${pr.changed_files} files">${sizeStr}</td>
+        <td class="py-1.5 px-2"><span class="badge ${reviewStatus.cls}">${reviewStatus.label}</span></td>
+      </tr>`;
+    }
+
+    html += '</tbody></table></div>';
+  }
+
+  content.innerHTML = html;
+}
+
+function getPrReviewStatus(pr) {
+  if (pr.is_draft) return { label: 'draft', cls: 'badge-neutral' };
+  if (pr.review_verdict === 'APPROVED' || pr.review_decision === 'APPROVED') return { label: 'approved', cls: 'badge-success' };
+  if (pr.review_verdict === 'CHANGES_REQUESTED' || pr.review_decision === 'CHANGES_REQUESTED') return { label: 'changes req.', cls: 'badge-danger' };
+  if (pr.review_file_exists) return { label: 'reviewed', cls: 'badge-accent' };
+  return { label: 'needs review', cls: 'badge-warning' };
 }
 
 // Initial load

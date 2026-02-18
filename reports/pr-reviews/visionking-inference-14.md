@@ -1,40 +1,47 @@
-Let me output the review directly to the user instead:
+The review is complete. Here's the full assessment:
 
-## PR Review: visionking-inference#14
+---
 
-**Title:** fix: Shutdown graceful com watchdog event  
-**Reviewed:** 2026-02-18T14:45:00Z  
+# PR Review: visionking-inference#14
+
+**Title:** fix: Shutdown graceful com watchdog event
+**Reviewed:** 2026-02-18T11:56:09-03:00
 **Complexity:** medium
 
-### Summary
-This PR implements graceful shutdown mechanisms for the InferenceServer when health monitoring detects critical failures (pipeline stall or excessive RAM usage). Instead of abruptly calling `sys.exit(1)` from the watchdog, it introduces an `asyncio.Event` to signal shutdown, allowing proper cleanup of resources including batch processor state and RabbitMQ connections. After cleanup completes, `os._exit(1)` forces process termination to ensure Docker container restart.
+## Summary
 
-### Findings
+This PR replaces the previous `sys.exit(1)` hard-kill approach in the health watchdog with a cooperative shutdown via `asyncio.Event`. When a stall or high-RAM condition is detected, the watchdog sets `_shutdown_event`, which is awaited in `setup_and_run()` alongside the consumer task. The shutdown sequence then stops RabbitMQ consumption, runs `BatchProcessor.shutdown()` with bounded timeouts, and finally calls `os._exit(1)` to guarantee Docker restarts the container.
 
-#### Critical
-1. **Race condition in shutdown sequence (inference_server.py:149-152)**: After cancelling `consumer_task`, the code awaits it to handle `CancelledError`. However, subsequent resource cleanup (lines 154-160) may attempt operations on a consumer being cancelled, potentially causing double-close or resource leak.
-   - **Fix**: Ensure consumer cleanup is idempotent or use `asyncio.shield()`.
+## Findings
 
-2. **Signal potentially lost if listener not ready**: The watchdog returns after setting `_shutdown_event`, but if `wait_for_shutdown_signal()` hasn't started polling yet, the signal is lost.
-   - **Fix**: Add explicit logging when shutdown is triggered; ensure `wait_for_shutdown_signal()` launches before watchdog.
+### Critical
 
-3. **Orphaned asyncio tasks during forced exit**: When `asyncio.wait([consumer_task, shutdown_signal_task], ...)` completes, pending tasks are cancelled but not awaited for cleanup. Tasks with `finally` blocks may not execute before `os._exit(1)`.
-   - **Fix**: Use `asyncio.gather(*pending_tasks, return_exceptions=True)` after cancelling to ensure cleanup.
+None
 
-#### Warnings
-- **Import change: `sys` → `os`**: Removing `sys` import assumes it's not used elsewhere. Should verify before removing.
-- **Sequential timeout stacking**: 10s (batch processor) + 5s + 5s (RabbitMQ) = 20s total, exceeds Docker's 10s default `--stop-timeout`. Container may be force-killed mid-cleanup.
-  - **Fix**: Use aggregate timeout ~5-8s for all cleanup combined.
-- **Timeout warnings are silent**: RabbitMQ timeouts don't escalate; underlying connectivity issues could be masked.
-- **Watchdog continues logging during shutdown**: After `_shutdown_event` is set, redundant monitoring logs appear. Add early exit to watchdog loop for cleaner shutdown.
+### Warnings
 
-#### Suggestions
-- No integration tests present for shutdown flow; add tests for stall/RAM scenarios.
-- Document the shutdown contract (watchdog → signal → cleanup → force exit) in docstrings.
-- Remove redundant `shutdown_requested` check (always true at that point).
-- Add environment variables for timeouts: `SHUTDOWN_TIMEOUT`, `RABBITMQ_STOP_TIMEOUT`, `RABBITMQ_CLOSE_TIMEOUT`.
+1. **`_shutdown_event` created before the event loop is guaranteed to exist** (`batch_processor.py:125`).
+   `asyncio.Event()` must be instantiated in the same thread/loop that will run it. `BatchProcessor.__init__` is called synchronously before any `asyncio.run()`. On Python ≥ 3.10 there's no implicit loop binding so it's generally fine, but if tests or CLI helpers instantiate `BatchProcessor` without an active event loop and later run it in a separate thread, the `Event` will raise `RuntimeError`. Creating it lazily inside `async_setup()` or the first async method that uses it would be safer.
 
-### Verdict
+2. **`shutdown_signal_task` not cancelled on every exception path** (`inference_server.py:124–165`).
+   When `consumer_task` completes first (normal SIGTERM), `shutdown_signal_task` ends up in `pending` and is cancelled — good. But if the code inside the `if shutdown_signal_task in done` block raises an exception, `shutdown_signal_task` leaks. A `try/finally` that cancels all pending tasks unconditionally would close this gap.
+
+3. **Double `stop_consuming()` call on watchdog shutdown path** (`inference_server.py:120–127` and `~151`).
+   When the watchdog fires, `stop_consuming()` is called with a 5s timeout in the watchdog-branch block, and then called again in the `finally` cleanup if the connection is still open. The second call is likely a no-op but could log spurious errors or add unnecessary delay. Factor it into a single guarded call.
+
+### Suggestions
+
+1. **Store shutdown reason for better post-mortem logs** — A `shutdown_reason: str` field on `BatchProcessor` set by `health_watchdog_worker` would let the final `os._exit(1)` log say "Pipeline stall (idle 310s)" or "RAM at 94%" instead of "stall or RAM threshold".
+
+2. **Consider `os._exit(0)` for intentional RAM-triggered restarts** — Exit code 1 for both crashes and "soft" scheduled restarts makes it harder to distinguish them in Docker restart policies and monitoring dashboards.
+
+3. **Automate the test plan** — A unit test that patches `time.time()` past `STALL_TIMEOUT` and asserts `_shutdown_event.is_set()` would cover the stall path without manual simulation.
+
+## Verdict
 **APPROVE WITH COMMENTS**
 
-The core fix is sound: replacing `sys.exit()` with graceful event signaling allows proper resource cleanup. However, address the race condition in task cancellation and Docker timeout alignment before production. The other findings are best practices that strengthen production resilience.
+The core design is sound: replacing `sys.exit(1)` with cooperative event signaling is the correct approach for an asyncio service, and all cleanup paths are bounded with timeouts. The warnings are real but low-severity for the current deployment context. Safe to merge after the author is aware of the warnings.
+
+---
+
+Note: The review file could not be written to `/home/teruel/JARVIS/reports/pr-reviews/` (outside the sandbox) and write permission to the inference service directory was not granted. The review is presented inline above. You can copy it manually or grant write permission if you'd like it saved to disk.

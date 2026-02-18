@@ -20,12 +20,13 @@ ORG="strokmatic"
 mkdir -p "$REVIEWS_DIR"
 
 usage() {
-    echo "Usage: review-pr.sh --all | --repo <repo-name> --pr <number>"
+    echo "Usage: review-pr.sh --all [--parallel [N]] | --repo <repo-name> --pr <number>"
     echo ""
     echo "Review open pull requests using Claude."
     echo ""
     echo "Options:"
     echo "  --all                Review all unreviewed open PRs"
+    echo "  --parallel [N]       Run up to N reviews concurrently (default: 3, use with --all)"
     echo "  --repo <name>        GitHub repo name (e.g. visionking-backend)"
     echo "  --pr <number>        PR number"
     exit 1
@@ -35,13 +36,25 @@ usage() {
 MODE=""
 TARGET_REPO=""
 TARGET_PR=""
+PARALLEL=0
+PARALLEL_COUNT=3
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --all)    MODE="all"; shift ;;
-        --repo)   TARGET_REPO="$2"; shift 2 ;;
-        --pr)     TARGET_PR="$2"; shift 2 ;;
-        *)        usage ;;
+        --all)      MODE="all"; shift ;;
+        --parallel)
+            PARALLEL=1
+            # Check if next arg is a number (optional N)
+            if [[ -n "${2:-}" && "$2" =~ ^[0-9]+$ ]]; then
+                PARALLEL_COUNT="$2"
+                shift 2
+            else
+                shift
+            fi
+            ;;
+        --repo)     TARGET_REPO="$2"; shift 2 ;;
+        --pr)       TARGET_PR="$2"; shift 2 ;;
+        *)          usage ;;
     esac
 done
 
@@ -247,30 +260,125 @@ if [[ "$MODE" == "all" ]]; then
     fi
 
     TOTAL=$(echo "$PR_LIST" | wc -l | tr -d ' ')
-    CURRENT=0
-    REVIEWED=0
-    SKIPPED=0
-    FAILED=0
-
     log_info "$TOTAL PR(s) to review"
 
-    while IFS=$'\t' read -r repo number title additions deletions changed_files updated_at; do
-        CURRENT=$((CURRENT + 1))
-        log_info "[$CURRENT/$TOTAL] $repo#$number"
+    if [[ "$PARALLEL" -eq 1 && "$TOTAL" -gt 1 ]]; then
+        # --- Parallel mode ---
+        log_info "Parallel mode: up to $PARALLEL_COUNT concurrent reviews"
 
-        if review_single_pr "$repo" "$number" "$title" "$additions" "$deletions" "$changed_files" "$updated_at"; then
-            # Check if it was skipped (review file existed and was current)
-            if review_is_current "$REVIEWS_DIR/${repo}-${number}.md" "$updated_at" 2>/dev/null; then
-                REVIEWED=$((REVIEWED + 1))
-            else
+        RESULTS_DIR=$(mktemp -d)
+        trap "rm -rf '$RESULTS_DIR'" EXIT
+
+        # Collect PRs to review vs skip
+        PRS_TO_REVIEW=()
+        SKIPPED=0
+
+        while IFS=$'\t' read -r repo number title additions deletions changed_files updated_at; do
+            _review_file="$REVIEWS_DIR/${repo}-${number}.md"
+            if review_is_current "$_review_file" "$updated_at"; then
+                log_info "Skipping $repo#$number — review is current"
                 SKIPPED=$((SKIPPED + 1))
+            else
+                PRS_TO_REVIEW+=("${repo}	${number}	${title}	${additions}	${deletions}	${changed_files}	${updated_at}")
             fi
-        else
-            FAILED=$((FAILED + 1))
-        fi
-    done <<< "$PR_LIST"
+        done <<< "$PR_LIST"
 
-    log_info "Review summary: $REVIEWED reviewed, $SKIPPED skipped, $FAILED failed"
+        REVIEW_COUNT=${#PRS_TO_REVIEW[@]}
+        if [[ $REVIEW_COUNT -eq 0 ]]; then
+            log_info "All PRs already have current reviews."
+            log_info "Review summary: 0 reviewed, $SKIPPED skipped, 0 failed"
+            exit 0
+        fi
+
+        log_info "$REVIEW_COUNT PR(s) to review, $SKIPPED already current"
+
+        RUNNING=0
+        PIDS=()
+        PR_LABELS=()
+
+        for pr_line in "${PRS_TO_REVIEW[@]}"; do
+            IFS=$'\t' read -r repo number title additions deletions changed_files updated_at <<< "$pr_line"
+            label="${repo}-${number}"
+
+            log_info "Launching review: $repo#$number"
+
+            (
+                set +e
+                review_single_pr "$repo" "$number" "$title" "$additions" "$deletions" "$changed_files" "$updated_at" \
+                    > "$RESULTS_DIR/${label}.log" 2>&1
+                echo $? > "$RESULTS_DIR/${label}.exit"
+            ) &
+
+            PIDS+=($!)
+            PR_LABELS+=("$label")
+            RUNNING=$((RUNNING + 1))
+
+            if [[ $RUNNING -ge $PARALLEL_COUNT ]]; then
+                wait -n 2>/dev/null || true
+                RUNNING=$((RUNNING - 1))
+            fi
+        done
+
+        # Wait for all remaining background jobs
+        wait
+
+        # Collect results
+        REVIEWED=0
+        FAILED=0
+
+        for label in "${PR_LABELS[@]}"; do
+            exit_file="$RESULTS_DIR/${label}.exit"
+            log_file="$RESULTS_DIR/${label}.log"
+            exit_code=1
+            if [[ -f "$exit_file" ]]; then
+                exit_code=$(cat "$exit_file")
+            fi
+
+            if [[ "$exit_code" -eq 0 ]]; then
+                REVIEWED=$((REVIEWED + 1))
+                log_info "Completed: $label"
+            else
+                FAILED=$((FAILED + 1))
+                log_error "Failed: $label"
+            fi
+
+            # Print captured log output
+            if [[ -f "$log_file" && -s "$log_file" ]]; then
+                echo "--- [$label] output ---"
+                cat "$log_file"
+                echo "--- end $label ---"
+            fi
+        done
+
+        rm -rf "$RESULTS_DIR"
+        trap - EXIT
+
+        log_info "Review summary: $REVIEWED reviewed, $SKIPPED skipped, $FAILED failed"
+    else
+        # --- Sequential mode (original behavior) ---
+        CURRENT=0
+        REVIEWED=0
+        SKIPPED=0
+        FAILED=0
+
+        while IFS=$'\t' read -r repo number title additions deletions changed_files updated_at; do
+            CURRENT=$((CURRENT + 1))
+            log_info "[$CURRENT/$TOTAL] $repo#$number"
+
+            if review_single_pr "$repo" "$number" "$title" "$additions" "$deletions" "$changed_files" "$updated_at"; then
+                # Check if it was skipped (review file existed and was current)
+                if review_is_current "$REVIEWS_DIR/${repo}-${number}.md" "$updated_at" 2>/dev/null; then
+                    REVIEWED=$((REVIEWED + 1))
+                else
+                    SKIPPED=$((SKIPPED + 1))
+                fi
+            else
+                FAILED=$((FAILED + 1))
+            fi
+        done <<< "$PR_LIST"
+
+        log_info "Review summary: $REVIEWED reviewed, $SKIPPED skipped, $FAILED failed"
+    fi
 else
     # Single PR mode
     PR_DATA=$(node -e "

@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 import { parseDispatches } from './parsers/dispatches.js';
 import { parseBacklogs } from './parsers/backlogs.js';
 import { parseChangelogs } from './parsers/changelogs.js';
+import { parsePrInbox } from './parsers/pr-inbox.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ORCHESTRATOR_HOME = process.env.ORCHESTRATOR_HOME || path.join(process.env.HOME, 'claude-orchestrator');
@@ -64,6 +65,17 @@ app.get('/api/changelogs', async (_req, res) => {
   } catch (err) {
     console.error('Error parsing changelogs:', err.message);
     res.json({ changelogs: [], recentEntries: [] });
+  }
+});
+
+// API: PR Inbox
+app.get('/api/pr-inbox', async (_req, res) => {
+  try {
+    const data = await parsePrInbox();
+    res.json(data);
+  } catch (err) {
+    console.error('Error parsing PR inbox:', err.message);
+    res.json({ fetched_at: null, total: 0, needsReview: 0, approved: 0, changesRequested: 0, draft: 0, stale: 0, byProduct: {}, prs: [] });
   }
 });
 
