@@ -139,6 +139,56 @@ export async function parsePrInbox() {
   };
 }
 
+export async function parseArchivedReviews() {
+  const archivedDir = path.join(ORCHESTRATOR_HOME, 'reports', 'pr-reviews', 'archived');
+  const results = [];
+
+  let files;
+  try {
+    files = await fs.readdir(archivedDir);
+  } catch {
+    return results;
+  }
+
+  for (const file of files) {
+    if (!file.endsWith('.md')) continue;
+    const match = file.match(/^(.+)-(\d+)\.md$/);
+    if (!match) continue;
+
+    const repo = match[1];
+    const number = parseInt(match[2], 10);
+    const filePath = path.join(archivedDir, file);
+
+    try {
+      const content = await fs.readFile(filePath, 'utf-8');
+      const stat = await fs.stat(filePath);
+
+      // Extract title
+      const titleMatch = content.match(/\*?\*?PR Title:\*?\*?\s*(.+)/i);
+      const title = titleMatch ? titleMatch[1].trim() : `${repo} #${number}`;
+
+      // Extract verdict
+      const verdict = await extractVerdict(filePath);
+
+      // Extract complexity
+      const complexityMatch = content.match(/\*?\*?Complexity:\*?\*?\s*(.+)/i);
+      const complexity = complexityMatch ? complexityMatch[1].trim() : null;
+
+      results.push({
+        repo,
+        number,
+        title,
+        verdict,
+        complexity,
+        reviewedAt: stat.mtime.toISOString(),
+      });
+    } catch { /* skip unreadable files */ }
+  }
+
+  results.sort((a, b) => b.reviewedAt.localeCompare(a.reviewedAt));
+  return results;
+}
+
 function emptyResult() {
   return {
     fetched_at: null,

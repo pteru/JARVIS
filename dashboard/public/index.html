@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JARVIS Dashboard</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <link rel="stylesheet" href="/style.css">
   <script>
@@ -162,6 +163,26 @@
       <!-- PR table grouped by product -->
       <div id="pr-inbox-content" class="overflow-x-auto custom-scrollbar">
         <div class="text-gray-500 text-sm">Loading...</div>
+      </div>
+    </div>
+
+    <!-- Archived Reviews -->
+    <div class="bg-card rounded-xl p-5 border border-gray-700 mt-6">
+      <h2 class="text-sm font-semibold text-gray-300 uppercase tracking-wide mb-4">Recently Archived Reviews</h2>
+      <div id="archived-reviews-content" class="overflow-x-auto custom-scrollbar">
+        <div class="text-gray-500 text-sm">Loading...</div>
+      </div>
+    </div>
+
+    <!-- Review Modal -->
+    <div id="review-modal" class="fixed inset-0 z-50 hidden">
+      <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeReviewModal()"></div>
+      <div class="absolute inset-[5%] bg-card border border-gray-700 rounded-xl flex flex-col animate-fade-in">
+        <div class="flex items-center justify-between px-5 py-3 border-b border-gray-700">
+          <h3 id="review-modal-title" class="text-sm font-semibold text-white truncate"></h3>
+          <button onclick="closeReviewModal()" class="text-gray-400 hover:text-white text-xl leading-none px-2">&times;</button>
+        </div>
+        <div id="review-modal-body" class="flex-1 overflow-y-auto p-6 custom-scrollbar prose-review"></div>
       </div>
     </div>
 
