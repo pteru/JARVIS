@@ -10,7 +10,7 @@ log_info() { echo -e "${GREEN}[INFO]${NC} $1"; }
 log_warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
-ORCHESTRATOR_HOME="${ORCHESTRATOR_HOME:-$HOME/claude-orchestrator}"
+ORCHESTRATOR_HOME="${ORCHESTRATOR_HOME:-$HOME/JARVIS}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 usage() {
@@ -34,7 +34,7 @@ if [[ -z "$WORKSPACE" || -z "$TASK" ]]; then
 fi
 
 # Load workspace path from config
-WORKSPACES_CONFIG="$ORCHESTRATOR_HOME/config/workspaces.json"
+WORKSPACES_CONFIG="$ORCHESTRATOR_HOME/config/orchestrator/workspaces.json"
 if [[ ! -f "$WORKSPACES_CONFIG" ]]; then
     log_error "workspaces.json not found"
     exit 1

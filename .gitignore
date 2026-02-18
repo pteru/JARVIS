@@ -35,4 +35,7 @@ Thumbs.db
 *.backup
 *.bak
 
+# Credentials
+config/credentials/
+
 workspaces/*

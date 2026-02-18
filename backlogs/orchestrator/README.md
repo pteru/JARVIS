@@ -11,9 +11,11 @@ Ideas for new features, skills, and integrations. Full specs live in this direct
 | ClickUp Connector | **Done** | [completed/clickup-connector.md](completed/clickup-connector.md) |
 | Changelog Reviewer | **Done** | [completed/changelog-reviewer.md](completed/changelog-reviewer.md) |
 | Orchestrator Dashboard | **Done** | [completed/orchestrator-dashboard.md](completed/orchestrator-dashboard.md) |
-| PR Inbox & Reviewer | **Planned** | [pr-inbox-reviewer.md](pr-inbox-reviewer.md) |
+| PR Inbox & Reviewer | **Done** | [pr-inbox-reviewer.md](pr-inbox-reviewer.md) |
 | Mechanical File Tool | **Done** | [completed/mechanical-tool.md](completed/mechanical-tool.md) |
 | Email Organizer Tool + MCP | **Done** | [completed/email-organizer.md](completed/email-organizer.md) |
+| Google Workspace Connector | **Done** | [google-workspace-connector.md](google-workspace-connector.md) |
+| Meeting Assistant | **Planned** | [meeting-assistant.md](meeting-assistant.md) |
 
 ---
 
@@ -32,3 +34,8 @@ Ideas for new features, skills, and integrations. Full specs live in this direct
 | Observability dashboard | **Done** | v1.0.0 | 2026-02-15 | [spec](completed/observability-dashboard.md) | Express.js dashboard with Chart.js.<br>Dispatch history, model usage, workspace activity, cost tracking. |
 | Hook system | **Done** | v1.0.0 | 2026-02-15 | [spec](completed/hook-system.md) | 5 hooks: PreDispatchValidator, BacklogPreloader, DashboardSummary,<br>CompletionNotifier, ChangelogVerifier. Registered in settings.local.json. |
 | Self-improvement mining | **Done** | v1.0.0 | 2026-02-15 | [spec](completed/self-improvement-mining.md) | New `self-improvement-miner` MCP server.<br>3 tools: analyze_patterns, generate_meta_report, apply_proposal. |
+| Google Workspace Connector | **Done** | — | 2026-02-18 | [spec](google-workspace-connector.md) | MCP server for Docs, Sheets, Slides, Drive.<br>Dual auth: Service Account + OAuth2. Skills: `/gdoc`, `/gsheet`, `/gslides`. |
+| PR review dispatch logging | **Done** | — | 2026-02-18 | — | Created `log-dispatch.sh` helper. Wired into `fetch-open-prs.sh`, `review-pr.sh`,<br>`archive-merged-reviews.sh`, and `orchestrator.sh`. All cron tasks now log to `dispatches.json`. |
+| PR review skip by commit SHA | **Planned** | — | — | — | Currently compares review mtime vs PR `updated_at`, but posting our own review bumps `updated_at` causing one unnecessary re-review.<br>Store reviewed commit SHA in sidecar file, compare against `headRefOid`. |
+| PR inbox dashboard widget | **Planned** | — | — | — | Add PR inbox visualization to the JARVIS dashboard.<br>Show open PR count by product, review status, stale PRs, and links to review files.<br>Read from `reports/pr-inbox.json` and `reports/pr-reviews/`. |
+| Meeting Assistant | **Planned** | — | — | [spec](meeting-assistant.md) | Real-time meeting transcription, minutes, proactive actions.<br>Hybrid audio: system capture + platform bots (Meet/Zoom/Teams).<br>Configurable STT: Deepgram (cloud) / faster-whisper (local).<br>Real-time alerts + post-meeting batch processing. 5 implementation phases. |
