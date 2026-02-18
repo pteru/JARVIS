@@ -327,6 +327,9 @@ class AuthManager {
         "https://www.googleapis.com/auth/presentations",
         "https://www.googleapis.com/auth/drive",
       ],
+      clientOptions: {
+        subject: "pedro@lumesolutions.com",
+      },
     });
 
     this._serviceAccountAuth = auth;
