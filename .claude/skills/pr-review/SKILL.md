@@ -60,6 +60,18 @@ gh pr review <number> --repo strokmatic/<repo> --approve --body "$CLEAN_BODY"
 ```
 Ask the user whether to approve, request changes, or just comment before posting.
 
+### Repo-scoped: "<repo>" — Full pipeline for a single repo
+Fetch open PRs for just one repo, review any unreviewed, and show results:
+```bash
+# Fetch PRs for the single repo
+gh pr list --repo strokmatic/<repo> --state open --json number,title,author,createdAt,updatedAt,headRefName,baseRefName,additions,deletions,changedFiles,url,isDraft,reviewDecision --limit 50
+```
+Parse the JSON output. For each open PR, check if a review already exists at `reports/pr-reviews/<repo>-<number>.md`. If not, review it:
+```bash
+ORCHESTRATOR_HOME=/home/teruel/JARVIS bash /home/teruel/JARVIS/scripts/review-pr.sh --repo <repo> --pr <number>
+```
+Show a summary table of all open PRs for that repo with their verdicts.
+
 ### "merge <repo> <number>" — Merge a PR
 ```bash
 gh pr merge <number> --repo strokmatic/<repo> --merge
