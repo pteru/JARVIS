@@ -1,29 +1,23 @@
 # PR Inbox
 
-> Generated: 2026-02-18T10:10:04-03:00
+> Generated: 2026-02-18T13:49:25-03:00
 
 ## Summary
 
 | Metric | Count |
 |--------|-------|
-| Total open PRs | 3 |
-| Needs review | 3 |
+| Total open PRs | 2 |
+| Needs review | 0 |
 | Draft | 0 |
-| Changes requested | 0 |
+| Changes requested | 2 |
 | Stale (>7d) | 2 |
-
-## VisionKing
-
-| # | Repo | Title | Author | Age | Size | Status |
-|---|------|-------|--------|-----|------|--------|
-| 4 | visionking | [Architecture docs + cross-service test infrastructure](https://github.com/strokmatic/visionking/pull/4) | teruelskm | 1d | +2151/-175 | NEEDS REVIEW |
 
 ## DieMaster
 
 | # | Repo | Title | Author | Age | Size | Status |
 |---|------|-------|--------|-----|------|--------|
-| 12 | diemaster-back-end | [Feat/868fvx1qw/configurar triggers](https://github.com/strokmatic/diemaster-back-end/pull/12) | gui-strokmatic | 131d | +27118/-9532 | NEEDS REVIEW |
-| 1 | diemaster-infra-setup | [Feat schema completo e lógica batch](https://github.com/strokmatic/diemaster-infra-setup/pull/1) | teruelskm | 285d | +601/-260 | NEEDS REVIEW |
+| 12 | diemaster-back-end | [Feat/868fvx1qw/configurar triggers](https://github.com/strokmatic/diemaster-back-end/pull/12) | gui-strokmatic | 131d | +27118/-9532 | [CHANGES REQUESTED](pr-reviews/diemaster-back-end-12.md) |
+| 1 | diemaster-infra-setup | [Feat schema completo e lógica batch](https://github.com/strokmatic/diemaster-infra-setup/pull/1) | teruelskm | 285d | +601/-260 | [CHANGES REQUESTED](pr-reviews/diemaster-infra-setup-1.md) |
 
 ## Stale PRs (>7 days without activity)
 

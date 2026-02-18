@@ -54,16 +54,16 @@ Use `%%{init}` block at the top of the Gantt definition:
     'doneBorderColor': '#00e676',
     'critColor': '#3a1b1b',
     'critBorderColor': '#ff1744',
-    'activeColor': '#0d2b4e',
-    'activeBorderColor': '#00d2ff',
+    'activeColor': '#2a2a3d',
+    'activeBorderColor': '#aa00ff',
     'sectionBkgColor': '#121212',
     'sectionBkgColor2': '#1a1a1a',
     'altSectionBkgColor': '#243b6a',
     'taskBkgColor': '#0d2b4e',
     'taskBorderColor': '#00d2ff',
     'taskTextColor': '#ffffff',
-    'activeTaskBkgColor': '#0d2b4e',
-    'activeTaskBorderColor': '#00d2ff',
+    'activeTaskBkgColor': '#2a2a3d',
+    'activeTaskBorderColor': '#aa00ff',
     'doneTaskBkgColor': '#1b3a1b',
     'doneTaskBorderColor': '#00e676',
     'critBkgColor': '#3a1b1b',
@@ -90,7 +90,8 @@ Use `%%{init}` block at the top of the Gantt definition:
 | `#1b3a1b` | Dark green | Done task fill |
 | `#ff1744` | Red | Critical path, danger |
 | `#3a1b1b` | Dark red | Critical task fill |
-| `#aa00ff` | Purple | Framing/assembly accent |
+| `#aa00ff` | Purple | Framing/assembly accent, TBD items (dashed border) |
+| `#2a2a3d` | Dark purple | TBD/unconfirmed item fill |
 | `#b0b0b0` | Light grey | Secondary borders, weld nodes |
 | `#666666` | Grey | Links, tertiary borders |
 | `#ffffff` | White | Text |
@@ -109,6 +110,7 @@ Mermaid Gantt charts do not render dependency arrows. **Every Gantt chart must b
   - `mec` (amber) — mechanical assembly tasks
   - `integ` (green) — integration/commissioning tasks
   - `crit` (red) — critical path items
+  - `tbd` (purple dashed) — items with unconfirmed estimates or pending specification
   - `mile` (orange border) — milestones (use `(("label"))` for double-circle shape)
 - Draw arrows for all `after` dependencies from the Gantt, including **cross-section dependencies**
 - Place cross-section dependency arrows after all subgraphs, under a `%% CROSS-SECTION DEPENDENCIES` comment
@@ -121,9 +123,14 @@ classDef dev fill:#0d2b4e,stroke:#00d2ff,stroke-width:2px,color:#fff;
 classDef mec fill:#4a2c0f,stroke:#ff9800,stroke-width:2px,color:#fff;
 classDef integ fill:#1b3a1b,stroke:#00e676,stroke-width:2px,color:#fff;
 classDef crit fill:#3a1b1b,stroke:#ff1744,stroke-width:2px,color:#fff;
+classDef tbd fill:#2a2a3d,stroke:#aa00ff,stroke-width:2px,stroke-dasharray:5 3,color:#ccc;
 classDef mile fill:#1f1f1f,stroke:#ff9800,stroke-width:3px,color:#ff9800;
 linkStyle default stroke:#666,stroke-width:1px;
 ```
+
+## Gantt Chart Rules
+
+- **After any Gantt chart edit, re-validate all `crit` flags.** Trace the actual critical path (longest chain to the final milestone) by summing durations along each dependency chain. Only tasks on the true critical path should have `:crit`. Tasks that are high-risk or important but not schedule-critical should use their section's default style, not `crit`. If a companion dependency flowchart exists, update its `:::crit` classes to match.
 
 ## Usage Notes
 

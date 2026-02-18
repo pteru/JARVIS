@@ -18,5 +18,45 @@
     "created_at": "2026-02-18T14:58:54.998Z",
     "started_at": "2026-02-18T14:58:54.998Z",
     "completed_at": "2026-02-18T14:58:54.998Z"
+  },
+  {
+    "type": "pr-review",
+    "task": "Review diemaster-status#7: chore: merge develop into master — single-DB routing + DB2 mirror",
+    "workspace": "strokmatic.diemaster.services.status",
+    "model": "claude-haiku-4-5-20251001",
+    "status": "complete",
+    "created_at": "2026-02-18T15:27:29.934Z",
+    "started_at": "2026-02-18T15:27:29.934Z",
+    "completed_at": "2026-02-18T15:27:29.934Z"
+  },
+  {
+    "type": "pr-review",
+    "task": "Review diemaster-status#8: fix: address all PR review findings",
+    "workspace": "strokmatic.diemaster.services.status",
+    "model": "claude-haiku-4-5-20251001",
+    "status": "complete",
+    "created_at": "2026-02-18T16:45:29.931Z",
+    "started_at": "2026-02-18T16:45:29.931Z",
+    "completed_at": "2026-02-18T16:45:29.931Z"
+  },
+  {
+    "type": "pr-review",
+    "task": "Review diemaster-status#9: chore: merge develop into master — single-DB routing + mirror flag",
+    "workspace": "strokmatic.diemaster.services.status",
+    "model": "claude-haiku-4-5-20251001",
+    "status": "complete",
+    "created_at": "2026-02-18T16:54:13.453Z",
+    "started_at": "2026-02-18T16:54:13.453Z",
+    "completed_at": "2026-02-18T16:54:13.453Z"
+  },
+  {
+    "type": "orchestrator",
+    "task": "orchestrator.sh daily-report",
+    "workspace": "orchestrator",
+    "model": "none",
+    "status": "complete",
+    "created_at": "2026-02-18T20:00:01.481Z",
+    "started_at": "2026-02-18T20:00:01.481Z",
+    "completed_at": "2026-02-18T20:00:01.481Z"
   }
 ]
