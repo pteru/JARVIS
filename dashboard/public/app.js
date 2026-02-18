@@ -62,12 +62,13 @@ async function fetchJSON(url) {
 }
 
 async function loadAll() {
-  const [dispatches, backlogs, changelogs, notifications, prInbox] = await Promise.all([
+  const [dispatches, backlogs, changelogs, notifications, prInbox, archivedReviews] = await Promise.all([
     fetchJSON('/api/dispatches'),
     fetchJSON('/api/backlogs'),
     fetchJSON('/api/changelogs'),
     fetchJSON('/api/notifications'),
     fetchJSON('/api/pr-inbox'),
+    fetchJSON('/api/pr-reviews/archived'),
   ]);
 
   renderStats(dispatches);
@@ -79,6 +80,7 @@ async function loadAll() {
   renderChangelog(changelogs);
   renderNotifications(notifications);
   renderPrInbox(prInbox);
+  renderArchivedReviews(archivedReviews);
 
   document.getElementById('last-updated').textContent = 'Updated ' + new Date().toLocaleTimeString();
 }
@@ -373,7 +375,10 @@ function renderPrInbox(data) {
         <td class="py-1.5 px-2 text-xs text-gray-400">${pr.author}</td>
         <td class="py-1.5 px-2 text-xs text-right ${staleClass}">${ageStr}</td>
         <td class="py-1.5 px-2 text-xs text-right text-gray-400" title="${pr.changed_files} files">${sizeStr}</td>
-        <td class="py-1.5 px-2"><span class="badge ${reviewStatus.cls}">${reviewStatus.label}</span></td>
+        <td class="py-1.5 px-2">${pr.review_file_exists
+          ? `<span class="badge ${reviewStatus.cls} badge-clickable" onclick="openReviewModal('${pr.repo}', ${pr.number}, false)">${reviewStatus.label}</span>`
+          : `<span class="badge ${reviewStatus.cls}">${reviewStatus.label}</span>`
+        }</td>
       </tr>`;
     }
 
@@ -389,6 +394,73 @@ function getPrReviewStatus(pr) {
   if (pr.review_verdict === 'CHANGES_REQUESTED' || pr.review_decision === 'CHANGES_REQUESTED') return { label: 'changes req.', cls: 'badge-danger' };
   if (pr.review_file_exists) return { label: 'reviewed', cls: 'badge-accent' };
   return { label: 'needs review', cls: 'badge-warning' };
+}
+
+// Review modal
+async function openReviewModal(repo, number, archived) {
+  const url = `/api/pr-review/${repo}/${number}${archived ? '?archived=true' : ''}`;
+  const data = await fetchJSON(url);
+  const modal = document.getElementById('review-modal');
+  const title = document.getElementById('review-modal-title');
+  const body = document.getElementById('review-modal-body');
+
+  title.textContent = `${repo} #${number}`;
+
+  if (!data || !data.exists) {
+    body.innerHTML = '<div class="text-gray-500">Review file not found.</div>';
+  } else {
+    body.innerHTML = marked.parse(data.content);
+  }
+
+  modal.classList.remove('hidden');
+  document.addEventListener('keydown', modalEscHandler);
+}
+
+function closeReviewModal() {
+  document.getElementById('review-modal').classList.add('hidden');
+  document.removeEventListener('keydown', modalEscHandler);
+}
+
+function modalEscHandler(e) {
+  if (e.key === 'Escape') closeReviewModal();
+}
+
+// Archived reviews
+function renderArchivedReviews(data) {
+  const el = document.getElementById('archived-reviews-content');
+  if (!data || data.length === 0) {
+    el.innerHTML = '<div class="text-gray-500 text-sm">No archived reviews</div>';
+    return;
+  }
+
+  const verdictBadge = (v) => {
+    if (!v) return '<span class="badge badge-neutral">unknown</span>';
+    if (v === 'APPROVED') return '<span class="badge badge-success">approved</span>';
+    return '<span class="badge badge-danger">changes req.</span>';
+  };
+
+  let html = `<table class="w-full text-sm">
+    <thead><tr class="text-gray-400 border-b border-gray-700">
+      <th class="text-left py-1.5 px-2">Repo</th>
+      <th class="text-left py-1.5 px-2">#</th>
+      <th class="text-left py-1.5 px-2">Title</th>
+      <th class="text-left py-1.5 px-2">Verdict</th>
+      <th class="text-right py-1.5 px-2">Reviewed</th>
+    </tr></thead><tbody>`;
+
+  for (const r of data) {
+    const dateStr = formatTime(r.reviewedAt);
+    html += `<tr class="border-b border-gray-700/50 hover:bg-gray-800/30 cursor-pointer" onclick="openReviewModal('${r.repo}', ${r.number}, true)">
+      <td class="py-1.5 px-2 text-xs font-mono text-gray-300">${r.repo}</td>
+      <td class="py-1.5 px-2 text-xs text-gray-400">${r.number}</td>
+      <td class="py-1.5 px-2 text-xs text-accent max-w-[300px] truncate">${r.title}</td>
+      <td class="py-1.5 px-2">${verdictBadge(r.verdict)}</td>
+      <td class="py-1.5 px-2 text-xs text-right text-gray-400">${dateStr}</td>
+    </tr>`;
+  }
+
+  html += '</tbody></table>';
+  el.innerHTML = html;
 }
 
 // Initial load

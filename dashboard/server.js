@@ -5,10 +5,10 @@ import { fileURLToPath } from 'url';
 import { parseDispatches } from './parsers/dispatches.js';
 import { parseBacklogs } from './parsers/backlogs.js';
 import { parseChangelogs } from './parsers/changelogs.js';
-import { parsePrInbox } from './parsers/pr-inbox.js';
+import { parsePrInbox, parseArchivedReviews } from './parsers/pr-inbox.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const ORCHESTRATOR_HOME = process.env.ORCHESTRATOR_HOME || path.join(process.env.HOME, 'claude-orchestrator');
+const ORCHESTRATOR_HOME = process.env.ORCHESTRATOR_HOME || path.join(process.env.HOME, 'JARVIS');
 
 const app = express();
 const PORT = process.env.DASHBOARD_PORT || 3000;
@@ -76,6 +76,31 @@ app.get('/api/pr-inbox', async (_req, res) => {
   } catch (err) {
     console.error('Error parsing PR inbox:', err.message);
     res.json({ fetched_at: null, total: 0, needsReview: 0, approved: 0, changesRequested: 0, draft: 0, stale: 0, byProduct: {}, prs: [] });
+  }
+});
+
+// API: PR Review file
+app.get('/api/pr-review/:repo/:number', async (req, res) => {
+  try {
+    const { repo, number } = req.params;
+    const archived = req.query.archived === 'true';
+    const base = path.join(ORCHESTRATOR_HOME, 'reports', 'pr-reviews');
+    const filePath = path.join(archived ? path.join(base, 'archived') : base, `${repo}-${number}.md`);
+    const content = await fs.readFile(filePath, 'utf-8');
+    res.json({ content, exists: true });
+  } catch {
+    res.json({ content: null, exists: false });
+  }
+});
+
+// API: Archived PR reviews
+app.get('/api/pr-reviews/archived', async (_req, res) => {
+  try {
+    const data = await parseArchivedReviews();
+    res.json(data);
+  } catch (err) {
+    console.error('Error parsing archived reviews:', err.message);
+    res.json([]);
   }
 });
 
