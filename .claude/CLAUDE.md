@@ -140,3 +140,23 @@ Before marking any task as complete:
 - **Symmetric multi-node deployments can have asymmetric issues.** vk01 disk at 81% while vk02 at 13% — same pipeline, same hardware, vastly different storage consumption. Always compare equivalent nodes to spot configuration drift (e.g., missing cleanup cron on one node).
 
 - **The database-writer image serves multiple roles via configuration.** The same Docker image is deployed as both "Frame Writer" (consuming `dw-sis-surface-queue`, calling `insert_frames_pecas`) and "Defect Writer" (consuming `rc-sis-surface-queue`, calling `insert_defects_inpects`). This is a common pattern but must be clearly documented to avoid confusion.
+
+### 2026-02-18 — PR Reviewer, Google Workspace MCP & Multi-Agent Deployment
+
+- **`IFS='|||'` does not work as a multi-character delimiter.** Bash `IFS` treats each character individually — `IFS='|||'` splits on every `|`, not on the string `|||`. Use tab (`IFS=$'\t'`) or another single character as a field separator when piping structured data through `while read`.
+
+- **`claude --print` cannot receive long prompts as CLI arguments.** Prompts containing special characters (`#`, `$`, backticks, heredoc content) break when passed as positional arguments. Pipe the prompt via stdin instead: `echo "$prompt" | claude --print --model ...`. This also avoids shell escaping issues.
+
+- **`claude --print` inside a `while read` loop consumes stdin.** When running `claude` inside a `while IFS=... read` loop, the Claude process reads from the same stdin as the loop, causing it to consume remaining lines. Fix by either piping the prompt explicitly (`echo "$prompt" | claude --print`) or redirecting stdin from `/dev/null` and passing the prompt as an argument.
+
+- **`claude --print` still enforces tool permissions.** Even in non-interactive mode, `claude --print` prompts for tool approval and blocks if not granted. Use `--allowedTools 'Bash(gh:*)'` to pre-approve specific commands. The syntax uses colon notation for patterns: `Bash(gh:*)`, not `Bash(gh *)`.
+
+- **New scripts that bypass `task-dispatcher.sh` won't appear in the dashboard.** The dispatcher logs to `dispatches.log`/`dispatches.json`, which the dashboard reads. Any script that calls `claude` directly (like `review-pr.sh`) must add its own dispatch logging or the activity is invisible to the observability layer.
+
+- **`ORCHESTRATOR_HOME` default drifts across scripts.** Some scripts default to `$HOME/claude-orchestrator` (the original name), others to `$HOME/JARVIS` (the current name). After renaming the project, audit all scripts with `grep -r 'claude-orchestrator'` to catch stale defaults. Same applies to `config/workspaces.json` vs `config/orchestrator/workspaces.json`.
+
+- **Clean AI output before posting to external systems.** `claude --print` output often includes preamble ("I need to provide..."), permission complaints ("The restriction prevents me..."), and suggested shell commands to save files. Always strip this noise before posting to GitHub, Slack, or any external system. A dedicated cleaning script (`clean-review-for-github.sh`) prevents this from being forgotten.
+
+- **Parallel agent deployment works well for independent deliverables.** Dispatching 3 agents simultaneously (MCP server, shell scripts, skills) cut total wall-clock time significantly. However, agents writing to paths outside their sandbox will fail silently — always verify target paths are within the agent's allowed scope, or handle the writes in the parent session.
+
+- **PR review model selection by size is effective and cost-efficient.** Routing trivial PRs (<100 lines) to Haiku and complex PRs (>500 lines) to Opus produces quality reviews at minimal cost. The small docs PRs got instant Haiku approvals; the 180-file backend PR got a thorough Opus analysis that caught real security issues (plaintext credential logging, weak password generation).

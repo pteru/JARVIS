@@ -219,6 +219,29 @@ run_manual() {
     "$SCRIPT_DIR/task-dispatcher.sh" "$WORKSPACE" "$TASK" "${4:-medium}"
 }
 
+run_pr_inbox() {
+    log_section "PR Inbox & Review"
+
+    log_info "Step 1/3: Fetching open PRs..."
+    "$SCRIPT_DIR/fetch-open-prs.sh" || {
+        log_error "Failed to fetch open PRs"
+        return 1
+    }
+
+    log_info "Step 2/3: Reviewing PRs..."
+    "$SCRIPT_DIR/review-pr.sh" --all || {
+        log_warn "Some PR reviews failed (continuing)"
+    }
+
+    log_info "Step 3/3: Building PR inbox report..."
+    node "$SCRIPT_DIR/helpers/build-pr-inbox.mjs" || {
+        log_error "Failed to build PR inbox markdown"
+        return 1
+    }
+
+    log_info "PR inbox pipeline complete"
+}
+
 case "$MODE" in
     process-backlogs) process_backlogs ;;
     daily-report)     generate_daily_report ;;
@@ -226,16 +249,21 @@ case "$MODE" in
     suggest-goals)    suggest_weekly_goals ;;
     fetch-remotes)    "$SCRIPT_DIR/fetch-all-remotes.sh" ;;
     update-access)    "$SCRIPT_DIR/update-access-matrix.sh" ;;
+    pr-inbox)         run_pr_inbox ;;
     manual)           run_manual "$@" ;;
     # Legacy aliases
     daily)            process_backlogs ;;
     weekly)           generate_weekly_report ;;
     *)
-        echo "Usage: orchestrator.sh <process-backlogs|daily-report|weekly-report|suggest-goals|fetch-remotes|update-access|manual> [args...]"
+        echo "Usage: orchestrator.sh <process-backlogs|daily-report|weekly-report|suggest-goals|fetch-remotes|update-access|pr-inbox|manual> [args...]"
         exit 1
         ;;
 esac
 
 echo ""
 log_info "Orchestrator '$MODE' completed."
+
+# Log dispatch for dashboard visibility
+"$SCRIPT_DIR/helpers/log-dispatch.sh" "orchestrator" "orchestrator.sh $MODE" "orchestrator" "none" "complete" 2>/dev/null || true
+
 echo ""
