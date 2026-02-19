@@ -1,0 +1,36 @@
+{
+  "enabled": true,
+  "backends": {
+    "telegram": {
+      "enabled": true,
+      "bot_token": "YOUR_BOT_TOKEN",
+      "chat_id": "YOUR_CHAT_ID",
+      "inbound": {
+        "enabled": false,
+        "voice_transcription": {
+          "enabled": false,
+          "provider": "groq",
+          "api_key_env": "GROQ_API_KEY"
+        }
+      }
+    },
+    "discord": {
+      "enabled": false,
+      "webhook_url": "",
+      "mention_role_id": null,
+      "silent_threshold_minutes": 2
+    }
+  },
+  "duration_thresholds": {
+    "quick_max": 120,
+    "standard_max": 600,
+    "long_max": 1800,
+    "timeout": 3600
+  },
+  "events": {
+    "task_started": false,
+    "task_completed": true,
+    "task_failed": true,
+    "task_timeout": true
+  }
+}

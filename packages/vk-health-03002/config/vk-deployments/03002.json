@@ -1,0 +1,75 @@
+{
+  "deployment_id": "03002",
+  "name": "VisionKing Laminacao (Steel)",
+  "product": "visionking",
+  "profile": "laminacao",
+  "nodes": {
+    "vk01": {
+      "host": "10.244.70.26",
+      "user": "vk01",
+      "ssh_port": 8050,
+      "role": "processing",
+      "has_gpu": true,
+      "gpu_model": "RTX 4070 Ti SUPER",
+      "services": ["image-saver", "inference", "frame-writer", "defect-writer", "plc-monitor", "camera-acquisition", "controller", "backend", "frontend", "rabbitmq", "redis", "postgresql", "grafana", "prometheus"]
+    },
+    "vk02": {
+      "host": "10.244.70.50",
+      "user": "vk02",
+      "ssh_port": 8050,
+      "role": "processing",
+      "has_gpu": true,
+      "gpu_model": "RTX 4070 Ti SUPER",
+      "services": ["image-saver", "inference", "frame-writer", "defect-writer", "plc-monitor", "camera-acquisition", "controller", "backend", "frontend", "rabbitmq", "redis", "postgresql"]
+    },
+    "vk03": {
+      "host": "10.244.70.25",
+      "user": "vk03",
+      "ssh_port": 8050,
+      "role": "dashboard",
+      "has_gpu": false,
+      "services": ["backend", "frontend", "postgresql"]
+    }
+  },
+  "ports": {
+    "ssh": 8050,
+    "redis": 4000,
+    "postgresql_vk01_vk02": 2345,
+    "postgresql_vk03": 5432,
+    "rabbitmq_amqp": 5672,
+    "rabbitmq_ui": 8002,
+    "frontend": 80,
+    "portainer": 443,
+    "redis_insight": 8001,
+    "pgadmin": 8003,
+    "grafana": 8100,
+    "prometheus_internal": 9090,
+    "image_saver_health": 5000,
+    "visualizer": "N/A (host networking, shares port 80 with frontend)"
+  },
+  "thresholds": {
+    "disk_warning_pct": 75,
+    "disk_critical_pct": 90,
+    "ram_warning_pct": 85,
+    "ram_critical_pct": 95,
+    "gpu_mem_warning_pct": 90,
+    "gpu_mem_critical_pct": 95,
+    "queue_warning": 5000,
+    "queue_critical": 10000,
+    "restart_warning": 3,
+    "restart_critical": 10,
+    "alert_cooldown_minutes": 60
+  },
+  "redis_dbs": {
+    "0": "cache (frames)",
+    "1": "plc (PLC state: speed, position, tracking, triggers)",
+    "2": "camera (streaming keys)",
+    "3": "settings"
+  },
+  "rabbitmq_user": "strokmatic",
+  "gui_checks": {
+    "vk01": [":80", ":443", ":8001", ":8002", ":8003", ":8100"],
+    "vk02": [":80", ":443", ":8001", ":8002", ":8003", ":8100"],
+    "vk03": [":80", ":443", ":8100"]
+  }
+}
