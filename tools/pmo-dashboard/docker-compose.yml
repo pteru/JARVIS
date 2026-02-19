@@ -1,0 +1,23 @@
+services:
+  pmo-dashboard:
+    build:
+      context: .
+      network: host
+    container_name: pmo-dashboard
+    ports:
+      - "8090:8090"
+    volumes:
+      - /home/teruel/JARVIS/workspaces/strokmatic/pmo:/data/pmo:ro
+      - /home/teruel/JARVIS/config:/data/config:ro
+      - pmo-db:/data/db
+    environment:
+      - PMO_ROOT=/data/pmo
+      - CONFIG_ROOT=/data/config
+      - DB_PATH=/data/db/pmo.db
+      - AUTH_TOKEN=${PMO_AUTH_TOKEN:-}
+      - GOOGLE_SHEET_ID=${GOOGLE_SHEET_ID:-}
+      - GOOGLE_CREDENTIALS_PATH=${GOOGLE_CREDENTIALS_PATH:-}
+    restart: unless-stopped
+
+volumes:
+  pmo-db:
