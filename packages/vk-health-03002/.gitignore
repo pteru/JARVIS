@@ -1,0 +1,7 @@
+# Runtime data
+data/vk-health/03002/
+logs/*.log
+
+# Secrets (NEVER commit)
+secrets/vk-ssh-password
+secrets/vk-rabbit-password
