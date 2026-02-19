@@ -1,0 +1,299 @@
+:root {
+  --color-bg-primary: #1a1a2e;
+  --color-bg-secondary: #16213e;
+  --color-bg-card: #1e2a3a;
+  --color-text-primary: #e0e0e0;
+  --color-text-secondary: #a0a0a0;
+  --color-accent: #0f9b8e;
+  --color-accent-hover: #12b8a8;
+  --color-border: #2a3a4a;
+  --color-danger: #e74c3c;
+  --color-warning: #f39c12;
+  --color-success: #27ae60;
+}
+
+/* PrimeVue dark overrides */
+.dark-mode {
+  --p-surface-0: #0d1117;
+  --p-surface-50: #131a24;
+  --p-surface-100: #1a1a2e;
+  --p-surface-200: #16213e;
+  --p-surface-300: #1e2a3a;
+  --p-surface-400: #2a3a4a;
+  --p-surface-500: #3a4a5a;
+  --p-surface-600: #a0a0a0;
+  --p-surface-700: #c0c0c0;
+  --p-surface-800: #e0e0e0;
+  --p-surface-900: #f0f0f0;
+  --p-surface-950: #ffffff;
+  --p-primary-color: #0f9b8e;
+  --p-primary-contrast-color: #ffffff;
+  --p-text-color: #e0e0e0;
+  --p-text-muted-color: #a0a0a0;
+  --p-content-background: #1e2a3a;
+  --p-content-border-color: #2a3a4a;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+}
+
+#app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3a4a5a;
+}
+
+/* Card styling */
+.pmo-card {
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 1.25rem;
+  transition: border-color 0.2s ease;
+}
+
+.pmo-card:hover {
+  border-color: var(--color-accent);
+}
+
+/* Links */
+a {
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--color-accent-hover);
+}
+
+/* PrimeVue DataTable dark overrides */
+.p-datatable .p-datatable-header {
+  background-color: var(--color-bg-secondary);
+  border-color: var(--color-border);
+}
+
+.p-datatable .p-datatable-thead > tr > th {
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  border-color: var(--color-border);
+}
+
+.p-datatable .p-datatable-tbody > tr {
+  background-color: var(--color-bg-card);
+  color: var(--color-text-primary);
+  border-color: var(--color-border);
+}
+
+.p-datatable .p-datatable-tbody > tr:hover {
+  background-color: var(--color-bg-secondary);
+}
+
+.p-datatable .p-datatable-tbody > tr > td {
+  border-color: var(--color-border);
+}
+
+/* PrimeVue Dialog dark overrides */
+.p-dialog {
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+}
+
+.p-dialog .p-dialog-header {
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.p-dialog .p-dialog-content {
+  background-color: var(--color-bg-card);
+  color: var(--color-text-primary);
+}
+
+.p-dialog .p-dialog-footer {
+  background-color: var(--color-bg-card);
+  border-top: 1px solid var(--color-border);
+}
+
+/* PrimeVue Menubar dark overrides */
+.p-menubar {
+  background-color: var(--color-bg-secondary);
+  border-color: var(--color-border);
+}
+
+/* PrimeVue Tabs dark overrides */
+.p-tabs .p-tablist {
+  background-color: var(--color-bg-secondary);
+  border-color: var(--color-border);
+}
+
+/* PrimeVue InputText dark overrides */
+.p-inputtext {
+  background-color: var(--color-bg-card);
+  color: var(--color-text-primary);
+  border-color: var(--color-border);
+}
+
+.p-inputtext:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px rgba(15, 155, 142, 0.2);
+}
+
+/* PrimeVue Select dark overrides */
+.p-select {
+  background-color: var(--color-bg-card);
+  color: var(--color-text-primary);
+  border-color: var(--color-border);
+}
+
+/* Category badge colors */
+.badge-technical {
+  background-color: #2563eb !important;
+  color: #ffffff !important;
+}
+
+.badge-status {
+  background-color: #27ae60 !important;
+  color: #ffffff !important;
+}
+
+.badge-discussion {
+  background-color: #f39c12 !important;
+  color: #1a1a2e !important;
+}
+
+.badge-administrative {
+  background-color: #6b7280 !important;
+  color: #ffffff !important;
+}
+
+/* Product line badge colors */
+.badge-spotfusion {
+  background-color: #06b6d4 !important;
+  color: #1a1a2e !important;
+}
+
+.badge-visionking {
+  background-color: #8b5cf6 !important;
+  color: #ffffff !important;
+}
+
+/* Status badge colors */
+.status-pending {
+  background-color: #6b7280 !important;
+}
+
+.status-in_progress {
+  background-color: #2563eb !important;
+}
+
+.status-completed {
+  background-color: #27ae60 !important;
+}
+
+.status-delayed {
+  background-color: #e74c3c !important;
+}
+
+.status-cancelled {
+  background-color: #9ca3af !important;
+}
+
+/* Utility classes */
+.page-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  width: 100%;
+}
+
+.page-header {
+  margin-bottom: 1.5rem;
+}
+
+.page-header h1 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.page-header p {
+  color: var(--color-text-secondary);
+  margin-top: 0.25rem;
+}
+
+.flex-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.gap-1 { gap: 0.5rem; }
+.gap-2 { gap: 0.75rem; }
+.gap-3 { gap: 1rem; }
+.mt-1 { margin-top: 0.5rem; }
+.mt-2 { margin-top: 1rem; }
+.mt-3 { margin-top: 1.5rem; }
+.mb-1 { margin-bottom: 0.5rem; }
+.mb-2 { margin-bottom: 1rem; }
+.mb-3 { margin-bottom: 1.5rem; }
+
+/* Loading state */
+.loading-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  color: var(--color-text-secondary);
+}
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--color-text-secondary);
+}
+
+.empty-state i {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.empty-state p {
+  font-size: 1.1rem;
+}
