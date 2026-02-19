@@ -9,6 +9,13 @@ This is an automated orchestration system that dispatches coding tasks to Claude
 - Write tests for new functionality when a test framework is present
 - Never commit secrets, credentials, or environment-specific configuration
 
+## Markdown Report Conventions
+When writing PMO reports (in `workspaces/strokmatic/pmo/*/reports/md/`):
+- Consecutive bold metadata lines in the header (e.g., `**Projeto:**`, `**Data:**`, `**Autor:**`) must end with `<br>` to preserve line breaks in HTML/PDF rendering. Without `<br>`, single newlines collapse into one line.
+- Export to PDF using `md-to-pdf`: `PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome npx --yes md-to-pdf <file>.md`
+- Never use pandoc/LaTeX for PDF export (poor typography).
+- PMO report structure: `reports/md/` for markdown source, `reports/pdf/` for exported PDFs.
+
 ## Changelog Format
 Use [Keep a Changelog](https://keepachangelog.com/) format:
 - **Added** for new features

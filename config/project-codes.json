@@ -98,17 +98,8 @@
   "02008": {
     "name": "Nissan Smyrna Spot Fusion",
     "product": "spotfusion",
-    "keywords": [
-      "nissan",
-      "smyrna",
-      "spot fusion",
-      "comau",
-      "spotfusion"
-    ],
-    "senders": [
-      "joshua.young@nissan",
-      "kirk.cumbo@comau"
-    ],
+    "keywords": ["nissan", "smyrna", "spot fusion", "comau", "spotfusion"],
+    "senders": ["joshua.young@nissan", "kirk.cumbo@comau"],
     "language": "en",
     "pmo_path": "workspaces/strokmatic/pmo/02008"
   },
@@ -121,7 +112,7 @@
     "pmo_path": "workspaces/strokmatic/pmo/03001"
   },
   "03002": {
-    "name": "ArcelorMittal Barra Mansa - TL1",
+    "name": "ArcelorMittal Barra Mansa - TL1 - BCM",
     "product": "visionking",
     "keywords": [],
     "senders": [],
