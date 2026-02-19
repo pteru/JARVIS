@@ -28,6 +28,8 @@ REPORT=$(claude -p \
 2. /home/teruel/JARVIS/workspaces/strokmatic/visionking/.claude/backlog.md — VisionKing high-priority items
 3. /home/teruel/JARVIS/workspaces/strokmatic/diemaster/.claude/backlog.md — DieMaster high-priority items
 4. /home/teruel/JARVIS/workspaces/strokmatic/spotfusion/.claude/context.md — SpotFusion status
+5. /home/teruel/JARVIS/reports/vk-health/03002/latest.md — Latest VisionKing health analysis (if exists)
+6. /home/teruel/JARVIS/reports/vk-health/03002/improvements.md — Recent improvement suggestions (last 5 entries)
 
 Also run 'git -C /home/teruel/JARVIS status --short' and 'git -C /home/teruel/JARVIS log --oneline -3' to get repo status.
 
@@ -42,6 +44,11 @@ SYSTEMS STATUS:
 HIGH-PRIORITY ITEMS:
 - VisionKing: list top 3 items (ID + short desc)
 - DieMaster: list top 3 items (ID + short desc)
+
+VK PRODUCTION HEALTH:
+- Overall status: HEALTHY/WARNING/CRITICAL
+- Key findings: (1-2 most important items from latest analysis)
+- Open improvements: N items pending
 
 RECENT ACTIVITY:
 - last 3 commits

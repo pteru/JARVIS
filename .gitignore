@@ -39,3 +39,6 @@ Thumbs.db
 config/credentials/
 
 workspaces/*
+
+# VK Health Monitor data
+data/vk-health/
