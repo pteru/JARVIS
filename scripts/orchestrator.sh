@@ -250,12 +250,18 @@ case "$MODE" in
     fetch-remotes)    "$SCRIPT_DIR/fetch-all-remotes.sh" ;;
     update-access)    "$SCRIPT_DIR/update-access-matrix.sh" ;;
     pr-inbox)         run_pr_inbox ;;
+    vk-health)
+        log_section "Running VK Health Check"
+        VK_SSH_PASSWORD="$(cat ~/.secrets/vk-ssh-password 2>/dev/null)" \
+        VK_RABBIT_PASSWORD="$(cat ~/.secrets/vk-rabbit-password 2>/dev/null)" \
+        "$SCRIPT_DIR/vk-health/run.sh" "${2:-03002}"
+        ;;
     manual)           run_manual "$@" ;;
     # Legacy aliases
     daily)            process_backlogs ;;
     weekly)           generate_weekly_report ;;
     *)
-        echo "Usage: orchestrator.sh <process-backlogs|daily-report|weekly-report|suggest-goals|fetch-remotes|update-access|pr-inbox|manual> [args...]"
+        echo "Usage: orchestrator.sh <process-backlogs|daily-report|weekly-report|suggest-goals|fetch-remotes|update-access|pr-inbox|vk-health|manual> [args...]"
         exit 1
         ;;
 esac
