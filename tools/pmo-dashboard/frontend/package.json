@@ -1,0 +1,25 @@
+{
+  "name": "pmo-dashboard",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@primevue/themes": "^4.3.0",
+    "axios": "^1.7.0",
+    "frappe-gantt": "^0.6.1",
+    "primeicons": "^7.0.0",
+    "primevue": "^4.3.0",
+    "vue": "^3.5.0",
+    "vue-router": "^4.4.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.1.0",
+    "sass-embedded": "^1.97.3",
+    "vite": "^5.4.0"
+  }
+}

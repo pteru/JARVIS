@@ -1,0 +1,9 @@
+backend/.venv
+backend/pmo-dev.db
+backend/__pycache__
+frontend/node_modules
+frontend/dist
+.git
+*.pyc
+*.md
+db/
