@@ -142,21 +142,77 @@ process_backlogs() {
 generate_daily_report() {
     log_section "Generating Daily Report"
 
-    REPORT_FILE="$ORCHESTRATOR_HOME/reports/daily-${DATE}.md"
+    REPORT_FILE="$ORCHESTRATOR_HOME/reports/daily/daily-${DATE}.md"
+    DISPATCHES="$ORCHESTRATOR_HOME/logs/dispatches.json"
+    CHANGELOG_DIR="$ORCHESTRATOR_HOME/changelogs"
     mkdir -p "$(dirname "$REPORT_FILE")"
 
     {
         echo "# Daily Report - $DATE"
         echo ""
-        echo "## Workspace Activity"
+
+        # --- Dispatches for today ---
+        echo "## Dispatches"
+        echo ""
+        if [[ -f "$DISPATCHES" ]]; then
+            DISPATCH_SUMMARY=$(node -e "
+                const d = JSON.parse(require('fs').readFileSync('$DISPATCHES','utf-8'));
+                const today = d.filter(e => (e.created_at||'').startsWith('$DATE'));
+                if (!today.length) { console.log('No dispatches today.'); process.exit(0); }
+                const byStatus = {};
+                today.forEach(e => { byStatus[e.status] = (byStatus[e.status]||0)+1; });
+                console.log('| Status | Count |');
+                console.log('|--------|-------|');
+                Object.entries(byStatus).forEach(([s,c]) => console.log('| ' + s + ' | ' + c + ' |'));
+                console.log('');
+                console.log('### Details');
+                console.log('');
+                today.forEach(e => {
+                    const ws = (e.workspace||'').split('.').slice(1,3).join('.');
+                    console.log('- **[' + e.status + ']** ' + ws + ' — ' + (e.task||'').slice(0,80));
+                });
+            " 2>/dev/null || echo "Could not parse dispatches.")
+            echo "$DISPATCH_SUMMARY"
+        else
+            echo "No dispatch log found."
+        fi
         echo ""
 
-        for ws in $WORKSPACES; do
-            CHANGELOG="$ORCHESTRATOR_HOME/changelogs/${ws}-changelog.md"
-            if [[ -f "$CHANGELOG" ]] && grep -q "$DATE" "$CHANGELOG" 2>/dev/null; then
-                echo "### $ws"
-                grep -A 20 "## $DATE" "$CHANGELOG" 2>/dev/null | head -25 || true
+        # --- Changelog entries for today ---
+        echo "## Changelog Entries"
+        echo ""
+        FOUND_CHANGELOG=false
+        for f in "$CHANGELOG_DIR"/*-changelog.md; do
+            [[ -f "$f" ]] || continue
+            if grep -q "## $DATE" "$f" 2>/dev/null; then
+                WS_NAME=$(basename "$f" | sed 's/-changelog\.md$//')
+                echo "### $WS_NAME"
+                sed -n "/^## $DATE/,/^## [0-9]/p" "$f" | head -30 | sed '$d'
                 echo ""
+                FOUND_CHANGELOG=true
+            fi
+        done
+        if [[ "$FOUND_CHANGELOG" == "false" ]]; then
+            echo "No changelog entries for today."
+        fi
+        echo ""
+
+        # --- Git activity ---
+        echo "## Git Commits"
+        echo ""
+        git -C "$ORCHESTRATOR_HOME" log --oneline --since="$DATE" --until="$(date -d "$DATE + 1 day" +%Y-%m-%d)" 2>/dev/null || echo "No commits today."
+        echo ""
+
+        # --- Backlog summary ---
+        echo "## Backlog Summary"
+        echo ""
+        echo "| Product | Pending |"
+        echo "|---------|---------|"
+        for product in diemaster spotfusion visionking sdk; do
+            BACKLOG_FILE="$ORCHESTRATOR_HOME/backlogs/products/strokmatic.${product}.md"
+            if [[ -f "$BACKLOG_FILE" ]]; then
+                COUNT=$(grep -c '^\- \[ \]' "$BACKLOG_FILE" 2>/dev/null || echo 0)
+                echo "| $product | $COUNT |"
             fi
         done
     } > "$REPORT_FILE"
@@ -167,22 +223,99 @@ generate_daily_report() {
 generate_weekly_report() {
     log_section "Generating Weekly Report"
 
-    REPORT_FILE="$ORCHESTRATOR_HOME/reports/weekly-${DATE}.md"
+    REPORT_FILE="$ORCHESTRATOR_HOME/reports/weekly/weekly-${DATE}.md"
+    DISPATCHES="$ORCHESTRATOR_HOME/logs/dispatches.json"
+    CHANGELOG_DIR="$ORCHESTRATOR_HOME/changelogs"
+    WEEK_START=$(date -d "$DATE - 7 days" +%Y-%m-%d)
     mkdir -p "$(dirname "$REPORT_FILE")"
 
     {
         echo "# Weekly Report - Week ending $DATE"
         echo ""
-        echo "## Summary"
+
+        # --- Dispatch summary for the week ---
+        echo "## Dispatch Summary ($WEEK_START to $DATE)"
+        echo ""
+        if [[ -f "$DISPATCHES" ]]; then
+            node -e "
+                const d = JSON.parse(require('fs').readFileSync('$DISPATCHES','utf-8'));
+                const start = '$WEEK_START', end = '$DATE';
+                const week = d.filter(e => { const dt = (e.created_at||'').slice(0,10); return dt >= start && dt <= end; });
+                if (!week.length) { console.log('No dispatches this week.'); process.exit(0); }
+                // By status
+                const byStatus = {};
+                week.forEach(e => { byStatus[e.status] = (byStatus[e.status]||0)+1; });
+                console.log('**Total: ' + week.length + ' dispatches**');
+                console.log('');
+                console.log('| Status | Count |');
+                console.log('|--------|-------|');
+                Object.entries(byStatus).forEach(([s,c]) => console.log('| ' + s + ' | ' + c + ' |'));
+                console.log('');
+                // By product
+                const byProduct = {};
+                week.forEach(e => {
+                    const p = (e.workspace||'').split('.')[1] || 'other';
+                    byProduct[p] = (byProduct[p]||0)+1;
+                });
+                console.log('| Product | Dispatches |');
+                console.log('|---------|------------|');
+                Object.entries(byProduct).sort((a,b)=>b[1]-a[1]).forEach(([p,c]) => console.log('| ' + p + ' | ' + c + ' |'));
+                console.log('');
+                // By type
+                const byType = {};
+                week.forEach(e => { byType[e.type||'task'] = (byType[e.type||'task']||0)+1; });
+                console.log('| Type | Count |');
+                console.log('|------|-------|');
+                Object.entries(byType).sort((a,b)=>b[1]-a[1]).forEach(([t,c]) => console.log('| ' + t + ' | ' + c + ' |'));
+            " 2>/dev/null || echo "Could not parse dispatches."
+        else
+            echo "No dispatch log found."
+        fi
         echo ""
 
-        for ws in $WORKSPACES; do
-            CHANGELOG="$ORCHESTRATOR_HOME/changelogs/${ws}-changelog.md"
-            if [[ -f "$CHANGELOG" ]]; then
-                echo "### $ws"
-                # Last 7 days of entries
-                head -60 "$CHANGELOG" 2>/dev/null || true
+        # --- Changelog entries for the week ---
+        echo "## Changelog Entries"
+        echo ""
+        FOUND_CHANGELOG=false
+        for f in "$CHANGELOG_DIR"/*-changelog.md; do
+            [[ -f "$f" ]] || continue
+            WS_NAME=$(basename "$f" | sed 's/-changelog\.md$//')
+            # Extract date headers within range
+            ENTRIES=$(awk -v start="$WEEK_START" -v end="$DATE" '
+                /^## [0-9]{4}-[0-9]{2}-[0-9]{2}/ {
+                    dt = substr($2, 1, 10)
+                    in_range = (dt >= start && dt <= end)
+                }
+                in_range { print }
+            ' "$f" 2>/dev/null)
+            if [[ -n "$ENTRIES" ]]; then
+                echo "### $WS_NAME"
+                echo "$ENTRIES"
                 echo ""
+                FOUND_CHANGELOG=true
+            fi
+        done
+        if [[ "$FOUND_CHANGELOG" == "false" ]]; then
+            echo "No changelog entries this week."
+        fi
+        echo ""
+
+        # --- Git activity ---
+        echo "## Git Commits"
+        echo ""
+        git -C "$ORCHESTRATOR_HOME" log --oneline --since="$WEEK_START" 2>/dev/null || echo "No commits this week."
+        echo ""
+
+        # --- Backlog summary ---
+        echo "## Backlog Summary"
+        echo ""
+        echo "| Product | Pending |"
+        echo "|---------|---------|"
+        for product in diemaster spotfusion visionking sdk; do
+            BACKLOG_FILE="$ORCHESTRATOR_HOME/backlogs/products/strokmatic.${product}.md"
+            if [[ -f "$BACKLOG_FILE" ]]; then
+                COUNT=$(grep -c '^\- \[ \]' "$BACKLOG_FILE" 2>/dev/null || echo 0)
+                echo "| $product | $COUNT |"
             fi
         done
     } > "$REPORT_FILE"

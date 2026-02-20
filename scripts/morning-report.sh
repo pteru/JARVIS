@@ -7,7 +7,7 @@ export PATH="$HOME/.local/bin:$PATH"
 ORCHESTRATOR_HOME="${ORCHESTRATOR_HOME:-$HOME/JARVIS}"
 CONFIG="$ORCHESTRATOR_HOME/config/orchestrator/notifications.json"
 LOG_DIR="$ORCHESTRATOR_HOME/logs"
-REPORT_DIR="$ORCHESTRATOR_HOME/reports"
+REPORT_DIR="$ORCHESTRATOR_HOME/reports/morning"
 DATE=$(date +%Y-%m-%d)
 
 mkdir -p "$LOG_DIR" "$REPORT_DIR"
@@ -22,7 +22,9 @@ REPORT=$(claude -p \
   --dangerously-skip-permissions \
   --no-session-persistence \
   --output-format text \
-  "You are JARVIS. Generate a concise morning briefing for sir. Read these files and produce a Telegram-friendly plain text report (no markdown special chars, use simple dashes and arrows):
+  "IMPORTANT: Output ONLY the report below, with no preamble, no thinking, no commentary before or after. Start directly with the --- line.
+
+You are JARVIS. Generate a concise morning briefing for sir. Read these files and produce a Telegram-friendly plain text report (no markdown special chars, use simple dashes and arrows):
 
 1. /home/teruel/JARVIS/config/orchestrator/workspaces.json — count workspaces by product
 2. /home/teruel/JARVIS/workspaces/strokmatic/visionking/.claude/backlog.md — VisionKing high-priority items

@@ -71,4 +71,4 @@ Generates activity reports from changelogs and dispatches.
 | `generate_workspace_report` | Detailed report for one workspace | `workspace` |
 
 ### Output
-Reports saved to `reports/daily-YYYY-MM-DD.md` and `reports/weekly-YYYY-MM-DD.md`.
+Reports saved to `reports/daily/` and `reports/weekly/`.
