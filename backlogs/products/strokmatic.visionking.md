@@ -29,6 +29,8 @@
 - [ ] [complex] FEAT-05: Add 3D camera capabilities to camera-acquisition — Support 3D sensors (structured light, ToF), depth data pipeline, point cloud handling.
 - [ ] [complex] FEAT-06: Advance integrated testing suite — Cross-service integration tests covering the full pipeline: acquisition → inference → result → database.
 
+- [ ] [medium] FEAT-07: Add watermark toggle to defect-visualizer Docker app — The `add_watermark()` function exists in 3 static scripts (generate_heatmaps.py, generate_table.py, generate_timeline.py) but the Docker backend API (`/api/heatmap/{view}`) has zero watermark support. Port `add_watermark()` to the backend, add `cairosvg` + `libcairo2-dev` to Dockerfile, expose as `?watermark=true/false` query param and env var `WATERMARK_ENABLED`. Also add toggle to defect-visualizer frontend UI.
+
 ## Toolkit Cleanup
 - [ ] [simple] TOOL-03: Delete abandoned toolkit dirs — Remove vk/toolkit/label-studio (empty, replaced by sdk-label-studio-toolkit) and vk/toolkit/model-comparison (empty scaffold).
 - [ ] [simple] TOOL-04: Merge analysis tools → vk/toolkit/analysis — Combine logs/, logs-parsing-analysis/, profiling/ into single vk/toolkit/analysis/ with submodules: log_parser, profiler, pickle_inspector. Shared pandas output format, Click CLI entry point.
