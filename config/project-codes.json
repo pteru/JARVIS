@@ -5,7 +5,18 @@
     "keywords": [],
     "senders": [],
     "language": "pt-BR",
-    "pmo_path": "workspaces/strokmatic/pmo/01001"
+    "pmo_path": "workspaces/strokmatic/pmo/01001",
+    "drive": {
+      "folders": [
+        {
+          "id": "1P3jWKEqJYvbFpwyn16H8V6E2mukKdpbC",
+          "name": "[01001] GM-SJC-S10_CC_LE",
+          "role": "internal",
+          "driveId": "0ALpYWXApVGjKUk9PVA",
+          "driveName": "[01] SMART DIE"
+        }
+      ]
+    }
   },
   "01002": {
     "name": "GM Flint - Bravada Fender",
@@ -13,7 +24,18 @@
     "keywords": [],
     "senders": [],
     "language": "en",
-    "pmo_path": "workspaces/strokmatic/pmo/01002"
+    "pmo_path": "workspaces/strokmatic/pmo/01002",
+    "drive": {
+      "folders": [
+        {
+          "id": "1EnJmnQHfiDofaQCc80kr40kaR4fmEMD2",
+          "name": "[01002] GM-FLINT_Bravada_Fender",
+          "role": "internal",
+          "driveId": "0ALpYWXApVGjKUk9PVA",
+          "driveName": "[01] SMART DIE"
+        }
+      ]
+    }
   },
   "01003": {
     "name": "DEV Joinville - Novo Corsa Caixa de Roda",
@@ -21,7 +43,18 @@
     "keywords": [],
     "senders": [],
     "language": "pt-BR",
-    "pmo_path": "workspaces/strokmatic/pmo/01003"
+    "pmo_path": "workspaces/strokmatic/pmo/01003",
+    "drive": {
+      "folders": [
+        {
+          "id": "1wuQQPwU5RQ5orX2n4A-4QSWIqehrQ6gf",
+          "name": "[01003] DEV-JVL-Novo_Corsa",
+          "role": "internal",
+          "driveId": "0ALpYWXApVGjKUk9PVA",
+          "driveName": "[01] SMART DIE"
+        }
+      ]
+    }
   },
   "01004": {
     "name": "Stellantis Demo",
@@ -29,7 +62,18 @@
     "keywords": [],
     "senders": [],
     "language": "pt-BR",
-    "pmo_path": "workspaces/strokmatic/pmo/01004"
+    "pmo_path": "workspaces/strokmatic/pmo/01004",
+    "drive": {
+      "folders": [
+        {
+          "id": "1gGdjwZKIHcRwis808v1xduexGcSX7-FR",
+          "name": "[01004] STELLANTIS-DEMO",
+          "role": "internal",
+          "driveId": "0ALpYWXApVGjKUk9PVA",
+          "driveName": "[01] SMART DIE"
+        }
+      ]
+    }
   },
   "01005": {
     "name": "FUNDEP - DEMESTAA/DECOLAB 2",
@@ -37,7 +81,18 @@
     "keywords": [],
     "senders": [],
     "language": "pt-BR",
-    "pmo_path": "workspaces/strokmatic/pmo/01005"
+    "pmo_path": "workspaces/strokmatic/pmo/01005",
+    "drive": {
+      "folders": [
+        {
+          "id": "1C6UUfZlGvZ-z9jrqTDdmcwcSDE_ejjFz",
+          "name": "[01005] DEMESTAA/DECOLAB 2",
+          "role": "internal",
+          "driveId": "0ALpYWXApVGjKUk9PVA",
+          "driveName": "[01] SMART DIE"
+        }
+      ]
+    }
   },
   "02001": {
     "name": "GM São José dos Campos - Trailblazer Liftgate",
@@ -45,7 +100,25 @@
     "keywords": [],
     "senders": [],
     "language": "pt-BR",
-    "pmo_path": "workspaces/strokmatic/pmo/02001"
+    "pmo_path": "workspaces/strokmatic/pmo/02001",
+    "drive": {
+      "folders": [
+        {
+          "id": "1bCEO5JJEnE03k2jyzO42nkF229kmCRkH",
+          "name": "[02001] GM-SJC-Liftgate",
+          "role": "internal",
+          "driveId": "0AAUuVGQz7cyDUk9PVA",
+          "driveName": "[02] SPOT FUSION"
+        },
+        {
+          "id": "1QId533xqL3LHSeSELr7matRc1Qy0au6e",
+          "name": "[02001] GM-SJC-Liftgate",
+          "role": "internal",
+          "driveId": "0APT3mc0PMiq6Uk9PVA",
+          "driveName": "[SPOT FUSION] Installation Architectures"
+        }
+      ]
+    }
   },
   "02002": {
     "name": "GM Gravataí - BSO_LH",
@@ -53,7 +126,25 @@
     "keywords": [],
     "senders": [],
     "language": "pt-BR",
-    "pmo_path": "workspaces/strokmatic/pmo/02002"
+    "pmo_path": "workspaces/strokmatic/pmo/02002",
+    "drive": {
+      "folders": [
+        {
+          "id": "1M0s11XC-iWqQfwCwnBpElOm_tZGvMAhL",
+          "name": "[02002] GM-GVT-BSO_LH",
+          "role": "internal",
+          "driveId": "0AAUuVGQz7cyDUk9PVA",
+          "driveName": "[02] SPOT FUSION"
+        },
+        {
+          "id": "1mTH6H9dGijlTAe0aaJB5iddFgaPoXgpy",
+          "name": "[02002] GM-GVT-BSO",
+          "role": "internal",
+          "driveId": "0APT3mc0PMiq6Uk9PVA",
+          "driveName": "[SPOT FUSION] Installation Architectures"
+        }
+      ]
+    }
   },
   "02003": {
     "name": "GM Factory Zero - Framing Outer",
@@ -61,7 +152,25 @@
     "keywords": [],
     "senders": [],
     "language": "en",
-    "pmo_path": "workspaces/strokmatic/pmo/02003"
+    "pmo_path": "workspaces/strokmatic/pmo/02003",
+    "drive": {
+      "folders": [
+        {
+          "id": "1L58ygmXEPl6JrHY9JV5RRlHdWSnOwqob",
+          "name": "[02003] GM-DHAM-LARA",
+          "role": "internal",
+          "driveId": "0AAUuVGQz7cyDUk9PVA",
+          "driveName": "[02] SPOT FUSION"
+        },
+        {
+          "id": "10_wR9zUBZIffXSTBmKhXw2Sbm3oa2GSZ",
+          "name": "[02003] GM-DHAM-LA",
+          "role": "internal",
+          "driveId": "0APT3mc0PMiq6Uk9PVA",
+          "driveName": "[SPOT FUSION] Installation Architectures"
+        }
+      ]
+    }
   },
   "02004": {
     "name": "GM Gravataí - B-SIDE",
@@ -69,7 +178,18 @@
     "keywords": [],
     "senders": [],
     "language": "pt-BR",
-    "pmo_path": "workspaces/strokmatic/pmo/02004"
+    "pmo_path": "workspaces/strokmatic/pmo/02004",
+    "drive": {
+      "folders": [
+        {
+          "id": "1-cBvd8428TeZsRPdaxL-drcoib9xaJx9",
+          "name": "[02004] GM-GVT-B-SIDE",
+          "role": "internal",
+          "driveId": "0AAUuVGQz7cyDUk9PVA",
+          "driveName": "[02] SPOT FUSION"
+        }
+      ]
+    }
   },
   "02005": {
     "name": "GM São Caetano do Sul - Portas",
@@ -77,7 +197,25 @@
     "keywords": [],
     "senders": [],
     "language": "pt-BR",
-    "pmo_path": "workspaces/strokmatic/pmo/02005"
+    "pmo_path": "workspaces/strokmatic/pmo/02005",
+    "drive": {
+      "folders": [
+        {
+          "id": "1b6ighP4vvQ2n31vDOksY7Z92IsFqJvwD",
+          "name": "[02005] GM-SCS-UNDERBODY",
+          "role": "internal",
+          "driveId": "0AAUuVGQz7cyDUk9PVA",
+          "driveName": "[02] SPOT FUSION"
+        },
+        {
+          "id": "184lAHVYnN4ZAG5iMZFdDG-xhosgVFSaE",
+          "name": "[02005] GM-SCDS-PORTAS",
+          "role": "internal",
+          "driveId": "0APT3mc0PMiq6Uk9PVA",
+          "driveName": "[SPOT FUSION] Installation Architectures"
+        }
+      ]
+    }
   },
   "02006": {
     "name": "Hyundai Piracicaba - Floor Complete",
@@ -85,7 +223,25 @@
     "keywords": [],
     "senders": [],
     "language": "pt-BR",
-    "pmo_path": "workspaces/strokmatic/pmo/02006"
+    "pmo_path": "workspaces/strokmatic/pmo/02006",
+    "drive": {
+      "folders": [
+        {
+          "id": "1YWmmL-J-9PK7MTO1zjuD_wp5YdqZd82Z",
+          "name": "[02006] HYUNDAI-FLOOR",
+          "role": "internal",
+          "driveId": "0AAUuVGQz7cyDUk9PVA",
+          "driveName": "[02] SPOT FUSION"
+        },
+        {
+          "id": "1h4wIsTuq_tCzA97e1Tmmu0dApUPVX3pf",
+          "name": "[02006] HYUNDAI-FLOOR",
+          "role": "internal",
+          "driveId": "0APT3mc0PMiq6Uk9PVA",
+          "driveName": "[SPOT FUSION] Installation Architectures"
+        }
+      ]
+    }
   },
   "02007": {
     "name": "VWCO",
@@ -93,7 +249,18 @@
     "keywords": [],
     "senders": [],
     "language": "pt-BR",
-    "pmo_path": "workspaces/strokmatic/pmo/02007"
+    "pmo_path": "workspaces/strokmatic/pmo/02007",
+    "drive": {
+      "folders": [
+        {
+          "id": "1b4zmi_6E76TflQA_ONBVsFv_8o-g2iLh",
+          "name": "[02007] VWCO",
+          "role": "internal",
+          "driveId": "0AAUuVGQz7cyDUk9PVA",
+          "driveName": "[02] SPOT FUSION"
+        }
+      ]
+    }
   },
   "02008": {
     "name": "Nissan Smyrna Spot Fusion",
@@ -101,7 +268,18 @@
     "keywords": ["nissan", "smyrna", "spot fusion", "comau", "spotfusion"],
     "senders": ["joshua.young@nissan", "kirk.cumbo@comau"],
     "language": "en",
-    "pmo_path": "workspaces/strokmatic/pmo/02008"
+    "pmo_path": "workspaces/strokmatic/pmo/02008",
+    "drive": {
+      "folders": [
+        {
+          "id": "1ulZwGQ1aJJrWT_WPLLR__NyFB-0Ylvsq",
+          "name": "[02008] NISSAN-TN-EUA",
+          "role": "internal",
+          "driveId": "0AAUuVGQz7cyDUk9PVA",
+          "driveName": "[02] SPOT FUSION"
+        }
+      ]
+    }
   },
   "03001": {
     "name": "Usiminas (Inovaí) - Corpo Estranho",
@@ -109,7 +287,18 @@
     "keywords": [],
     "senders": [],
     "language": "pt-BR",
-    "pmo_path": "workspaces/strokmatic/pmo/03001"
+    "pmo_path": "workspaces/strokmatic/pmo/03001",
+    "drive": {
+      "folders": [
+        {
+          "id": "1z-prbw_QBnNmRRHE42vZdjVfOJos7r-Q",
+          "name": "[03001] Usiminas-Inovai-Corpo Estranho",
+          "role": "internal",
+          "driveId": "0ALRu7RfQZ9ukUk9PVA",
+          "driveName": "[03] VISION KING"
+        }
+      ]
+    }
   },
   "03002": {
     "name": "ArcelorMittal Barra Mansa - TL1 - BCM",
@@ -117,7 +306,25 @@
     "keywords": [],
     "senders": [],
     "language": "pt-BR",
-    "pmo_path": "workspaces/strokmatic/pmo/03002"
+    "pmo_path": "workspaces/strokmatic/pmo/03002",
+    "drive": {
+      "folders": [
+        {
+          "id": "1FNUCw30Q9cX88-lsYXIVnLg_h6OWasqV",
+          "name": "[03002] ArcelorMittal Barra Mansa",
+          "role": "internal",
+          "driveId": "0ALRu7RfQZ9ukUk9PVA",
+          "driveName": "[03] VISION KING"
+        },
+        {
+          "id": "1_prmI-8378-0zw2dgJe1jE3koCssn-Is",
+          "name": "[03002] ARCELORMITTAL",
+          "role": "internal",
+          "driveId": "0AIEiHJz5Bm7TUk9PVA",
+          "driveName": "[00] GESTAO DE PROJETOS"
+        }
+      ]
+    }
   },
   "03003": {
     "name": "GM Gravataí - Underbody",
@@ -125,7 +332,18 @@
     "keywords": [],
     "senders": [],
     "language": "pt-BR",
-    "pmo_path": "workspaces/strokmatic/pmo/03003"
+    "pmo_path": "workspaces/strokmatic/pmo/03003",
+    "drive": {
+      "folders": [
+        {
+          "id": "1reEFA9vtuE4wTOl6kov48HQE4muaqSl9",
+          "name": "[03003] GM-Underbody",
+          "role": "internal",
+          "driveId": "0ALRu7RfQZ9ukUk9PVA",
+          "driveName": "[03] VISION KING"
+        }
+      ]
+    }
   },
   "03005": {
     "name": "GM São Caetano do Sul - Paint - IRIS PoC",
@@ -133,7 +351,18 @@
     "keywords": [],
     "senders": [],
     "language": "pt-BR",
-    "pmo_path": "workspaces/strokmatic/pmo/03005"
+    "pmo_path": "workspaces/strokmatic/pmo/03005",
+    "drive": {
+      "folders": [
+        {
+          "id": "1aD8wn5qJLH8Rv8Oagwvcf0zzZpqT6aOn",
+          "name": "[03005] IRIS GM-Paint Shop SCDS (POC)",
+          "role": "internal",
+          "driveId": "0ALRu7RfQZ9ukUk9PVA",
+          "driveName": "[03] VISION KING"
+        }
+      ]
+    }
   },
   "03006": {
     "name": "GM Gravataí - Body/Paint - IRIS PoC",
@@ -141,7 +370,18 @@
     "keywords": [],
     "senders": [],
     "language": "pt-BR",
-    "pmo_path": "workspaces/strokmatic/pmo/03006"
+    "pmo_path": "workspaces/strokmatic/pmo/03006",
+    "drive": {
+      "folders": [
+        {
+          "id": "1fM9AtIpPAGSg2Vw1zRbSpRq01i7kjkFZ",
+          "name": "[03006] IRIS GM-Body/Paint GVT (POC)",
+          "role": "internal",
+          "driveId": "0ALRu7RfQZ9ukUk9PVA",
+          "driveName": "[03] VISION KING"
+        }
+      ]
+    }
   },
   "03007": {
     "name": "GM São Caetano do Sul - Paint - IRIS",
@@ -149,7 +389,18 @@
     "keywords": [],
     "senders": [],
     "language": "pt-BR",
-    "pmo_path": "workspaces/strokmatic/pmo/03007"
+    "pmo_path": "workspaces/strokmatic/pmo/03007",
+    "drive": {
+      "folders": [
+        {
+          "id": "1sMj7FUnkCflG7UmWEypRIS5qdoEETZsH",
+          "name": "[03007] IRIS GM-Paint Shop SCDS",
+          "role": "internal",
+          "driveId": "0ALRu7RfQZ9ukUk9PVA",
+          "driveName": "[03] VISION KING"
+        }
+      ]
+    }
   },
   "03008": {
     "name": "Hyundai Piracicaba - Sealer",
@@ -157,7 +408,18 @@
     "keywords": [],
     "senders": [],
     "language": "pt-BR",
-    "pmo_path": "workspaces/strokmatic/pmo/03008"
+    "pmo_path": "workspaces/strokmatic/pmo/03008",
+    "drive": {
+      "folders": [
+        {
+          "id": "1Fd7UL8TBGZPbF0-x4Ub-DSUu3WhqU2UA",
+          "name": "[03008] Hyundai Sealer",
+          "role": "internal",
+          "driveId": "0ALRu7RfQZ9ukUk9PVA",
+          "driveName": "[03] VISION KING"
+        }
+      ]
+    }
   },
   "03009": {
     "name": "ArcelorMittal Barra Mansa - TL2",
@@ -165,7 +427,18 @@
     "keywords": [],
     "senders": [],
     "language": "pt-BR",
-    "pmo_path": "workspaces/strokmatic/pmo/03009"
+    "pmo_path": "workspaces/strokmatic/pmo/03009",
+    "drive": {
+      "folders": [
+        {
+          "id": "1pYgdszzYrC0E0qrFLPzdLeueEcL4E__d",
+          "name": "[03009] ArcelorMittal Barra Mansa TL2",
+          "role": "internal",
+          "driveId": "0ALRu7RfQZ9ukUk9PVA",
+          "driveName": "[03] VISION KING"
+        }
+      ]
+    }
   },
   "03010": {
     "name": "Stellantis Goiana - Paint",
@@ -173,6 +446,17 @@
     "keywords": [],
     "senders": [],
     "language": "pt-BR",
-    "pmo_path": "workspaces/strokmatic/pmo/03010"
+    "pmo_path": "workspaces/strokmatic/pmo/03010",
+    "drive": {
+      "folders": [
+        {
+          "id": "1zBBs-ot57nZneBnmxn2s3XOj9f_UAYJV",
+          "name": "[03010] VK Body Stellantis",
+          "role": "internal",
+          "driveId": "0ALRu7RfQZ9ukUk9PVA",
+          "driveName": "[03] VISION KING"
+        }
+      ]
+    }
   }
 }
