@@ -16,6 +16,7 @@ Ideas for new features, skills, and integrations. Full specs live in this direct
 | Email Organizer Tool + MCP | **Done** | [completed/email-organizer.md](completed/email-organizer.md) |
 | Google Workspace Connector | **Done** | [google-workspace-connector.md](google-workspace-connector.md) |
 | Meeting Assistant | **Planned** | [meeting-assistant.md](meeting-assistant.md) |
+| Google Drive ↔ PMO Integration | **Planned** | [gdrive-pmo-sync.md](gdrive-pmo-sync.md) |
 
 ---
 
@@ -41,3 +42,4 @@ Ideas for new features, skills, and integrations. Full specs live in this direct
 | Meeting Assistant | **Planned** | — | — | [spec](meeting-assistant.md) | Real-time meeting transcription, minutes, proactive actions.<br>Hybrid audio: system capture + platform bots (Meet/Zoom/Teams).<br>Configurable STT: Deepgram (cloud) / faster-whisper (local).<br>Real-time alerts + post-meeting batch processing. 5 implementation phases. |
 | PMO Dashboard | **Planned** | — | — | [spec](pmo-dashboard.md) | Web UI for project tracking (design/procurement/quoting phases).<br>Supplier management, email timeline, live Gantt, RFQ automation,<br>quote comparison, deadline alerts. FastAPI + Vue 3 + SQLite.<br>LAN-accessible (IP:PORT, ~10 users). 4 phases, builds on email-organizer + PMO folders. |
 | JARVIS Voice Interface | **Planned** | — | — | [spec](voice-interface.md) | Voice-activated assistant with Paul Bettany JARVIS voice.<br>Wake word ("JARVIS") → Whisper STT → Claude → ElevenLabs TTS (voice clone).<br>Reactive visual identity: WebGL/Three.js energy orb that pulses with speech amplitude,<br>shifts color by state (listening=blue, thinking=amber, speaking=cyan).<br>Alt local pipeline: faster-whisper + XTTS v2 + RVC v2 (fully offline, GPU required). |
+| Google Drive ↔ PMO Integration | **Planned** | — | — | [spec](gdrive-pmo-sync.md) | Cloud-first Drive integration for PMO projects. Browse/read files in-place, organize in Drive.<br>6 new MCP tools: `list_folder`, `get_file_metadata`, `download_file`, `upload_file`, `move_file`, `create_folder`.<br>Drive index (metadata-only), AI-assisted organization, `/gdrive` + `/gdrive-setup` skills.<br>Download only when essential. 5 phases, ~7-10h estimated effort. |

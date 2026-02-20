@@ -1,0 +1,50 @@
+{
+  "folder_structure": [
+    "01-Drawings",
+    "02-Specs",
+    "03-Quotes",
+    "04-Correspondence",
+    "05-Reports",
+    "06-Admin",
+    "07-Photos"
+  ],
+  "classification": {
+    "01-Drawings": {
+      "extensions": [".dwg", ".dxf", ".step", ".stp", ".iges", ".igs", ".stl", ".3dm", ".sat", ".x_t", ".x_b"],
+      "keywords": ["drawing", "layout", "assembly", "part", "model", "cad", "3d", "plant layout", "floor plan"]
+    },
+    "02-Specs": {
+      "extensions": [".pdf", ".docx"],
+      "keywords": ["spec", "specification", "datasheet", "requirement", "standard", "technical", "manual", "procedure"]
+    },
+    "03-Quotes": {
+      "extensions": [".xlsx", ".pdf", ".docx", ".csv"],
+      "keywords": ["quote", "rfq", "proposal", "budget", "price", "cost", "estimate", "bom", "bill of materials"]
+    },
+    "04-Correspondence": {
+      "extensions": [".eml", ".msg", ".pdf", ".docx"],
+      "keywords": ["email", "letter", "memo", "correspondence", "minutes", "meeting notes", "action items"]
+    },
+    "05-Reports": {
+      "extensions": [".pdf", ".docx", ".pptx", ".xlsx"],
+      "keywords": ["report", "analysis", "review", "summary", "status", "presentation", "update"]
+    },
+    "06-Admin": {
+      "extensions": [".pdf", ".docx"],
+      "keywords": ["nda", "contract", "agreement", "purchase order", "po", "invoice", "sraq", "security", "compliance", "legal"]
+    },
+    "07-Photos": {
+      "extensions": [".jpg", ".jpeg", ".png", ".heic", ".gif", ".bmp", ".tiff", ".mp4", ".mov", ".avi"],
+      "keywords": ["photo", "image", "picture", "visit", "site", "install", "progress"]
+    }
+  },
+  "naming": {
+    "prefix_date": true,
+    "separator": "_",
+    "lowercase": false
+  },
+  "limits": {
+    "max_file_size_mb": 100,
+    "max_files_per_scan": 500
+  }
+}
