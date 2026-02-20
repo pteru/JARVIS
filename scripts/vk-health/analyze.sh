@@ -229,14 +229,27 @@ Numbered list of new actionable findings not already in the existing improvement
 log "Running Claude AI analysis (this may take 1-2 minutes)..."
 ANALYSIS_START=$(date +%s)
 
+CLAUDE_STDERR=$(mktemp)
 ANALYSIS_OUTPUT=$(echo "$PROMPT" | claude -p \
     --model claude-opus-4-6 \
     --output-format text \
     --no-session-persistence \
-    --dangerously-skip-permissions 2>>"$LOG_DIR/cron-vk-health.log") || {
-    log "ERROR: Claude AI analysis failed"
+    --dangerously-skip-permissions 2>"$CLAUDE_STDERR") || {
+    log "ERROR: Claude AI analysis failed (exit code $?)"
+    if [[ -s "$CLAUDE_STDERR" ]]; then
+        log "ERROR: stderr: $(cat "$CLAUDE_STDERR")"
+    fi
+    if [[ -n "$ANALYSIS_OUTPUT" ]]; then
+        log "ERROR: stdout: $(echo "$ANALYSIS_OUTPUT" | head -5)"
+    fi
+    rm -f "$CLAUDE_STDERR"
     exit 1
 }
+# Append stderr to main log (warnings, progress info)
+if [[ -s "$CLAUDE_STDERR" ]]; then
+    cat "$CLAUDE_STDERR" >> "$LOG_DIR/cron-vk-health.log"
+fi
+rm -f "$CLAUDE_STDERR"
 
 ANALYSIS_END=$(date +%s)
 ANALYSIS_DURATION=$((ANALYSIS_END - ANALYSIS_START))
@@ -280,7 +293,7 @@ NEW_IMPROVEMENTS=$(extract_improvements "$ANALYSIS_OUTPUT")
 
 if [[ -n "$NEW_IMPROVEMENTS" ]]; then
     # Extract severity from the report
-    SEVERITY=$(echo "$ANALYSIS_OUTPUT" | grep -oP '### SEVERITY:\s*\K\w+' | head -1)
+    SEVERITY=$(echo "$ANALYSIS_OUTPUT" | grep -oP '#{2,4} SEVERITY:\s*\K\w+' | head -1) || true
     SEVERITY="${SEVERITY:-UNKNOWN}"
 
     IMPROVEMENT_HEADER="## $(date '+%Y-%m-%d %H:%M') -- ${SEVERITY}"
