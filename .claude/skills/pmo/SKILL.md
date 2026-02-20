@@ -40,6 +40,17 @@ Load a Strokmatic PMO project into context. The argument is a 5-digit project co
    ```
    Show: meetings/, reports/md/, reference/, and any top-level files.
 
+7. If the project has a `drive` section in `config/project-codes.json`, load Google Drive context:
+   a. Check if `drive-index.json` exists at `workspaces/strokmatic/pmo/{code}/drive-index.json`
+   b. If it exists and is less than 24h old, read it and summarize:
+      - Number of linked Drive folders and their roles
+      - Total files and total size
+      - File types breakdown
+      - Most recently modified file and date
+   c. If it exists but is stale (>24h), note it's outdated and suggest running `/gdrive {code} index`
+   d. If no index exists, note that Drive folders are configured but not yet indexed — suggest `/gdrive {code} index`
+   e. Show the configured folder names and roles from `project-codes.json`
+
 ## After Loading
 
 Provide a brief project status summary including:
@@ -48,5 +59,6 @@ Provide a brief project status summary including:
 - Email corpus size and latest activity date
 - Number of open action items (from technical report)
 - Available reports and reference documents
+- Google Drive status (if configured): number of linked folders, total files, index freshness
 
 Confirm you are ready to work on this project. Use the project's preferred language for all subsequent outputs unless instructed otherwise.
