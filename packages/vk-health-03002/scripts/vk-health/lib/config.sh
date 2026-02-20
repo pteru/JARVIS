@@ -7,7 +7,7 @@ set -euo pipefail
 # ---------------------------------------------------------------------------
 # Base paths
 # ---------------------------------------------------------------------------
-ORCHESTRATOR_HOME="${ORCHESTRATOR_HOME:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)}"
+ORCHESTRATOR_HOME="${ORCHESTRATOR_HOME:-$HOME/JARVIS}"
 DEPLOYMENT_ID="${1:-03002}"
 CONFIG_FILE="$ORCHESTRATOR_HOME/config/vk-deployments/${DEPLOYMENT_ID}.json"
 DATA_DIR="$ORCHESTRATOR_HOME/data/vk-health/${DEPLOYMENT_ID}"
@@ -33,6 +33,14 @@ mapfile -t NODE_NAMES < <(jq -r '.nodes | keys[]' "$CONFIG_FILE")
 export NODE_NAMES
 
 # ---------------------------------------------------------------------------
+# Export pipeline control fields
+# ---------------------------------------------------------------------------
+PIPELINE_ENABLED=$(jq -r '.enabled // true' "$CONFIG_FILE")
+HEARTBEAT_INTERVAL_MINUTES=$(jq -r '.heartbeat_interval_minutes // 60' "$CONFIG_FILE")
+ANALYSIS_ENABLED=$(jq -r '.analysis_enabled // true' "$CONFIG_FILE")
+ANALYSIS_INTERVAL_MINUTES=$(jq -r '.analysis_interval_minutes // 240' "$CONFIG_FILE")
+
+# ---------------------------------------------------------------------------
 # Export threshold values
 # ---------------------------------------------------------------------------
 DISK_WARNING_PCT=$(jq -r '.thresholds.disk_warning_pct' "$CONFIG_FILE")
@@ -48,6 +56,7 @@ RESTART_CRITICAL=$(jq -r '.thresholds.restart_critical' "$CONFIG_FILE")
 ALERT_COOLDOWN_MINUTES=$(jq -r '.thresholds.alert_cooldown_minutes' "$CONFIG_FILE")
 
 export ORCHESTRATOR_HOME DEPLOYMENT_ID CONFIG_FILE DATA_DIR REPORT_DIR
+export PIPELINE_ENABLED HEARTBEAT_INTERVAL_MINUTES ANALYSIS_ENABLED ANALYSIS_INTERVAL_MINUTES
 export DISK_WARNING_PCT DISK_CRITICAL_PCT
 export RAM_WARNING_PCT RAM_CRITICAL_PCT
 export GPU_MEM_WARNING_PCT GPU_MEM_CRITICAL_PCT
