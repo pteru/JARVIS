@@ -3,6 +3,10 @@
   "name": "VisionKing Laminacao (Steel)",
   "product": "visionking",
   "profile": "laminacao",
+  "enabled": true,
+  "heartbeat_interval_minutes": 60,
+  "analysis_enabled": true,
+  "analysis_interval_minutes": 240,
   "nodes": {
     "vk01": {
       "host": "10.244.70.26",
@@ -11,7 +15,22 @@
       "role": "processing",
       "has_gpu": true,
       "gpu_model": "RTX 4070 Ti SUPER",
-      "services": ["image-saver", "inference", "frame-writer", "defect-writer", "plc-monitor", "camera-acquisition", "controller", "backend", "frontend", "rabbitmq", "redis", "postgresql", "grafana", "prometheus"]
+      "services": [
+        "image-saver",
+        "inference",
+        "frame-writer",
+        "defect-writer",
+        "plc-monitor",
+        "camera-acquisition",
+        "controller",
+        "backend",
+        "frontend",
+        "rabbitmq",
+        "redis",
+        "postgresql",
+        "grafana",
+        "prometheus"
+      ]
     },
     "vk02": {
       "host": "10.244.70.50",
@@ -20,7 +39,20 @@
       "role": "processing",
       "has_gpu": true,
       "gpu_model": "RTX 4070 Ti SUPER",
-      "services": ["image-saver", "inference", "frame-writer", "defect-writer", "plc-monitor", "camera-acquisition", "controller", "backend", "frontend", "rabbitmq", "redis", "postgresql"]
+      "services": [
+        "image-saver",
+        "inference",
+        "frame-writer",
+        "defect-writer",
+        "plc-monitor",
+        "camera-acquisition",
+        "controller",
+        "backend",
+        "frontend",
+        "rabbitmq",
+        "redis",
+        "postgresql"
+      ]
     },
     "vk03": {
       "host": "10.244.70.25",

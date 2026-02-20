@@ -346,6 +346,7 @@ fi
 # Persist alert state
 # ---------------------------------------------------------------------------
 echo "$ALERT_STATE" | jq '.' > "$ALERT_STATE_FILE"
+echo "$ALERT_COUNT" > "$DATA_DIR/last-alert-count"
 log "Alert state saved to $ALERT_STATE_FILE"
 
 log "Alert check complete: $CRITICAL_COUNT critical, $WARNING_COUNT warning out of $ALERT_COUNT total"
