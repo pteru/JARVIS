@@ -1,14 +1,11 @@
-# Machine-specific config
-config/orchestrator/workspaces.json
-config/orchestrator/notifications.json
+# Credentials (secrets — never track)
+config/credentials/
 
 # Logs
 logs/*.log
 !logs/.gitkeep
 
-# Changelogs (generated content, not tracked centrally)
-changelogs/*.md
-!changelogs/.gitkeep
+# Changelogs — tracked
 
 # Backlogs are tracked (versioned centrally and per-workspace)
 
@@ -34,9 +31,6 @@ Thumbs.db
 # Backup files
 *.backup
 *.bak
-
-# Credentials
-config/credentials/
 
 workspaces/*
 

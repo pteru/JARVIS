@@ -1,0 +1,1081 @@
+{
+  "workspaces": {
+    "strokmatic.diemaster": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/diemaster",
+      "type": "unknown",
+      "category": "monorepo",
+      "product": "diemaster",
+      "priority": "medium",
+      "auto_review": false,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/diemaster.git"
+      }
+    },
+    "strokmatic.diemaster.ds.pamstamp-io": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/diemaster/ds/pamstamp-io",
+      "type": "unknown",
+      "category": "data-science",
+      "product": "diemaster",
+      "priority": "medium",
+      "auto_review": false,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/diemaster-pamstamp-io.git"
+      }
+    },
+    "strokmatic.diemaster.firmware.firmware-hub": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/diemaster/firmware/firmware-hub",
+      "type": "unknown",
+      "category": "firmware",
+      "product": "diemaster",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/diemaster-firmware-hub.git"
+      }
+    },
+    "strokmatic.diemaster.firmware.firmware-switch": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/diemaster/firmware/firmware-switch",
+      "type": "unknown",
+      "category": "firmware",
+      "product": "diemaster",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/diemaster-firmware-switch.git"
+      }
+    },
+    "strokmatic.diemaster.legacy.sim-generator": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/diemaster/legacy/sim-generator",
+      "type": "unknown",
+      "category": "legacy",
+      "product": "diemaster",
+      "priority": "low",
+      "auto_review": false,
+      "remotes": {
+        "origin": "https://source.developers.google.com/p/smart-die/r/sim-generator"
+      }
+    },
+    "strokmatic.diemaster.legacy.smart-die": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/diemaster/legacy/smart-die",
+      "type": "unknown",
+      "category": "legacy",
+      "product": "diemaster",
+      "priority": "low",
+      "auto_review": false,
+      "remotes": {
+        "origin": "https://source.developers.google.com/p/smartdie-software/r/smart-die"
+      }
+    },
+    "strokmatic.diemaster.services.backend": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/diemaster/services/backend",
+      "type": "nodejs",
+      "category": "service",
+      "product": "diemaster",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/diemaster-back-end.git"
+      }
+    },
+    "strokmatic.diemaster.services.connect": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/diemaster/services/connect",
+      "type": "unknown",
+      "category": "service",
+      "product": "diemaster",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/diemaster-connect.git"
+      }
+    },
+    "strokmatic.diemaster.services.data-processing": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/diemaster/services/data-processing",
+      "type": "unknown",
+      "category": "service",
+      "product": "diemaster",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/diemaster-processing-data.git"
+      }
+    },
+    "strokmatic.diemaster.services.database-writer": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/diemaster/services/database-writer",
+      "type": "unknown",
+      "category": "service",
+      "product": "diemaster",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/diemaster-database-writer.git"
+      }
+    },
+    "strokmatic.diemaster.services.frontend": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/diemaster/services/frontend",
+      "type": "angular",
+      "category": "service",
+      "product": "diemaster",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/diemaster-front-end.git"
+      }
+    },
+    "strokmatic.diemaster.services.get-data": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/diemaster/services/get-data",
+      "type": "unknown",
+      "category": "service",
+      "product": "diemaster",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/diemaster-get-data.git"
+      }
+    },
+    "strokmatic.diemaster.services.infra-setup": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/diemaster/services/infra-setup",
+      "type": "unknown",
+      "category": "service",
+      "product": "diemaster",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/diemaster-infra-setup.git"
+      }
+    },
+    "strokmatic.diemaster.services.loader": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/diemaster/services/loader",
+      "type": "unknown",
+      "category": "service",
+      "product": "diemaster",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/diemaster-loader.git"
+      }
+    },
+    "strokmatic.diemaster.services.plc-monitor": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/diemaster/services/plc-monitor",
+      "type": "unknown",
+      "category": "service",
+      "product": "diemaster",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/diemaster-plc-monitor.git"
+      }
+    },
+    "strokmatic.diemaster.services.setting": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/diemaster/services/setting",
+      "type": "unknown",
+      "category": "service",
+      "product": "diemaster",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/diemaster-setting.git"
+      }
+    },
+    "strokmatic.diemaster.services.status": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/diemaster/services/status",
+      "type": "unknown",
+      "category": "service",
+      "product": "diemaster",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/diemaster-status.git"
+      }
+    },
+    "strokmatic.diemaster.services.trigger": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/diemaster/services/trigger",
+      "type": "unknown",
+      "category": "service",
+      "product": "diemaster",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/diemaster-trigger.git"
+      }
+    },
+    "strokmatic.sdk.3d-model-convert-to-gltf": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/sdk/3d-model-convert-to-gltf",
+      "type": "docker/infra",
+      "category": "sdk",
+      "product": "sdk",
+      "priority": "medium",
+      "auto_review": false,
+      "remotes": {
+        "origin": "https://github.com/wangerzi/3d-model-convert-to-gltf"
+      }
+    },
+    "strokmatic.sdk.project-organizer": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/sdk/project-organizer",
+      "type": "python",
+      "category": "sdk",
+      "product": "sdk",
+      "priority": "medium",
+      "auto_review": false,
+      "remotes": {}
+    },
+    "strokmatic.sdk.sdk-agent-standards": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/sdk/sdk-agent-standards",
+      "type": "unknown",
+      "category": "sdk",
+      "product": "sdk",
+      "priority": "medium",
+      "auto_review": false,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/sdk-agent-standards.git"
+      }
+    },
+    "strokmatic.sdk.sdk-bos6000-toolkit": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/sdk/sdk-bos6000-toolkit",
+      "type": "python",
+      "category": "sdk",
+      "product": "sdk",
+      "priority": "medium",
+      "auto_review": false,
+      "remotes": {
+        "github": "git@github.com:strokmatic/sdk-bos6000-toolkit.git"
+      }
+    },
+    "strokmatic.sdk.sdk-defect-visualizer": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/sdk/sdk-defect-visualizer",
+      "type": "python",
+      "category": "sdk",
+      "product": "sdk",
+      "priority": "medium",
+      "auto_review": false,
+      "remotes": {
+        "github": "git@github.com:strokmatic/sdk-defect-visualizer.git"
+      }
+    },
+    "strokmatic.sdk.sdk-image-extractor": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/sdk/sdk-image-extractor",
+      "type": "docker/infra",
+      "category": "sdk",
+      "product": "sdk",
+      "priority": "medium",
+      "auto_review": false,
+      "remotes": {
+        "github": "git@github.com:strokmatic/sdk-image-exporter.git"
+      }
+    },
+    "strokmatic.sdk.sdk-label-studio-toolkit": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/sdk/sdk-label-studio-toolkit",
+      "type": "python",
+      "category": "sdk",
+      "product": "sdk",
+      "priority": "medium",
+      "auto_review": false,
+      "remotes": {
+        "github": "git@github.com:strokmatic/sdk-label-studio-toolkit.git"
+      }
+    },
+    "strokmatic.sdk.sdk-lib-rabbit-client": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/sdk/sdk-lib-rabbit-client",
+      "type": "python",
+      "category": "sdk",
+      "product": "sdk",
+      "priority": "medium",
+      "auto_review": false,
+      "remotes": {
+        "github": "git@github.com:strokmatic/sdk-lib-rabbit-client.git"
+      }
+    },
+    "strokmatic.sdk.sdk-message-poster": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/sdk/sdk-message-poster",
+      "type": "python",
+      "category": "sdk",
+      "product": "sdk",
+      "priority": "medium",
+      "auto_review": false,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/sdk-message-poster.git"
+      }
+    },
+    "strokmatic.sdk.sdk-observability-stack": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/sdk/sdk-observability-stack",
+      "type": "docker/infra",
+      "category": "sdk",
+      "product": "sdk",
+      "priority": "medium",
+      "auto_review": false,
+      "remotes": {
+        "github": "git@github.com:strokmatic/sdk-observability-stack.git"
+      }
+    },
+    "strokmatic.sdk.sdk-redis-trendline-monitor": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/sdk/sdk-redis-trendline-monitor",
+      "type": "python",
+      "category": "sdk",
+      "product": "sdk",
+      "priority": "medium",
+      "auto_review": false,
+      "remotes": {
+        "github": "git@github.com:strokmatic/sdk-redis-trendline-monitor.git"
+      }
+    },
+    "strokmatic.sdk.sdk-repository-reader": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/sdk/sdk-repository-reader",
+      "type": "python",
+      "category": "sdk",
+      "product": "sdk",
+      "priority": "medium",
+      "auto_review": false,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/sdk-repository-reader.git"
+      }
+    },
+    "strokmatic.sdk.sdk-video-cronoanalysis": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/sdk/sdk-video-cronoanalysis",
+      "type": "python",
+      "category": "sdk",
+      "product": "sdk",
+      "priority": "medium",
+      "auto_review": false,
+      "remotes": {
+        "github": "git@github.com:strokmatic/sdk-video-cronoanalysis.git"
+      }
+    },
+    "strokmatic.spotfusion": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion",
+      "type": "unknown",
+      "category": "monorepo",
+      "product": "spotfusion",
+      "priority": "medium",
+      "auto_review": false,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/spotfusion.git"
+      }
+    },
+    "strokmatic.spotfusion.ds.dataset-toolkit": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/ds/dataset-toolkit",
+      "type": "unknown",
+      "category": "data-science",
+      "product": "spotfusion",
+      "priority": "medium",
+      "auto_review": false,
+      "remotes": {
+        "google": "ssh://pedro@lumesolutions.com@source.developers.google.com:2022/p/spark-eyes/r/dataset-toolkit",
+        "origin": "https://source.developers.google.com/p/spark-eyes/r/dataset-toolkit"
+      }
+    },
+    "strokmatic.spotfusion.ds.spotfusion-ds-training": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/ds/spotfusion-ds-training",
+      "type": "unknown",
+      "category": "data-science",
+      "product": "spotfusion",
+      "priority": "medium",
+      "auto_review": false,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/spotfusion-ds-training.git"
+      }
+    },
+    "strokmatic.spotfusion.ds.new_sparkeyes_modeling": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/ds/new_sparkeyes_modeling",
+      "type": "python",
+      "category": "data-science",
+      "product": "spotfusion",
+      "priority": "low",
+      "auto_review": false,
+      "remotes": {
+        "origin": "https://source.developers.google.com/p/sparkeyes-data-science/r/new_sparkeyes_modeling"
+      }
+    },
+    "strokmatic.spotfusion.libs.lldpd": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/libs/lldpd",
+      "type": "unknown",
+      "category": "library",
+      "product": "spotfusion",
+      "priority": "medium",
+      "auto_review": false,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/spotfusion-lldpd.git"
+      }
+    },
+    "strokmatic.spotfusion.libs.opener": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/libs/opener",
+      "type": "unknown",
+      "category": "library",
+      "product": "spotfusion",
+      "priority": "medium",
+      "auto_review": false,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/spotfusion-opener.git"
+      }
+    },
+    "strokmatic.spotfusion.services.backend": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/services/backend",
+      "type": "nodejs",
+      "category": "service",
+      "product": "spotfusion",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/spotfusion-backend.git"
+      }
+    },
+    "strokmatic.spotfusion.services.backend-vision": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/services/backend-vision",
+      "type": "unknown",
+      "category": "service",
+      "product": "spotfusion",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/spotfusion-backend-vision.git"
+      }
+    },
+    "strokmatic.spotfusion.services.camera-acquisition": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/services/camera-acquisition",
+      "type": "unknown",
+      "category": "service",
+      "product": "spotfusion",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/spotfusion-camera-acquisition.git"
+      }
+    },
+    "strokmatic.spotfusion.services.data-enrichment": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/services/data-enrichment",
+      "type": "unknown",
+      "category": "service",
+      "product": "spotfusion",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/spotfusion-data-enrichment.git"
+      }
+    },
+    "strokmatic.spotfusion.services.data-processing": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/services/data-processing",
+      "type": "unknown",
+      "category": "service",
+      "product": "spotfusion",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/spotfusion-data-processing.git"
+      }
+    },
+    "strokmatic.spotfusion.services.database-cleanup": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/services/database-cleanup",
+      "type": "unknown",
+      "category": "service",
+      "product": "spotfusion",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/spotfusion-database-cleanup.git"
+      }
+    },
+    "strokmatic.spotfusion.services.database-writer": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/services/database-writer",
+      "type": "unknown",
+      "category": "service",
+      "product": "spotfusion",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/spotfusion-database-writer.git"
+      }
+    },
+    "strokmatic.spotfusion.services.default-module": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/services/default-module",
+      "type": "unknown",
+      "category": "service",
+      "product": "spotfusion",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/spotfusion-default-module.git"
+      }
+    },
+    "strokmatic.spotfusion.services.device-controller": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/services/device-controller",
+      "type": "unknown",
+      "category": "service",
+      "product": "spotfusion",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/spotfusion-device-controller.git"
+      }
+    },
+    "strokmatic.spotfusion.services.frontend": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/services/frontend",
+      "type": "unknown",
+      "category": "service",
+      "product": "spotfusion",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/spotfusion-frontend.git"
+      }
+    },
+    "strokmatic.spotfusion.services.frontend-vision": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/services/frontend-vision",
+      "type": "unknown",
+      "category": "service",
+      "product": "spotfusion",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/spotfusion-frontend-vision.git"
+      }
+    },
+    "strokmatic.spotfusion.services.get-data": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/services/get-data",
+      "type": "unknown",
+      "category": "service",
+      "product": "spotfusion",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/spotfusion-get-data.git"
+      }
+    },
+    "strokmatic.spotfusion.services.get-image": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/services/get-image",
+      "type": "unknown",
+      "category": "service",
+      "product": "spotfusion",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/spotfusion-get-image.git"
+      }
+    },
+    "strokmatic.spotfusion.services.get-result": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/services/get-result",
+      "type": "unknown",
+      "category": "service",
+      "product": "spotfusion",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/spotfusion-get-result.git"
+      }
+    },
+    "strokmatic.spotfusion.services.image-processing": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/services/image-processing",
+      "type": "unknown",
+      "category": "service",
+      "product": "spotfusion",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/spotfusion-image-processing.git"
+      }
+    },
+    "strokmatic.spotfusion.ds.simufact-io": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/ds/simufact-io",
+      "type": "python",
+      "category": "data-science",
+      "product": "spotfusion",
+      "priority": "medium",
+      "auto_review": false,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/spotfusion-simufact-io.git"
+      }
+    },
+    "strokmatic.spotfusion.services.module-a": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/services/module-a",
+      "type": "unknown",
+      "category": "service",
+      "product": "spotfusion",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/spotfusion-module-a.git"
+      }
+    },
+    "strokmatic.spotfusion.services.plc-monitor": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/services/plc-monitor",
+      "type": "unknown",
+      "category": "service",
+      "product": "spotfusion",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/spotfusion-plc-monitor.git"
+      }
+    },
+    "strokmatic.spotfusion.services.plc-monitor-camera": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/services/plc-monitor-camera",
+      "type": "unknown",
+      "category": "service",
+      "product": "spotfusion",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/spotfusion-plc-monitor-camera.git"
+      }
+    },
+    "strokmatic.spotfusion.services.plc-monitor-camera-opener": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/services/plc-monitor-camera-opener",
+      "type": "unknown",
+      "category": "service",
+      "product": "spotfusion",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/spotfusion-plc-monitor-camera-opener.git"
+      }
+    },
+    "strokmatic.spotfusion.services.plc-result": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/services/plc-result",
+      "type": "unknown",
+      "category": "service",
+      "product": "spotfusion",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/spotfusion-plc-result.git"
+      }
+    },
+    "strokmatic.spotfusion.services.setup": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/services/setup",
+      "type": "python",
+      "category": "service",
+      "product": "spotfusion",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/spotfusion-setup.git"
+      }
+    },
+    "strokmatic.spotfusion.services.tag-monitor": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/services/tag-monitor",
+      "type": "unknown",
+      "category": "service",
+      "product": "spotfusion",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/spotfusion-tag-monitor.git"
+      }
+    },
+    "strokmatic.spotfusion.services.tag-monitor-profinet": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/services/tag-monitor-profinet",
+      "type": "unknown",
+      "category": "service",
+      "product": "spotfusion",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/spotfusion-tag-monitor-profinet.git"
+      }
+    },
+    "strokmatic.spotfusion.services.tag-monitor-siemens": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/services/tag-monitor-siemens",
+      "type": "unknown",
+      "category": "service",
+      "product": "spotfusion",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/spotfusion-tag-monitor-siemens.git"
+      }
+    },
+    "strokmatic.spotfusion.toolkit.data-scraping": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/toolkit/data-scraping",
+      "type": "unknown",
+      "category": "toolkit",
+      "product": "spotfusion",
+      "priority": "medium",
+      "auto_review": false,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/spotfusion-data-scraping.git"
+      }
+    },
+    "strokmatic.spotfusion.toolkit.server-installer": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/toolkit/server-installer",
+      "type": "unknown",
+      "category": "toolkit",
+      "product": "spotfusion",
+      "priority": "medium",
+      "auto_review": false,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/spotfusion-server-installer.git"
+      }
+    },
+    "strokmatic.spotfusion.toolkit.spotfusion-deploy-toolkit": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/toolkit/spotfusion-deploy-toolkit",
+      "type": "unknown",
+      "category": "toolkit",
+      "product": "spotfusion",
+      "priority": "medium",
+      "auto_review": false,
+      "remotes": {
+        "github": "git@github.com:strokmatic/spotfusion-deploy-toolkit.git"
+      }
+    },
+    "strokmatic.spotfusion.toolkit.spotfusion-smartcam-toolkit": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/toolkit/spotfusion-smartcam-toolkit",
+      "type": "python",
+      "category": "toolkit",
+      "product": "spotfusion",
+      "priority": "medium",
+      "auto_review": false,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/spotfusion-smartcam-toolkit.git"
+      }
+    },
+    "strokmatic.spotfusion.toolkit.spotfusion-toolkit": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/toolkit/spotfusion-toolkit",
+      "type": "docker/infra",
+      "category": "toolkit",
+      "product": "spotfusion",
+      "priority": "medium",
+      "auto_review": false,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/spotfusion-toolkit.git"
+      }
+    },
+    "strokmatic.spotfusion.toolkit.vision-installer": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/toolkit/vision-installer",
+      "type": "unknown",
+      "category": "toolkit",
+      "product": "spotfusion",
+      "priority": "medium",
+      "auto_review": false,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/spotfusion-vision-installer.git"
+      }
+    },
+    "strokmatic.visionking": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/visionking",
+      "type": "docker/infra",
+      "category": "monorepo",
+      "product": "visionking",
+      "priority": "medium",
+      "auto_review": false,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/visionking.git"
+      }
+    },
+    "strokmatic.visionking.ds.label-predictor": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/visionking/ds/label-predictor",
+      "type": "unknown",
+      "category": "data-science",
+      "product": "visionking",
+      "priority": "medium",
+      "auto_review": false,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/visionking-ds-label-predictor.git"
+      }
+    },
+    "strokmatic.visionking.ds.label-predictor.label-studio-ml-backend": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/visionking/ds/label-predictor/label-studio-ml-backend",
+      "type": "python",
+      "category": "data-science",
+      "product": "visionking",
+      "priority": "medium",
+      "auto_review": false,
+      "remotes": {
+        "origin": "https://github.com/HumanSignal/label-studio-ml-backend.git"
+      }
+    },
+    "strokmatic.visionking.ds.training": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/visionking/ds/training",
+      "type": "python",
+      "category": "data-science",
+      "product": "visionking",
+      "priority": "medium",
+      "auto_review": false,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/visionking-ds-training.git"
+      }
+    },
+    "strokmatic.visionking.ds.yolov11.ultralytics": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/visionking/ds/yolov11/ultralytics",
+      "type": "python",
+      "category": "data-science",
+      "product": "visionking",
+      "priority": "medium",
+      "auto_review": false,
+      "remotes": {
+        "origin": "https://github.com/ultralytics/ultralytics.git"
+      }
+    },
+    "strokmatic.visionking.legacy.cloud-pipeline": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/visionking/legacy/cloud-pipeline",
+      "type": "python",
+      "category": "legacy",
+      "product": "visionking",
+      "priority": "low",
+      "auto_review": false,
+      "remotes": {
+        "origin": "https://source.developers.google.com/p/sis-surface/r/cloud-pipeline"
+      }
+    },
+    "strokmatic.visionking.legacy.cloud-pipeline-draft": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/visionking/legacy/cloud-pipeline-draft",
+      "type": "unknown",
+      "category": "legacy",
+      "product": "visionking",
+      "priority": "low",
+      "auto_review": false,
+      "remotes": {
+        "origin": "https://source.developers.google.com/p/sis-surface/r/cloud-pipeline"
+      }
+    },
+    "strokmatic.visionking.legacy.defect-aggregator": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/visionking/legacy/visionking-defect-aggregator",
+      "type": "python",
+      "category": "legacy",
+      "product": "visionking",
+      "priority": "low",
+      "auto_review": false,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/visionking-defect-aggregator.git"
+      }
+    },
+    "strokmatic.visionking.legacy.underbody": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/visionking/legacy/underbody",
+      "type": "unknown",
+      "category": "legacy",
+      "product": "visionking",
+      "priority": "low",
+      "auto_review": false,
+      "remotes": {
+        "github": "git@github.com:strokmatic/underbody.git"
+      }
+    },
+    "strokmatic.visionking.services.backend": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/visionking/services/backend",
+      "type": "nodejs",
+      "category": "service",
+      "product": "visionking",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/visionking-backend.git"
+      }
+    },
+    "strokmatic.visionking.services.backend-ds": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/visionking/services/backend-ds",
+      "type": "nodejs",
+      "category": "service",
+      "product": "visionking",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/visionking-backend-ds.git"
+      }
+    },
+    "strokmatic.visionking.services.bd-sis-surface": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/visionking/services/bd-sis-surface",
+      "type": "python",
+      "category": "service",
+      "product": "visionking",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "https://source.developers.google.com/p/sis-surface/r/bd-sis-surface"
+      }
+    },
+    "strokmatic.visionking.services.camera-acquisition": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/visionking/services/camera-acquisition",
+      "type": "python",
+      "category": "service",
+      "product": "visionking",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/visionking-camera-acquisition.git"
+      }
+    },
+    "strokmatic.visionking.services.controller": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/visionking/services/controller",
+      "type": "unknown",
+      "category": "service",
+      "product": "visionking",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/visionking-controller.git"
+      }
+    },
+    "strokmatic.visionking.services.database-writer": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/visionking/services/database-writer",
+      "type": "python",
+      "category": "service",
+      "product": "visionking",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/visionking-database-writer.git"
+      }
+    },
+    "strokmatic.visionking.services.frontend": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/visionking/services/frontend",
+      "type": "angular",
+      "category": "service",
+      "product": "visionking",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/visionking-frontend.git"
+      }
+    },
+    "strokmatic.visionking.services.frontend-ds": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/visionking/services/frontend-ds",
+      "type": "angular",
+      "category": "service",
+      "product": "visionking",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/visionking-frontend-ds.git"
+      }
+    },
+    "strokmatic.visionking.services.image-saver": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/visionking/services/image-saver",
+      "type": "unknown",
+      "category": "service",
+      "product": "visionking",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/visionking-image-saver.git"
+      }
+    },
+    "strokmatic.visionking.services.inference": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/visionking/services/inference",
+      "type": "unknown",
+      "category": "service",
+      "product": "visionking",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/visionking-inference.git"
+      }
+    },
+    "strokmatic.visionking.services.length-measure": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/visionking/services/length-measure",
+      "type": "python",
+      "category": "service",
+      "product": "visionking",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/visionking-length-measure.git"
+      }
+    },
+    "strokmatic.visionking.services.pixel-to-object": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/visionking/services/pixel-to-object",
+      "type": "python",
+      "category": "service",
+      "product": "visionking",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/visionking-pixel-to-object.git"
+      }
+    },
+    "strokmatic.visionking.services.plc-monitor": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/visionking/services/plc-monitor",
+      "type": "unknown",
+      "category": "service",
+      "product": "visionking",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/visionking-plc-monitor.git"
+      }
+    },
+    "strokmatic.visionking.services.plc-monitor-eip": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/visionking/services/plc-monitor-eip",
+      "type": "unknown",
+      "category": "service",
+      "product": "visionking",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/visionking-plc-monitor-eip.git"
+      }
+    },
+    "strokmatic.visionking.services.result": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/visionking/services/result",
+      "type": "python",
+      "category": "service",
+      "product": "visionking",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/visionking-result.git"
+      }
+    },
+    "strokmatic.visionking.services.setup": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/visionking/services/setup",
+      "type": "unknown",
+      "category": "service",
+      "product": "visionking",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/visionking-setup.git"
+      }
+    },
+    "strokmatic.visionking.services.storage-monitor": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/visionking/services/storage-monitor",
+      "type": "unknown",
+      "category": "service",
+      "product": "visionking",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/visionking-storage-monitor.git"
+      }
+    },
+    "strokmatic.visionking.services.visualizer": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/visionking/services/visualizer",
+      "type": "unknown",
+      "category": "service",
+      "product": "visionking",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/visionking-visualizer.git"
+      }
+    },
+    "strokmatic.visionking.toolkit.data-manager": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/visionking/toolkit/data-manager",
+      "type": "unknown",
+      "category": "toolkit",
+      "product": "visionking",
+      "priority": "medium",
+      "auto_review": false,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/visionking-data-manager.git"
+      }
+    },
+    "strokmatic.visionking.toolkit.defect-report-toolkit": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/visionking/toolkit/defect-report-toolkit",
+      "type": "unknown",
+      "category": "toolkit",
+      "product": "visionking",
+      "priority": "medium",
+      "auto_review": false,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/visionking-defect-report-toolkit.git"
+      }
+    },
+    "strokmatic.visionking.toolkit.toolkit": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/visionking/toolkit/toolkit",
+      "type": "unknown",
+      "category": "toolkit",
+      "product": "visionking",
+      "priority": "medium",
+      "auto_review": false,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/visionking-toolkit.git"
+      }
+    }
+  }
+}
