@@ -1055,8 +1055,11 @@ class GoogleWorkspaceServer {
       drive.files.list({
         q,
         pageSize: args.max_results || 20,
-        fields: "files(id, name, modifiedTime, webViewLink, owners)",
+        fields: "files(id, name, modifiedTime, webViewLink, owners, driveId)",
         orderBy: "modifiedTime desc",
+        includeItemsFromAllDrives: true,
+        supportsAllDrives: true,
+        corpora: "allDrives",
       }),
     );
 
@@ -1412,8 +1415,11 @@ class GoogleWorkspaceServer {
       drive.files.list({
         q,
         pageSize: args.max_results || 20,
-        fields: "files(id, name, mimeType, modifiedTime, webViewLink, size, owners)",
+        fields: "files(id, name, mimeType, modifiedTime, webViewLink, size, owners, driveId, parents)",
         orderBy: "modifiedTime desc",
+        includeItemsFromAllDrives: true,
+        supportsAllDrives: true,
+        corpora: "allDrives",
       }),
     );
 
@@ -1425,6 +1431,8 @@ class GoogleWorkspaceServer {
       url: f.webViewLink,
       size: f.size,
       owner: f.owners?.[0]?.emailAddress,
+      driveId: f.driveId || null,
+      parents: f.parents || [],
     }));
 
     return this.textResult(JSON.stringify(files, null, 2));
@@ -1494,6 +1502,8 @@ class GoogleWorkspaceServer {
           fields: FIELDS,
           orderBy: "folder,name",
           pageToken: pageToken || undefined,
+          includeItemsFromAllDrives: true,
+          supportsAllDrives: true,
         }),
       );
     };
@@ -1559,7 +1569,8 @@ class GoogleWorkspaceServer {
     const res = await withRetry(() =>
       drive.files.get({
         fileId,
-        fields: "id, name, mimeType, size, modifiedTime, createdTime, owners, shared, parents, webViewLink, description, md5Checksum, lastModifyingUser, version",
+        fields: "id, name, mimeType, size, modifiedTime, createdTime, owners, shared, parents, webViewLink, description, md5Checksum, lastModifyingUser, version, driveId",
+        supportsAllDrives: true,
       }),
     );
 
