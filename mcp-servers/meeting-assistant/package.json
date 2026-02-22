@@ -1,7 +1,7 @@
 {
   "name": "meeting-assistant-mcp",
-  "version": "0.1.0",
-  "description": "MCP server for real-time meeting assistance — Phase 1",
+  "version": "0.2.0",
+  "description": "MCP server for real-time meeting assistance — Phase 2",
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
