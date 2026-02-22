@@ -3,7 +3,7 @@
   "backends": {
     "telegram": {
       "enabled": true,
-      "bot_token": "***REVOKED_TOKEN***",
+      "bot_token_file": "~/.secrets/telegram-bot-token",
       "chat_id_personal": "8051645832",
       "chat_id": "-5179349649",
       "inbound": {
