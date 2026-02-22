@@ -5,8 +5,7 @@ set -e
 # Usage: model-selector.sh <complexity> [task-description]
 # Output: model string to stdout
 
-ORCHESTRATOR_HOME="${ORCHESTRATOR_HOME:-$HOME/claude-orchestrator}"
-MODELS_CONFIG="$ORCHESTRATOR_HOME/config/models.json"
+source "$(dirname "$0")/lib/config.sh"
 
 COMPLEXITY="${1:-medium}"
 TASK_DESC="${2:-}"

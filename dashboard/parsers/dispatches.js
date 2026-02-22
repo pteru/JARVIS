@@ -1,7 +1,6 @@
 import fs from 'fs/promises';
 import path from 'path';
-
-const ORCHESTRATOR_HOME = process.env.ORCHESTRATOR_HOME || path.join(process.env.HOME, 'claude-orchestrator');
+import { ORCHESTRATOR_HOME } from '../../mcp-servers/lib/config-loader.js';
 
 export async function parseDispatches() {
   const dispatchPath = path.join(ORCHESTRATOR_HOME, 'logs', 'dispatches.json');

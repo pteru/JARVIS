@@ -12,8 +12,7 @@ log_warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 log_section() { echo -e "\n${BLUE}═══ $1 ═══${NC}\n"; }
 
-ORCHESTRATOR_HOME="${ORCHESTRATOR_HOME:-$HOME/claude-orchestrator}"
-WORKSPACES_CONFIG="$ORCHESTRATOR_HOME/config/orchestrator/workspaces.json"
+source "$(dirname "$0")/lib/config.sh"
 DATE=$(date +%Y-%m-%d)
 TIME=$(date +%H:%M:%S)
 

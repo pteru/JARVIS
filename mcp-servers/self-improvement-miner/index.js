@@ -13,9 +13,7 @@ import { analyzeWorkspaceHealth } from "./analyzers/workspace-health.js";
 import { analyzeModelRouting } from "./analyzers/model-routing.js";
 import { generateMetaReport } from "./reporters/meta-report.js";
 
-const ORCHESTRATOR_HOME =
-  process.env.ORCHESTRATOR_HOME ||
-  path.join(process.env.HOME, "claude-orchestrator");
+import { ORCHESTRATOR_HOME } from "../lib/config-loader.js";
 
 class SelfImprovementMinerServer {
   constructor() {

@@ -9,19 +9,19 @@ NC='\033[0m'
 log_info() { echo -e "${GREEN}[INFO]${NC} $1"; }
 log_warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 
-ORCHESTRATOR_HOME="${ORCHESTRATOR_HOME:-$HOME/claude-orchestrator}"
+ORCHESTRATOR_HOME="${ORCHESTRATOR_HOME:-$HOME/JARVIS}"
 MCP_SERVERS_PATH="$HOME/.claude/mcp_servers"
 
 echo ""
 echo "╔═══════════════════════════════════════════════════════════════╗"
-echo "║         Claude Orchestrator Uninstall                         ║"
+echo "║              JARVIS Uninstall                                  ║"
 echo "╚═══════════════════════════════════════════════════════════════╝"
 echo ""
 
 echo "This will remove:"
 echo "  - Orchestrator directory: $ORCHESTRATOR_HOME"
 echo "  - MCP servers: $MCP_SERVERS_PATH/{backlog-manager,changelog-writer,workspace-analyzer,task-dispatcher,report-generator}"
-echo "  - Cron jobs containing 'claude-orchestrator'"
+echo "  - Cron jobs containing 'JARVIS'"
 echo "  - Shell aliases from .zshrc/.bashrc"
 echo ""
 
@@ -43,8 +43,8 @@ done
 
 # Remove cron jobs
 log_info "Removing cron jobs..."
-if crontab -l 2>/dev/null | grep -q "claude-orchestrator"; then
-    crontab -l 2>/dev/null | grep -v "claude-orchestrator" | crontab -
+if crontab -l 2>/dev/null | grep -q "JARVIS"; then
+    crontab -l 2>/dev/null | grep -v "JARVIS" | crontab -
     log_info "  Cron jobs removed"
 else
     log_info "  No cron jobs found"

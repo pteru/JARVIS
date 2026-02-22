@@ -14,13 +14,13 @@ log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(dirname "$SCRIPT_DIR")"
-ORCHESTRATOR_HOME="${ORCHESTRATOR_HOME:-$HOME/claude-orchestrator}"
+ORCHESTRATOR_HOME="${ORCHESTRATOR_HOME:-$HOME/JARVIS}"
 CLAUDE_CONFIG_DIR="$HOME/.claude"
 MCP_SERVERS_PATH="$CLAUDE_CONFIG_DIR/mcp_servers"
 
 echo ""
 echo "╔═══════════════════════════════════════════════════════════════╗"
-echo "║         Claude Orchestrator Installation                     ║"
+echo "║              JARVIS Installation                              ║"
 echo "╚═══════════════════════════════════════════════════════════════╝"
 echo ""
 log_info "Repository: $REPO_ROOT"
@@ -178,7 +178,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     crontab -l 2>/dev/null > "$TEMP_CRON" || true
     
     # Add orchestrator jobs if not present
-    if ! grep -q "claude-orchestrator" "$TEMP_CRON"; then
+    if ! grep -q "JARVIS" "$TEMP_CRON"; then
         cat "$REPO_ROOT/config/cron/orchestrator.cron" | \
         sed "s|{{ORCHESTRATOR_HOME}}|$ORCHESTRATOR_HOME|g" >> "$TEMP_CRON"
         

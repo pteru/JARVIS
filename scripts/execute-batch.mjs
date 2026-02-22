@@ -6,7 +6,7 @@ import { fileURLToPath } from "url";
 
 const ORCHESTRATOR_HOME =
   process.env.ORCHESTRATOR_HOME ||
-  path.join(process.env.HOME, "claude-orchestrator");
+  path.join(process.env.HOME, "JARVIS");
 
 const DISPATCHES_PATH = path.join(ORCHESTRATOR_HOME, "logs", "dispatches.json");
 const LOCKS_PATH = path.join(ORCHESTRATOR_HOME, "logs", "workspace-locks.json");

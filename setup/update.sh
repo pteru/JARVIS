@@ -4,11 +4,11 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(dirname "$SCRIPT_DIR")"
-ORCHESTRATOR_HOME="${ORCHESTRATOR_HOME:-$HOME/claude-orchestrator}"
+ORCHESTRATOR_HOME="${ORCHESTRATOR_HOME:-$HOME/JARVIS}"
 CLAUDE_CONFIG_DIR="$HOME/.claude"
 MCP_SERVERS_PATH="$CLAUDE_CONFIG_DIR/mcp_servers"
 
-echo "=== Updating Claude Orchestrator ==="
+echo "=== Updating JARVIS ==="
 echo ""
 
 # Pull latest changes
