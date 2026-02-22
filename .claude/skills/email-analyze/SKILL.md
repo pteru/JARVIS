@@ -15,7 +15,7 @@ When asked to analyze emails for a project (e.g., "Analyze new emails for 02008"
 
 1. Run the email-organizer to check for new emails:
 ```bash
-EMAIL="/home/teruel/JARVIS/tools/email-organizer/.venv/bin/python /home/teruel/JARVIS/tools/email-organizer/main.py"
+EMAIL="/home/teruel/JARVIS/tools/.venv/bin/python /home/teruel/JARVIS/tools/email-organizer/main.py"
 $EMAIL list --project {code}
 ```
 

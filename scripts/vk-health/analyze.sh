@@ -265,9 +265,46 @@ LATEST_FILE="$REPORT_DIR/latest.md"
 echo "$ANALYSIS_OUTPUT" > "$REPORT_FILE"
 log "Report saved: $REPORT_FILE"
 
-# Create/update latest symlink
-ln -sf "$REPORT_FILE" "$LATEST_FILE"
-log "Latest symlink updated: $LATEST_FILE"
+# Copy to latest (not symlink — per-run files get cleaned up)
+cp "$REPORT_FILE" "$LATEST_FILE"
+log "Latest report updated: $LATEST_FILE"
+
+# ---------------------------------------------------------------------------
+# Consolidate into rolling daily report
+# ---------------------------------------------------------------------------
+CONSOLIDATED_FILE="$REPORT_DIR/consolidated-${TODAY}.md"
+CONSOLIDATION_STATE="$REPORT_DIR/consolidation-state.json"
+
+# Extract severity and executive summary for the consolidated report
+REPORT_SEVERITY=$(echo "$ANALYSIS_OUTPUT" | grep -oP '#{2,4} SEVERITY:\s*\K\w+' | head -1) || true
+REPORT_SEVERITY="${REPORT_SEVERITY:-UNKNOWN}"
+EXEC_SUMMARY=$(echo "$ANALYSIS_OUTPUT" | awk '/^### Executive Summary/{found=1; next} found && /^### /{exit} found{print}' | sed '/^[[:space:]]*$/d')
+
+if [[ ! -f "$CONSOLIDATED_FILE" ]]; then
+    echo "# VisionKing ${DEPLOYMENT_ID} — Consolidated Report ${TODAY}" > "$CONSOLIDATED_FILE"
+    echo "" >> "$CONSOLIDATED_FILE"
+fi
+
+{
+    echo "---"
+    echo "## $(date '+%H:%M') — ${REPORT_SEVERITY}"
+    echo ""
+    if [[ -n "$EXEC_SUMMARY" ]]; then
+        echo "$EXEC_SUMMARY"
+        echo ""
+    fi
+    # Include recommendations if present
+    RECS=$(echo "$ANALYSIS_OUTPUT" | awk '/^### Recommendations/{found=1; next} found && /^### /{exit} found{print}' | sed '/^[[:space:]]*$/d')
+    if [[ -n "$RECS" ]]; then
+        echo "**Recommendations:**"
+        echo "$RECS"
+        echo ""
+    fi
+} >> "$CONSOLIDATED_FILE"
+
+# Update consolidation state
+echo "{\"last_consolidated\": \"$(date -u '+%Y-%m-%dT%H:%M:%SZ')\", \"report_file\": \"$REPORT_FILE\"}" > "$CONSOLIDATION_STATE"
+log "Consolidated into $CONSOLIDATED_FILE"
 
 # ---------------------------------------------------------------------------
 # Extract NEW IMPROVEMENTS and append to improvements.md

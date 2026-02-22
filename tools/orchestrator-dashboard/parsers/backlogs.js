@@ -1,6 +1,6 @@
 import fs from 'fs/promises';
 import path from 'path';
-import { ORCHESTRATOR_HOME } from '../../mcp-servers/lib/config-loader.js';
+import { ORCHESTRATOR_HOME } from '../../../mcp-servers/lib/config-loader.js';
 
 export async function parseBacklogs() {
   const workspacesPath = path.join(ORCHESTRATOR_HOME, 'config', 'orchestrator', 'workspaces.json');
