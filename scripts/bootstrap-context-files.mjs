@@ -7,7 +7,7 @@ import { promisify } from "util";
 
 const execAsync = promisify(exec);
 
-const ORCHESTRATOR_HOME = process.env.ORCHESTRATOR_HOME || path.join(process.env.HOME, "claude-orchestrator");
+const ORCHESTRATOR_HOME = process.env.ORCHESTRATOR_HOME || path.join(process.env.HOME, "JARVIS");
 
 async function fileExists(filepath) {
   try {

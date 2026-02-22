@@ -1,6 +1,6 @@
-# Changelog - claude-orchestrator
+# Changelog - JARVIS
 
-All notable changes to the claude-orchestrator system.
+All notable changes to the JARVIS orchestrator system.
 
 Format: [Keep a Changelog](https://keepachangelog.com/)
 

@@ -10,7 +10,7 @@ log_info() { echo -e "${GREEN}[INFO]${NC} $1"; }
 log_warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
-ORCHESTRATOR_HOME="${ORCHESTRATOR_HOME:-$HOME/claude-orchestrator}"
+source "$(dirname "$0")/lib/config.sh"
 
 usage() {
     echo "Usage: init-workspace.sh <workspace-name> <workspace-path> [type] [priority] [auto_review]"
