@@ -1,7 +1,7 @@
 ---
 name: meeting
 description: Start, stop, or query the meeting assistant
-argument-hint: "start|stop|status|inject [options]"
+argument-hint: "start|stop|status|inject|minutes|actions|tasks|list [options]"
 ---
 
 # Meeting Assistant Skill
@@ -10,9 +10,18 @@ Control the real-time meeting assistant via the `meeting-assistant` MCP server.
 
 ## Available MCP Tools
 
+### Meeting Lifecycle
 - `start_meeting` — Create a Google Doc and begin the live-notes update cycle
-- `stop_meeting` — Halt the cycle and return the full transcript
+- `stop_meeting` — Halt the cycle, generate structured minutes, return both doc URLs
+- `get_meeting_status` — Show current session info (duration, line count, doc links)
+- `list_meetings` — List past meeting sessions with dates and doc URLs
+
+### Transcript Input
 - `inject_transcript` — Append a speaker line to the transcript (Phase 1 input mechanism)
+
+### Minutes & Action Items
+- `get_action_items` — Extract action items from the latest minutes doc via Claude
+- `create_tasks_from_meeting` — Write action items to a product backlog markdown file
 
 ## Argument Parsing
 
@@ -23,7 +32,11 @@ Call `start_meeting` with an optional title.
 
 ### `stop`
 Call `stop_meeting`.
-- Returns: full transcript text + link to the Google Doc
+- Stops live-notes cycle
+- Generates structured minutes in a second Google Doc
+- Persists transcript to `data/meetings/YYYY-MM-DD/{sessionId}.transcript.jsonl`
+- Adds cross-links between live notes and minutes docs
+- Returns: `liveNotesDocUrl`, `minutesDocUrl`, full transcript text
 
 ### `inject <speaker>: <text>`  or  `inject <text>`
 Call `inject_transcript` with the given speaker and text.
@@ -31,9 +44,24 @@ Call `inject_transcript` with the given speaker and text.
 - Returns: the appended line + running total line count
 
 ### `status`
-Report current session state from in-process memory:
-- If no meeting active: "No active meeting."
-- If active: session ID, doc URL, transcript line count, elapsed time
+Call `get_meeting_status`.
+- If meeting active: session ID, doc URL, transcript line count, elapsed time, live-notes running
+- If no meeting: "No active meeting" + last completed session summary
+
+### `list [N]`
+Call `list_meetings` with optional limit.
+- Returns the N most recent sessions (default 10), most recent first
+- Includes title, date, duration, live notes URL, minutes URL
+
+### `minutes` or `actions`
+Call `get_action_items`.
+- Extracts action items from the most recently completed meeting's minutes doc
+- Returns a JSON array of `{action, assignee, deadline, status}`
+
+### `tasks <workspace> [priority] [complexity]`
+Call `create_tasks_from_meeting` after getting action items.
+- Writes extracted action items into `backlogs/products/<workspace>.md`
+- Default priority: medium, default complexity: medium
 
 ## Examples
 
@@ -51,16 +79,58 @@ Report current session state from in-process memory:
 /meeting inject Guest: We should also update the staging environment.
 → Appends a line from speaker "Guest".
 
-/meeting stop
-→ Stops the meeting, returns full transcript + doc link.
-
 /meeting status
-→ Shows current meeting session info.
+→ Shows current meeting session info (or last completed session).
+
+/meeting stop
+→ Stops the meeting, generates structured minutes in a new Google Doc.
+→ Returns both doc URLs and the full transcript.
+
+/meeting list
+→ Lists last 10 meetings with titles, dates, and doc links.
+
+/meeting list 5
+→ Lists last 5 meetings.
+
+/meeting actions
+→ Extracts action items from the last meeting's minutes as JSON.
+
+/meeting tasks strokmatic.visionking
+→ After running "actions", writes action items to the VisionKing backlog.
+
+/meeting tasks strokmatic.visionking high complex
+→ Writes action items at high priority, complex complexity.
+```
+
+## Two-Doc Output from stop_meeting
+
+When `stop_meeting` completes, it creates two Google Docs in the **Meeting Assistant** folder:
+
+1. **Live Notes** (created at `start_meeting`) — continuously updated during the meeting.
+   Contains a footer link: *[View structured meeting minutes →](minutesUrl)*
+
+2. **Structured Minutes** (created at `stop_meeting`) — formal post-meeting document.
+   Contains a header link: *[← View live notes](liveNotesUrl)*
+   Sections: Executive Summary, Discussion Topics, Decisions, Action Items table, Raw Transcript (collapsed).
+
+## Data Persistence
+
+After `stop_meeting`:
+- `data/meetings/YYYY-MM-DD/{sessionId}.transcript.jsonl` — full timestamped transcript (one JSON object per line)
+- `data/meetings/YYYY-MM-DD/{sessionId}.meta.json` — session metadata (updated with endedAt)
+- `data/meetings/sessions.json` — index of all completed sessions
+
+## Backlog Task Format
+
+`create_tasks_from_meeting` appends tasks to the target backlog file in the standard format:
+```
+- [ ] [complexity] Action description — Assignee: Person, Deadline: YYYY-MM-DD
 ```
 
 ## Notes
 
 - Phase 1 only: no audio capture or STT. Use `inject` to feed transcript lines manually.
 - The live-notes engine updates the Google Doc every ~30 seconds when new lines are present.
-- The Google Doc is created in the **Meeting Assistant** folder inside the JARVIS Shared Drive.
+- Both Google Docs are created in the **Meeting Assistant** folder inside the JARVIS Shared Drive.
 - Language detection is a placeholder (`detected_language: "auto"`). Future phases will auto-detect.
+- Minutes generation uses `claude-sonnet-4-6` for quality; action item extraction uses `claude-haiku-4-5-20251001` for speed.
