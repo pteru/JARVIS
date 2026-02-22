@@ -1,0 +1,19 @@
+{
+  "name": "jarvis-mcp-servers",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "backlog-manager",
+    "changelog-reviewer",
+    "changelog-writer",
+    "clickup-connector",
+    "email-analyzer",
+    "google-workspace",
+    "model-learning-analyzer",
+    "notifier",
+    "report-generator",
+    "self-improvement-miner",
+    "task-dispatcher",
+    "workspace-analyzer"
+  ]
+}

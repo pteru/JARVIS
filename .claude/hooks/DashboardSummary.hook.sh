@@ -44,5 +44,36 @@ if [[ -d "$BACKLOG_DIR" ]]; then
 fi
 [[ "$found" -eq 0 ]] && echo "  (none)"
 
+# Hook matcher validation
+SETTINGS_FILE="${SCRIPT_DIR}/../settings.local.json"
+if [[ -f "$SETTINGS_FILE" ]]; then
+  # Extract all MCP tool matchers from hooks config
+  MATCHERS=$(jq -r '
+    [.hooks // {} | to_entries[] | .value[] | .matcher // empty] | unique | .[]
+  ' "$SETTINGS_FILE" 2>/dev/null)
+
+  INVALID=""
+  for matcher in $MATCHERS; do
+    # Parse: mcp__<server>__<tool>
+    server=$(echo "$matcher" | sed -n 's/^mcp__\([^_]*\)__.*$/\1/p')
+    server="${server//-/_}"  # tool names use underscores
+    # Check that the MCP server directory exists
+    server_dir=$(echo "$matcher" | sed -n 's/^mcp__\(.*\)__[^_]*$/\1/p' | tr '_' '-')
+    # Try both the raw name and with hyphens
+    if [[ -n "$server_dir" ]]; then
+      mcp_path="${ORCHESTRATOR_HOME}/mcp-servers/${server_dir}/index.js"
+      if [[ ! -f "$mcp_path" ]]; then
+        INVALID="${INVALID}\n  WARN: Hook matcher '${matcher}' — MCP server not found at ${mcp_path}"
+      fi
+    fi
+  done
+
+  if [[ -n "$INVALID" ]]; then
+    echo ""
+    echo "-- Hook Warnings --"
+    echo -e "$INVALID"
+  fi
+fi
+
 echo ""
 echo "==========================="

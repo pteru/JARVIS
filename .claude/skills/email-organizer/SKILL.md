@@ -9,7 +9,7 @@ argument-hint: "[subcommand] [args]"
 A CLI tool for managing project email ingestion. Always invoke via its dedicated venv:
 
 ```
-EMAIL="/home/teruel/JARVIS/tools/email-organizer/.venv/bin/python /home/teruel/JARVIS/tools/email-organizer/main.py"
+EMAIL="/home/teruel/JARVIS/tools/.venv/bin/python /home/teruel/JARVIS/tools/email-organizer/main.py"
 ```
 
 **Required env vars for IMAP:** `IMAP_USERNAME`, `IMAP_PASSWORD`, optionally `IMAP_HOST` (default: imap.gmail.com).

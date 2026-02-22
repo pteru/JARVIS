@@ -1,0 +1,26 @@
+# Consolidated requirements for all JARVIS tools
+# Shared venv at tools/.venv/ — install with: pip install -r tools/requirements.txt
+
+# Mechanical / document tools (mech-tool.py, xlsx-tool.py)
+ezdxf>=1.4
+numpy>=2.4
+numpy-stl>=3.2
+openpyxl>=3.1
+pdfminer.six>=20251230
+pdfplumber>=0.11
+pillow>=12.1
+pygltflib>=1.16
+PyMuPDF>=1.27
+
+# Email organizer
+python-dateutil>=2.8
+
+# PMO dashboard backend
+fastapi>=0.115
+uvicorn[standard]>=0.32
+sqlalchemy[asyncio]>=2.0.36
+aiosqlite>=0.20
+pydantic>=2.10
+pydantic-settings>=2.7
+python-multipart>=0.0.18
+aiofiles>=24.1

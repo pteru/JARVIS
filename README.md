@@ -164,7 +164,7 @@ JARVIS/
 │   ├── xlsx-tool.py                 # Excel file tool
 │   └── .venv/                       # Shared venv for mech-tool + xlsx-tool
 │
-├── dashboard/                       # Express.js observability dashboard (port 3000)
+├── tools/orchestrator-dashboard/     # Express.js observability dashboard (port 3000)
 │   ├── server.js
 │   ├── public/
 │   │   ├── index.html               # Full dashboard
@@ -448,10 +448,10 @@ All hooks source `lib/utils.sh` for shared path constants and helper functions. 
 
 ### Email Organizer (`tools/email-organizer/`)
 
-IMAP email ingestion into PMO project folders. Own `.venv` with `python-dateutil`.
+IMAP email ingestion into PMO project folders. Uses shared `tools/.venv/`.
 
 ```bash
-EMAIL="tools/email-organizer/.venv/bin/python tools/email-organizer/main.py"
+EMAIL="tools/.venv/bin/python tools/email-organizer/main.py"
 
 $EMAIL fetch                        # Download emails from IMAP + auto-classify
 $EMAIL classify                     # Classify staged emails to PMO folders
@@ -779,12 +779,9 @@ for dir in mcp-servers/*/; do (cd "$dir" && npm install); done
 # Install dashboard
 cd dashboard && npm install && cd ..
 
-# Install Python tool venvs
+# Install Python tool venv (shared for all tools)
 python3 -m venv tools/.venv
-tools/.venv/bin/pip install openpyxl ezdxf numpy-stl pdfplumber camelot-py[cv] beautifulsoup4
-
-python3 -m venv tools/email-organizer/.venv
-tools/email-organizer/.venv/bin/pip install python-dateutil
+tools/.venv/bin/pip install -r tools/requirements.txt
 
 # Register MCP servers with Claude Code
 claude mcp add backlog-manager node ~/JARVIS/mcp-servers/backlog-manager/index.js

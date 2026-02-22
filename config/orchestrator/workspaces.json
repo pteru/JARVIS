@@ -386,7 +386,7 @@
     },
     "strokmatic.spotfusion.libs.lldpd": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/libs/lldpd",
-      "type": "unknown",
+      "type": "infra",
       "category": "library",
       "product": "spotfusion",
       "priority": "medium",
@@ -419,7 +419,7 @@
     },
     "strokmatic.spotfusion.services.backend-vision": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/services/backend-vision",
-      "type": "unknown",
+      "type": "backend",
       "category": "service",
       "product": "spotfusion",
       "priority": "high",
@@ -507,7 +507,7 @@
     },
     "strokmatic.spotfusion.services.frontend": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/services/frontend",
-      "type": "unknown",
+      "type": "angular",
       "category": "service",
       "product": "spotfusion",
       "priority": "high",
@@ -518,7 +518,7 @@
     },
     "strokmatic.spotfusion.services.frontend-vision": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/services/frontend-vision",
-      "type": "unknown",
+      "type": "angular",
       "category": "service",
       "product": "spotfusion",
       "priority": "high",
@@ -529,7 +529,7 @@
     },
     "strokmatic.spotfusion.services.get-data": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/services/get-data",
-      "type": "unknown",
+      "type": "python",
       "category": "service",
       "product": "spotfusion",
       "priority": "high",
@@ -991,7 +991,7 @@
     },
     "strokmatic.visionking.services.plc-monitor-eip": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/visionking/services/plc-monitor-eip",
-      "type": "unknown",
+      "type": "python",
       "category": "service",
       "product": "visionking",
       "priority": "high",
