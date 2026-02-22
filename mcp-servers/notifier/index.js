@@ -39,7 +39,16 @@ class NotifierServer {
       "orchestrator",
       "notifications.json",
     );
-    return JSON.parse(await fs.readFile(configPath, "utf-8"));
+    const config = JSON.parse(await fs.readFile(configPath, "utf-8"));
+
+    // Resolve file-based secrets (bot_token_file → bot_token)
+    const tg = config.backends?.telegram;
+    if (tg && !tg.bot_token && tg.bot_token_file) {
+      const tokenPath = tg.bot_token_file.replace(/^~/, process.env.HOME);
+      tg.bot_token = (await fs.readFile(tokenPath, "utf-8")).trim();
+    }
+
+    return config;
   }
 
   // ---------------------------------------------------------------------------

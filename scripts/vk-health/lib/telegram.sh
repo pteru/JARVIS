@@ -20,8 +20,13 @@ send_telegram() {
         return 1
     fi
 
-    local bot_token chat_id
-    bot_token=$(jq -r '.backends.telegram.bot_token' "$NOTIFICATIONS_CONFIG")
+    local bot_token chat_id bot_token_file
+    bot_token=$(jq -r '.backends.telegram.bot_token // empty' "$NOTIFICATIONS_CONFIG")
+    if [[ -z "$bot_token" ]]; then
+        bot_token_file=$(jq -r '.backends.telegram.bot_token_file // empty' "$NOTIFICATIONS_CONFIG")
+        bot_token_file="${bot_token_file/#\~/$HOME}"
+        [[ -f "$bot_token_file" ]] && bot_token=$(<"$bot_token_file")
+    fi
     chat_id=$(jq -r '.backends.telegram.chat_id' "$NOTIFICATIONS_CONFIG")
 
     if [[ -z "$bot_token" || -z "$chat_id" || "$bot_token" == "null" || "$chat_id" == "null" ]]; then
