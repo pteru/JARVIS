@@ -30,9 +30,7 @@ describe('SystemAudioCapture', () => {
     });
 
     it('includes target device when specified', () => {
-      const { cmd, args } = SystemAudioCapture.buildCommand('pipewire', {
-        device: '42',
-      });
+      const { cmd, args } = SystemAudioCapture.buildCommand('pipewire', {}, '42');
       assert.equal(cmd, 'pw-record');
       assert.ok(args.includes('--target=42'));
     });
@@ -64,9 +62,11 @@ describe('SystemAudioCapture', () => {
     });
 
     it('includes device when specified', () => {
-      const { cmd, args } = SystemAudioCapture.buildCommand('pulseaudio', {
-        device: 'alsa_output.pci-0000_00_1b.0.analog-stereo.monitor',
-      });
+      const { cmd, args } = SystemAudioCapture.buildCommand(
+        'pulseaudio',
+        {},
+        'alsa_output.pci-0000_00_1b.0.analog-stereo.monitor',
+      );
       assert.equal(cmd, 'parec');
       assert.ok(
         args.includes('--device=alsa_output.pci-0000_00_1b.0.analog-stereo.monitor'),
@@ -99,35 +99,83 @@ describe('SystemAudioCapture', () => {
     });
   });
 
-  describe('chunk size calculation', () => {
+  describe('calculateChunkSize', () => {
     it('calculates correct chunk size for default config', () => {
       // 16kHz * 1 channel * 2 bytes * 0.1s = 3200 bytes
-      const sampleRate = 16000;
-      const channels = 1;
-      const bytesPerSample = 2;
-      const chunkDurationMs = 100;
-      const expected = Math.floor(sampleRate * channels * bytesPerSample * (chunkDurationMs / 1000));
-      assert.equal(expected, 3200);
+      assert.equal(SystemAudioCapture.calculateChunkSize({}), 3200);
     });
 
     it('calculates correct chunk size for stereo 48kHz', () => {
       // 48kHz * 2 channels * 2 bytes * 0.1s = 19200 bytes
-      const sampleRate = 48000;
-      const channels = 2;
-      const bytesPerSample = 2;
-      const chunkDurationMs = 100;
-      const expected = Math.floor(sampleRate * channels * bytesPerSample * (chunkDurationMs / 1000));
-      assert.equal(expected, 19200);
+      assert.equal(
+        SystemAudioCapture.calculateChunkSize({ sampleRate: 48000, channels: 2 }),
+        19200,
+      );
     });
 
     it('calculates correct chunk size for 200ms duration', () => {
       // 16kHz * 1 channel * 2 bytes * 0.2s = 6400 bytes
-      const sampleRate = 16000;
-      const channels = 1;
-      const bytesPerSample = 2;
-      const chunkDurationMs = 200;
-      const expected = Math.floor(sampleRate * channels * bytesPerSample * (chunkDurationMs / 1000));
-      assert.equal(expected, 6400);
+      assert.equal(
+        SystemAudioCapture.calculateChunkSize({ chunkDurationMs: 200 }),
+        6400,
+      );
+    });
+  });
+
+  describe('mixPCM', () => {
+    it('returns empty buffer for empty input', () => {
+      const result = SystemAudioCapture.mixPCM([]);
+      assert.equal(result.length, 0);
+    });
+
+    it('returns the same buffer for single input', () => {
+      const buf = Buffer.alloc(4);
+      buf.writeInt16LE(1000, 0);
+      buf.writeInt16LE(-500, 2);
+      const result = SystemAudioCapture.mixPCM([buf]);
+      assert.equal(result.readInt16LE(0), 1000);
+      assert.equal(result.readInt16LE(2), -500);
+    });
+
+    it('sums two buffers correctly', () => {
+      const buf1 = Buffer.alloc(4);
+      const buf2 = Buffer.alloc(4);
+      buf1.writeInt16LE(100, 0);
+      buf1.writeInt16LE(200, 2);
+      buf2.writeInt16LE(300, 0);
+      buf2.writeInt16LE(-50, 2);
+      const result = SystemAudioCapture.mixPCM([buf1, buf2]);
+      assert.equal(result.readInt16LE(0), 400);
+      assert.equal(result.readInt16LE(2), 150);
+    });
+
+    it('clamps to positive max (32767)', () => {
+      const buf1 = Buffer.alloc(2);
+      const buf2 = Buffer.alloc(2);
+      buf1.writeInt16LE(30000, 0);
+      buf2.writeInt16LE(10000, 0);
+      const result = SystemAudioCapture.mixPCM([buf1, buf2]);
+      assert.equal(result.readInt16LE(0), 32767);
+    });
+
+    it('clamps to negative min (-32768)', () => {
+      const buf1 = Buffer.alloc(2);
+      const buf2 = Buffer.alloc(2);
+      buf1.writeInt16LE(-30000, 0);
+      buf2.writeInt16LE(-10000, 0);
+      const result = SystemAudioCapture.mixPCM([buf1, buf2]);
+      assert.equal(result.readInt16LE(0), -32768);
+    });
+
+    it('mixes three buffers', () => {
+      const buf1 = Buffer.alloc(2);
+      const buf2 = Buffer.alloc(2);
+      const buf3 = Buffer.alloc(2);
+      buf1.writeInt16LE(100, 0);
+      buf2.writeInt16LE(200, 0);
+      buf3.writeInt16LE(300, 0);
+      const result = SystemAudioCapture.mixPCM([buf1, buf2, buf3]);
+      assert.equal(result.readInt16LE(0), 600);
     });
   });
 });
