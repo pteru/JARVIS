@@ -1,12 +1,13 @@
 # Consolidated requirements for all JARVIS tools
 # Shared venv at tools/.venv/ — install with: pip install -r tools/requirements.txt
 
-# Mechanical / document tools (mech-tool.py, xlsx-tool.py)
+# Mechanical / document tools (mech-tool.py, xlsx-tool.py, docx-tool.py)
 ezdxf>=1.4
 numpy>=2.4
 numpy-stl>=3.2
 openpyxl>=3.1
 pdfminer.six>=20251230
+python-docx>=1.1
 pdfplumber>=0.11
 pillow>=12.1
 pygltflib>=1.16
