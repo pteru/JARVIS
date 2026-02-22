@@ -121,9 +121,9 @@ export async function generateMetaReport(orchestratorHome, analysis) {
   const report = lines.join("\n");
 
   // Write report to file
-  const reportsDir = path.join(orchestratorHome, "reports");
+  const reportsDir = path.join(orchestratorHome, "reports", "self-improvement");
   await fs.mkdir(reportsDir, { recursive: true });
-  const reportPath = path.join(reportsDir, `self-improvement-${now}.md`);
+  const reportPath = path.join(reportsDir, `report-${now}.md`);
   await fs.writeFile(reportPath, report, "utf-8");
 
   return { reportPath, report };
