@@ -11,7 +11,7 @@ log_info() { echo -e "${GREEN}[INFO]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 log_section() { echo -e "\n${BLUE}═══ $1 ═══${NC}\n"; }
 
-ORCHESTRATOR_HOME="${ORCHESTRATOR_HOME:-$HOME/claude-orchestrator}"
+source "$(dirname "$0")/lib/config.sh"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DATE=$(date +%Y-%m-%d)
 TIME=$(date +%H:%M:%S)

@@ -9,15 +9,31 @@ logs/*.log
 
 # Backlogs are tracked (versioned centrally and per-workspace)
 
-# Reports (generated content - daily/weekly are ephemeral, reference reports are tracked)
+# Reports (generated content - curated reports are tracked)
 !reports/.gitkeep
+reports/vk-health/*/analysis-*.md
+reports/vk-health/*/consolidation-state.json
+reports/vk-health/*/consolidated-*.md
 
 # Node modules
 node_modules/
 mcp-servers/*/node_modules/
 mcp-servers/*/package-lock.json
+mcp-servers/node_modules/
+mcp-servers/package-lock.json
 dashboard/node_modules/
 dashboard/package-lock.json
+tools/pmo-dashboard/frontend/node_modules/
+
+# Python virtual environments
+**/.venv/
+**/venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Environment files
+.env
 
 # OS files
 .DS_Store
@@ -32,7 +48,11 @@ Thumbs.db
 *.backup
 *.bak
 
+# Workspaces (embedded repos — managed separately)
 workspaces/*
 
-# VK Health Monitor data
+# VK Health Monitor data (snapshots)
 data/vk-health/
+
+# References (external archives — URL pointers in references/README.md)
+references/Personal_AI_Infrastructure/

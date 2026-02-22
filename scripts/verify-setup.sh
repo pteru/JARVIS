@@ -6,7 +6,7 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
-ORCHESTRATOR_HOME="${ORCHESTRATOR_HOME:-$HOME/claude-orchestrator}"
+source "$(dirname "$0")/lib/config.sh"
 ERRORS=0
 WARNINGS=0
 
