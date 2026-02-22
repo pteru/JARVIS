@@ -1,0 +1,29 @@
+{
+  "live_notes": {
+    "update_interval_ms": 30000,
+    "model": "claude-haiku-4-5-20251001",
+    "google_drive_id": "0AC4RjZu6DAzcUk9PVA",
+    "folder_name": "Meeting Assistant"
+  },
+  "stt": {
+    "default_provider": "deepgram",
+    "deepgram": {
+      "api_key_env": "DEEPGRAM_API_KEY",
+      "model": "nova-2",
+      "language": "multi",
+      "diarize": true
+    },
+    "whisper": {
+      "model_size": "large-v3",
+      "device": "auto",
+      "compute_type": "float16",
+      "language": "auto",
+      "vad_filter": true
+    }
+  },
+  "proactive_actions": {
+    "mode": "both",
+    "realtime_triggers": ["action_item", "decision", "deadline", "assigned_to_user"],
+    "post_meeting": true
+  }
+}

@@ -175,12 +175,13 @@ echo "[4/5] Launching Claude Code..."
 echo ""
 
 CLAUDE_EXIT=0
+CLAUDE_LOG="/output/claude.log"
 if [ "$INTERACTIVE" = "true" ]; then
     # Interactive mode: attach TTY, user can interact
     claude --dangerously-skip-permissions --model "$MODEL" || CLAUDE_EXIT=$?
 else
-    # Autonomous mode: pipe prompt, let Claude work
-    claude --dangerously-skip-permissions --model "$MODEL" -p "$(cat "$PROMPT_FILE")" || CLAUDE_EXIT=$?
+    # Autonomous mode: pass prompt as argument, tee output to log for debugging
+    claude --dangerously-skip-permissions --model "$MODEL" --verbose -p "$(cat "$PROMPT_FILE")" 2>&1 | tee "$CLAUDE_LOG" || CLAUDE_EXIT=$?
 fi
 
 # ----------------------------------------------------------
