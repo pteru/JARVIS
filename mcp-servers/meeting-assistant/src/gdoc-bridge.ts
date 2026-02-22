@@ -55,6 +55,222 @@ async function withRetry<T>(
 }
 
 // ---------------------------------------------------------------------------
+// Markdown → Google Docs converter
+// Ported from mcp-servers/google-workspace/index.js MarkdownToDocsConverter
+// Converts markdown to native Docs API batchUpdate requests (headings, bold,
+// italic, links, bullets, numbered lists).
+// ---------------------------------------------------------------------------
+
+interface InlineRun {
+  start: number;
+  end: number;
+  bold?: boolean;
+  italic?: boolean;
+  link?: string;
+}
+
+interface ParsedLine {
+  text: string | null;
+  style: string | null;
+  isBullet: boolean;
+  isNumbered: boolean;
+  runs: InlineRun[] | null;
+}
+
+class MarkdownToDocsConverter {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  convert(markdown: string): any[] {
+    if (!markdown) return [];
+    const lines = markdown.split('\n');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const requests: any[] = [];
+    let index = 1; // Docs content starts at index 1
+
+    for (const line of lines) {
+      const parsed = this.parseLine(line);
+      if (parsed.text === null) continue;
+
+      const insertText = parsed.text + '\n';
+      requests.push({
+        insertText: { location: { index }, text: insertText },
+      });
+
+      if (parsed.style) {
+        requests.push({
+          updateParagraphStyle: {
+            range: { startIndex: index, endIndex: index + insertText.length },
+            paragraphStyle: { namedStyleType: parsed.style },
+            fields: 'namedStyleType',
+          },
+        });
+      }
+
+      if (parsed.isBullet || parsed.isNumbered) {
+        requests.push({
+          createParagraphBullets: {
+            range: { startIndex: index, endIndex: index + insertText.length },
+            bulletPreset: parsed.isNumbered
+              ? 'NUMBERED_DECIMAL_NESTED'
+              : 'BULLET_DISC_CIRCLE_SQUARE',
+          },
+        });
+      }
+
+      if (parsed.runs && parsed.runs.length > 0) {
+        for (const run of parsed.runs) {
+          const startIdx = index + run.start;
+          const endIdx = index + run.end;
+          if (run.bold) {
+            requests.push({
+              updateTextStyle: {
+                range: { startIndex: startIdx, endIndex: endIdx },
+                textStyle: { bold: true },
+                fields: 'bold',
+              },
+            });
+          }
+          if (run.italic) {
+            requests.push({
+              updateTextStyle: {
+                range: { startIndex: startIdx, endIndex: endIdx },
+                textStyle: { italic: true },
+                fields: 'italic',
+              },
+            });
+          }
+          if (run.link) {
+            requests.push({
+              updateTextStyle: {
+                range: { startIndex: startIdx, endIndex: endIdx },
+                textStyle: { link: { url: run.link } },
+                fields: 'link',
+              },
+            });
+          }
+        }
+      }
+
+      index += insertText.length;
+    }
+
+    return requests;
+  }
+
+  parseLine(line: string): ParsedLine {
+    // Horizontal rules — render as empty line
+    if (line.match(/^---+\s*$/)) {
+      return { text: '', style: 'NORMAL_TEXT', isBullet: false, isNumbered: false, runs: null };
+    }
+
+    // Headings
+    const headingMatch = line.match(/^(#{1,6})\s+(.+)/);
+    if (headingMatch) {
+      const level = headingMatch[1].length;
+      const { plainText, runs } = this.parseInlineFormatting(headingMatch[2]);
+      return { text: plainText, style: `HEADING_${level}`, isBullet: false, isNumbered: false, runs };
+    }
+
+    // Checkbox items: - [ ] or - [x]
+    const checkboxMatch = line.match(/^[\-\*]\s+\[([xX ])\]\s+(.+)/);
+    if (checkboxMatch) {
+      const checked = checkboxMatch[1].toLowerCase() === 'x';
+      const prefix = checked ? '☑ ' : '☐ ';
+      const { plainText, runs } = this.parseInlineFormatting(checkboxMatch[2]);
+      return { text: prefix + plainText, style: null, isBullet: true, isNumbered: false, runs };
+    }
+
+    // Bullet lists
+    const bulletMatch = line.match(/^[\-\*]\s+(.+)/);
+    if (bulletMatch) {
+      const { plainText, runs } = this.parseInlineFormatting(bulletMatch[1]);
+      return { text: plainText, style: null, isBullet: true, isNumbered: false, runs };
+    }
+
+    // Numbered lists
+    const numberedMatch = line.match(/^\d+\.\s+(.+)/);
+    if (numberedMatch) {
+      const { plainText, runs } = this.parseInlineFormatting(numberedMatch[1]);
+      return { text: plainText, style: null, isBullet: false, isNumbered: true, runs };
+    }
+
+    // Table rows — render as plain text (tables don't map to Docs natively)
+    if (line.match(/^\|.*\|$/)) {
+      // Skip separator rows like |---|---|
+      if (line.match(/^\|[\s\-:]+\|$/)) {
+        return { text: null, style: null, isBullet: false, isNumbered: false, runs: null };
+      }
+      const cells = line.split('|').filter(c => c.trim()).map(c => c.trim());
+      const { plainText, runs } = this.parseInlineFormatting(cells.join('  |  '));
+      return { text: plainText, style: 'NORMAL_TEXT', isBullet: false, isNumbered: false, runs };
+    }
+
+    // Empty lines
+    if (line.trim() === '') {
+      return { text: '', style: 'NORMAL_TEXT', isBullet: false, isNumbered: false, runs: null };
+    }
+
+    // Normal paragraph
+    const { plainText, runs } = this.parseInlineFormatting(line);
+    return { text: plainText, style: 'NORMAL_TEXT', isBullet: false, isNumbered: false, runs };
+  }
+
+  parseInlineFormatting(text: string): { plainText: string; runs: InlineRun[] } {
+    const runs: InlineRun[] = [];
+    let plainText = '';
+    let i = 0;
+
+    while (i < text.length) {
+      // Links: [text](url)
+      const linkMatch = text.slice(i).match(/^\[([^\]]+)\]\(([^)]+)\)/);
+      if (linkMatch) {
+        const start = plainText.length;
+        plainText += linkMatch[1];
+        runs.push({ start, end: plainText.length, link: linkMatch[2] });
+        i += linkMatch[0].length;
+        continue;
+      }
+
+      // Bold+Italic: ***text***
+      const boldItalicMatch = text.slice(i).match(/^(\*{3}|_{3})(.+?)\1/);
+      if (boldItalicMatch) {
+        const start = plainText.length;
+        plainText += boldItalicMatch[2];
+        runs.push({ start, end: plainText.length, bold: true, italic: true });
+        i += boldItalicMatch[0].length;
+        continue;
+      }
+
+      // Bold: **text**
+      const boldMatch = text.slice(i).match(/^(\*{2}|_{2})(.+?)\1/);
+      if (boldMatch) {
+        const start = plainText.length;
+        plainText += boldMatch[2];
+        runs.push({ start, end: plainText.length, bold: true });
+        i += boldMatch[0].length;
+        continue;
+      }
+
+      // Italic: *text*
+      const italicMatch = text.slice(i).match(/^(\*|_)(.+?)\1/);
+      if (italicMatch) {
+        const start = plainText.length;
+        plainText += italicMatch[2];
+        runs.push({ start, end: plainText.length, italic: true });
+        i += italicMatch[0].length;
+        continue;
+      }
+
+      plainText += text[i];
+      i++;
+    }
+
+    return { plainText, runs };
+  }
+}
+
+const mdConverter = new MarkdownToDocsConverter();
+
+// ---------------------------------------------------------------------------
 // GDocBridge
 // ---------------------------------------------------------------------------
 
@@ -191,7 +407,9 @@ export class GDocBridge {
   }
 
   /**
-   * Replaces the entire content of a Google Doc with new plain text.
+   * Replaces the entire content of a Google Doc with formatted markdown.
+   * Converts markdown to native Google Docs formatting (headings, bold,
+   * italic, links, bullets) via the MarkdownToDocsConverter.
    */
   async replaceContent(docId: string, content: string): Promise<void> {
     const auth = await this.getAuth();
@@ -205,29 +423,87 @@ export class GDocBridge {
     const lastElem = body?.content?.[body.content.length - 1];
     const endIndex = lastElem?.endIndex ?? 1;
 
-    // Build request list: delete existing body, then insert new content
+    // Delete existing body first
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const requests: any[] = [];
+    const deleteRequests: any[] = [];
     if (endIndex > 2) {
-      requests.push({
+      deleteRequests.push({
         deleteContentRange: {
           range: { startIndex: 1, endIndex: endIndex - 1 },
         },
       });
     }
-    requests.push({
-      insertText: {
-        location: { index: 1 },
-        text: content,
-      },
+
+    if (deleteRequests.length > 0) {
+      await withRetry(() =>
+        docs.documents.batchUpdate({
+          documentId: docId,
+          requestBody: { requests: deleteRequests },
+        }),
+      );
+    }
+
+    // Convert markdown to Docs API requests and apply formatting
+    const formatRequests = mdConverter.convert(content);
+    if (formatRequests.length > 0) {
+      await withRetry(() =>
+        docs.documents.batchUpdate({
+          documentId: docId,
+          requestBody: { requests: formatRequests },
+        }),
+      );
+    }
+  }
+
+  /**
+   * Appends formatted markdown content to the end of a Google Doc.
+   */
+  async appendContent(docId: string, content: string): Promise<void> {
+    const auth = await this.getAuth();
+    const docs = google.docs({ version: 'v1', auth });
+
+    // Get current doc end index
+    const currentDoc = await withRetry(() =>
+      docs.documents.get({ documentId: docId }),
+    );
+    const body = currentDoc.data.body;
+    const lastElem = body?.content?.[body.content.length - 1];
+    const endIndex = lastElem?.endIndex ?? 1;
+
+    // Convert markdown, but we need to offset all indices to the end of the doc
+    const baseRequests = mdConverter.convert(content);
+
+    // Shift all indices by (endIndex - 1) since the converter assumes starting at index 1
+    const offset = endIndex - 1;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const shiftedRequests = baseRequests.map((req: any) => {
+      const shifted = JSON.parse(JSON.stringify(req));
+      if (shifted.insertText?.location?.index != null) {
+        shifted.insertText.location.index += offset;
+      }
+      if (shifted.updateParagraphStyle?.range) {
+        shifted.updateParagraphStyle.range.startIndex += offset;
+        shifted.updateParagraphStyle.range.endIndex += offset;
+      }
+      if (shifted.createParagraphBullets?.range) {
+        shifted.createParagraphBullets.range.startIndex += offset;
+        shifted.createParagraphBullets.range.endIndex += offset;
+      }
+      if (shifted.updateTextStyle?.range) {
+        shifted.updateTextStyle.range.startIndex += offset;
+        shifted.updateTextStyle.range.endIndex += offset;
+      }
+      return shifted;
     });
 
-    await withRetry(() =>
-      docs.documents.batchUpdate({
-        documentId: docId,
-        requestBody: { requests },
-      }),
-    );
+    if (shiftedRequests.length > 0) {
+      await withRetry(() =>
+        docs.documents.batchUpdate({
+          documentId: docId,
+          requestBody: { requests: shiftedRequests },
+        }),
+      );
+    }
   }
 
   // ---------------------------------------------------------------------------
