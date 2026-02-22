@@ -1,0 +1,22 @@
+{
+  "name": "meeting-assistant-mcp",
+  "version": "0.3.0",
+  "description": "MCP server for real-time meeting assistance — Phase 3 (audio + STT)",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc --watch",
+    "test": "tsc && node --test dist/test/*.test.js"
+  },
+  "dependencies": {
+    "@deepgram/sdk": "^3.13.0",
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "googleapis": "^144.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}

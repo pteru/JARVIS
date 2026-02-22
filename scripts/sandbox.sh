@@ -159,10 +159,10 @@ ensure_image() {
 # ============================================================
 get_network_flag() {
     case "$NETWORK" in
-        full)    echo "bridge" ;;
+        full)    echo "host" ;;
         lan)     echo "host" ;;
         offline) echo "none" ;;
-        *)       echo "bridge" ;;
+        *)       echo "host" ;;
     esac
 }
 
