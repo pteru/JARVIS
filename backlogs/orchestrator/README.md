@@ -21,6 +21,7 @@ Ideas for new features, skills, and integrations. Full specs live in this direct
 | Meeting Minutes Cron (GDrive) | **Planned** | [meeting-minutes-cron.md](meeting-minutes-cron.md) |
 | Multi-User Network Interface | **Planned** | [multi-user-interface.md](multi-user-interface.md) |
 | `/cleanup` Skill | **Planned** | [cleanup-skill.md](cleanup-skill.md) |
+| `/backlog-add` Skill | **Done** | — |
 | Sandbox Dev Environment | **In Progress** | [sandbox-dev-environment.md](sandbox-dev-environment.md) |
 | Telegram Command Intake Pipeline | **Planned** | [telegram-command-intake.md](telegram-command-intake.md) |
 | Android JARVIS App | **Planned** | [android-jarvis-app.md](android-jarvis-app.md) |
@@ -63,3 +64,4 @@ Ideas for new features, skills, and integrations. Full specs live in this direct
 | Telegram Command Intake Pipeline | **Planned** | — | — | [spec](telegram-command-intake.md) | Telegram bot → NLP intent classifier → action pipeline router.<br>Bilingual EN/PT-BR. First pipeline: `/backlog-add`. Builds on existing Telegram integration. 5 phases, ~28h. |
 | Android JARVIS App | **Planned** | — | — | [spec](android-jarvis-app.md) | Android app with "Jarvis" wake word (Porcupine) → on-device STT → JARVIS intake API.<br>Bilingual, dark theme, offline queue. Shares pipeline with Telegram intake. 5 phases, ~44h. |
 | Telegram Bot Manager | **Planned** | — | — | [spec](telegram-bot-manager.md) | Multi-bot notification routing. Separate bots per domain (alerts, ops, assistant, reports).<br>Config-driven registry, shared router library, backward compatible toggle. 4 phases, ~14h. |
+| `/backlog-add` Skill | **Done** | — | 2026-02-22 | — | Unified backlog item creator: classifies orchestrator vs product, duplicate detection,<br>spec generation, task code assignment, index updates. Prompt-only skill in `.claude/skills/backlog-add/`. |
