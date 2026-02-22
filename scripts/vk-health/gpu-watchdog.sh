@@ -12,8 +12,8 @@
 #   - Confirmation delay: if first check fails, wait and re-check
 #   - All decisions logged to a persistent file
 #
-# Install (cron, every 5 minutes):
-#   */5 * * * * /opt/gpu-watchdog/gpu-watchdog.sh >> /var/log/gpu-watchdog.log 2>&1
+# Install (ROOT cron, every minute — must run as root for reboot + state file):
+#   * * * * * /opt/gpu-watchdog/gpu-watchdog.sh >> /var/log/gpu-watchdog.log 2>&1
 #
 set -euo pipefail
 

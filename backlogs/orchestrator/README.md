@@ -21,6 +21,9 @@ Ideas for new features, skills, and integrations. Full specs live in this direct
 | Meeting Minutes Cron (GDrive) | **Planned** | [meeting-minutes-cron.md](meeting-minutes-cron.md) |
 | Multi-User Network Interface | **Planned** | [multi-user-interface.md](multi-user-interface.md) |
 | `/cleanup` Skill | **Planned** | [cleanup-skill.md](cleanup-skill.md) |
+| Sandbox Dev Environment | **In Progress** | [sandbox-dev-environment.md](sandbox-dev-environment.md) |
+| Telegram Command Intake Pipeline | **Planned** | [telegram-command-intake.md](telegram-command-intake.md) |
+| Android JARVIS App | **Planned** | [android-jarvis-app.md](android-jarvis-app.md) |
 
 ---
 
@@ -54,5 +57,9 @@ Ideas for new features, skills, and integrations. Full specs live in this direct
 | JARVIS Distribution — Generic | **Planned** | — | — | [spec](jarvis-dist-generic.md) | Fully sanitized JARVIS distribution removing all Strokmatic-specific data.<br>Template-based: generic product examples, placeholder configs, onboarding guide.<br>Depends on Strokmatic distribution first. 3 phases, ~10-15h. |
 | Multi-User Network Interface | **Planned** | — | — | [spec](multi-user-interface.md) | Web-based multi-user Claude Code/JARVIS gateway accessible over LAN.<br>User auth (local accounts), session isolation, per-user history/storage, activity tracking.<br>Reverse proxy to `claude` CLI processes. Most complex item. 5 phases, ~40-60h. |
 | `/cleanup` Skill | **Planned** | — | — | [spec](cleanup-skill.md) | Post-task cleanup skill: check worktree + branches, stage/commit changes,<br>update context files + changelog, rerun checks. Standardized end-of-task ritual. ~4-6h. |
+| Sandbox Dev Environment | **In Progress** | — | — | [spec](sandbox-dev-environment.md) | Docker-based sandbox for autonomous Claude Code task execution.<br>Pre-built base image + disposable per-task containers + git patch review.<br>`--dangerouslySkipPermissions` safe inside container. ~4-6h. |
 | Dashboard Modular Sidenav | **Planned** | — | — | [spec](dashboard-modules.md) | Restructure orchestrator dashboard into modular sidenav layout.<br>General overview tab + per-tool tabs (PR Review, Health Check, Dispatches, Backlogs, Changelog).<br>Alert badges on tab icons for pending/new actions. 4 phases, ~12-18h. |
 | Voice Interface — Session Tracker | **Planned** | — | — | [spec](voice-interface.md) | Extension to JARVIS Voice Interface: real-time tracking of active Claude sessions/projects,<br>running status, loaded skills, resource usage. Overlay panel in visual identity. ~6-8h addendum. |
+| Telegram Command Intake Pipeline | **Planned** | — | — | [spec](telegram-command-intake.md) | Telegram bot → NLP intent classifier → action pipeline router.<br>Bilingual EN/PT-BR. First pipeline: `/backlog-add`. Builds on existing Telegram integration. 5 phases, ~28h. |
+| Android JARVIS App | **Planned** | — | — | [spec](android-jarvis-app.md) | Android app with "Jarvis" wake word (Porcupine) → on-device STT → JARVIS intake API.<br>Bilingual, dark theme, offline queue. Shares pipeline with Telegram intake. 5 phases, ~44h. |
+| Telegram Bot Manager | **Planned** | — | — | [spec](telegram-bot-manager.md) | Multi-bot notification routing. Separate bots per domain (alerts, ops, assistant, reports).<br>Config-driven registry, shared router library, backward compatible toggle. 4 phases, ~14h. |
