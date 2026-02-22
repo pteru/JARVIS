@@ -734,8 +734,24 @@ class MeetingAssistantServer {
       },
     );
 
+    // Audio config: auto-detect sink + mic targets for dual capture (default).
+    // The SystemAudioCapture.detectTargets() finds both automatically.
+    // Users can override with explicit targets in config.
+    const audioConfig: import('./audio/system-capture.js').AudioCaptureConfig = {
+      sampleRate: 16000,
+      channels: 1,
+      chunkDurationMs: 100,
+    };
+
+    // Allow config override for targets
+    const audioTargets = (this.config as unknown as Record<string, unknown>)?.audio_targets as string[] | undefined;
+    if (audioTargets && audioTargets.length > 0) {
+      audioConfig.targets = audioTargets;
+    }
+    // Otherwise SystemAudioCapture.start() auto-detects sink + mic
+
     await this.audioPipeline.start(
-      { sampleRate: 16000, channels: 1, chunkDurationMs: 100 },
+      audioConfig,
       {
         apiKeyEnv: dgConfig.api_key_env,
         model: dgConfig.model,
