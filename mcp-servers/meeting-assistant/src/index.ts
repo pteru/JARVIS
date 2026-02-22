@@ -1,24 +1,22 @@
 #!/usr/bin/env node
 /**
- * index.ts — Meeting Assistant MCP Server (Phase 2)
+ * index.ts — Meeting Assistant MCP Server (Phase 3)
  *
- * Phase 1 tools (unchanged):
+ * Phase 1 tools:
  *   - start_meeting     Create a Google Doc and start the live-notes update cycle
  *   - stop_meeting      Halt the update cycle, generate minutes, return both doc URLs
  *   - inject_transcript Append a timestamped line to the transcript accumulator
  *
- * Phase 2 additions:
+ * Phase 2 tools:
  *   - get_meeting_status       Current session info (duration, line count, etc.)
  *   - list_meetings            Past sessions from data/meetings/sessions.json
  *   - get_action_items         Extract action items from the latest minutes doc via Claude
  *   - create_tasks_from_meeting Write action items to a product backlog markdown file
  *
- * Phase 2 stop_meeting changes:
- *   - Persists full transcript to data/meetings/YYYY-MM-DD/{sessionId}.transcript.jsonl
- *   - Generates structured minutes via MinutesGenerator (second Google Doc)
- *   - Adds cross-links between live notes doc and minutes doc
- *   - Updates data/meetings/sessions.json index
- *   - Returns both live notes URL and minutes URL
+ * Phase 3 additions:
+ *   - start_meeting now accepts `source: 'system_audio'` for PipeWire/PulseAudio capture
+ *   - get_audio_status          Check audio capture pipeline status
+ *   - Automatic audio → Deepgram STT → transcript pipeline
  */
 
 import path from 'path';
@@ -33,6 +31,9 @@ import { GDocBridge } from './gdoc-bridge.js';
 import { TranscriptAccumulator } from './transcript.js';
 import { LiveNotesEngine } from './live-notes.js';
 import { MinutesGenerator } from './minutes-generator.js';
+import { SystemAudioCapture } from './audio/system-capture.js';
+import { DeepgramSTT } from './stt/deepgram.js';
+import { AudioPipeline } from './audio/audio-pipeline.js';
 
 // ---------------------------------------------------------------------------
 // Config
@@ -52,6 +53,15 @@ interface MeetingConfig {
     google_drive_id: string;
     folder_name: string;
   };
+  stt?: {
+    default_provider: string;
+    deepgram: {
+      api_key_env: string;
+      model: string;
+      language: string;
+      diarize: boolean;
+    };
+  };
 }
 
 async function loadConfig(): Promise<MeetingConfig> {
@@ -67,6 +77,15 @@ async function loadConfig(): Promise<MeetingConfig> {
         google_drive_id: '0AC4RjZu6DAzcUk9PVA',
         folder_name: 'Meeting Assistant',
       },
+      stt: {
+        default_provider: 'deepgram',
+        deepgram: {
+          api_key_env: 'DEEPGRAM_API_KEY',
+          model: 'nova-2',
+          language: 'multi',
+          diarize: true,
+        },
+      },
     };
   }
 }
@@ -81,8 +100,10 @@ interface MeetingSession {
   docUrl: string;
   title: string;
   startedAt: string;
-  /** Language detection placeholder — default 'auto'. Future phases populate this. */
+  /** Language detected by STT. 'auto' when using manual source. */
   detected_language: string;
+  /** Audio source for this session. */
+  source: 'manual' | 'system_audio';
 }
 
 interface CompletedSession {
@@ -118,10 +139,14 @@ class MeetingAssistantServer {
   private session: MeetingSession | null = null;
   /** Most recently completed session — used by get_action_items without session_id. */
   private lastSession: CompletedSession | null = null;
+  /** Audio pipeline — active when source is 'system_audio'. */
+  private audioPipeline: AudioPipeline | null = null;
+  /** Loaded config — set in run(). */
+  private config: MeetingConfig | null = null;
 
   constructor() {
     this.server = new Server(
-      { name: 'meeting-assistant', version: '0.2.0' },
+      { name: 'meeting-assistant', version: '0.3.0' },
       { capabilities: { tools: {} } },
     );
 
@@ -134,6 +159,9 @@ class MeetingAssistantServer {
 
     this.server.onerror = (error) => console.error('[MCP Error]', error);
     process.on('SIGINT', async () => {
+      if (this.audioPipeline?.isRunning()) {
+        await this.audioPipeline.stop();
+      }
       this.liveNotes.stop();
       await this.server.close();
       process.exit(0);
@@ -163,6 +191,7 @@ class MeetingAssistantServer {
         name: 'start_meeting',
         description:
           'Create a new Google Doc in the Meeting Assistant folder and begin the live-notes update cycle. ' +
+          'Optionally start real-time audio capture via PipeWire/PulseAudio + Deepgram STT. ' +
           'Returns the session ID, document ID, and document URL.',
         inputSchema: {
           type: 'object',
@@ -171,6 +200,13 @@ class MeetingAssistantServer {
               type: 'string',
               description: 'Meeting title (used as the Google Doc title). Defaults to a timestamped title.',
             },
+            source: {
+              type: 'string',
+              enum: ['manual', 'system_audio'],
+              description:
+                'Audio source. "manual" = inject_transcript only (default). ' +
+                '"system_audio" = capture system audio via PipeWire/PulseAudio + Deepgram STT.',
+            },
           },
           required: [],
         },
@@ -178,7 +214,8 @@ class MeetingAssistantServer {
       {
         name: 'stop_meeting',
         description:
-          'Stop the active meeting: halt the live-notes cycle, generate structured minutes in a new Google Doc, ' +
+          'Stop the active meeting: halt the live-notes cycle (and audio pipeline if active), ' +
+          'generate structured minutes in a new Google Doc, ' +
           'persist the full transcript to disk, and add cross-links between the two docs. ' +
           'Returns both the live notes URL and the minutes URL.',
         inputSchema: {
@@ -191,7 +228,7 @@ class MeetingAssistantServer {
         name: 'inject_transcript',
         description:
           'Append a timestamped line to the transcript accumulator. ' +
-          'This is the primary input mechanism for Phase 1 (no audio capture yet). ' +
+          'Works both with manual source and alongside system_audio capture. ' +
           'A meeting must be active (start_meeting called first).',
         inputSchema: {
           type: 'object',
@@ -213,7 +250,7 @@ class MeetingAssistantServer {
         name: 'get_meeting_status',
         description:
           'Return the current meeting session status. If a meeting is active, includes session ID, ' +
-          'title, elapsed duration, live notes URL, and transcript line count. ' +
+          'title, elapsed duration, live notes URL, transcript line count, and audio pipeline status. ' +
           'If no meeting is active, reports the last completed session.',
         inputSchema: {
           type: 'object',
@@ -296,6 +333,18 @@ class MeetingAssistantServer {
           required: ['workspace', 'action_items'],
         },
       },
+      // ---- Phase 3 tools ----
+      {
+        name: 'get_audio_status',
+        description:
+          'Check the status of the audio capture pipeline. Returns whether audio is being captured, ' +
+          'the STT provider, detected language, and audio device info.',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+          required: [],
+        },
+      },
     ];
   }
 
@@ -303,7 +352,7 @@ class MeetingAssistantServer {
   // Tool implementations — Phase 1
   // ---------------------------------------------------------------------------
 
-  private async startMeeting(args: { title?: string }): Promise<ReturnType<typeof this.ok>> {
+  private async startMeeting(args: { title?: string; source?: string }): Promise<ReturnType<typeof this.ok>> {
     if (this.session) {
       return this.err(
         `A meeting is already active (session: ${this.session.sessionId}). ` +
@@ -314,6 +363,7 @@ class MeetingAssistantServer {
     const now = new Date();
     const sessionId = `mtg-${now.toISOString().replace(/[:.]/g, '-')}`;
     const title = args.title?.trim() || `Meeting ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
+    const source = (args.source === 'system_audio' ? 'system_audio' : 'manual') as 'manual' | 'system_audio';
 
     let docId: string;
     let docUrl: string;
@@ -333,7 +383,8 @@ class MeetingAssistantServer {
       docUrl,
       title,
       startedAt: now.toISOString(),
-      detected_language: 'auto', // Phase 1 placeholder
+      detected_language: 'auto',
+      source,
     };
 
     // Start transcript accumulator for this session
@@ -347,6 +398,20 @@ class MeetingAssistantServer {
     // Start the live-notes update cycle
     this.liveNotes.start(docId);
 
+    // Phase 3: Start audio pipeline if source is system_audio
+    let audioStatus = 'not started (manual mode)';
+    if (source === 'system_audio') {
+      try {
+        await this.startAudioPipeline();
+        audioStatus = 'capturing';
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.error(`[meeting] Audio pipeline failed to start: ${msg}`);
+        audioStatus = `failed: ${msg}`;
+        // Don't fail the meeting — it can still work via inject_transcript
+      }
+    }
+
     return this.ok(
       JSON.stringify(
         {
@@ -356,7 +421,12 @@ class MeetingAssistantServer {
           title,
           startedAt: now.toISOString(),
           detected_language: 'auto',
-          message: 'Meeting started. Use inject_transcript to add transcript lines.',
+          source,
+          audioStatus,
+          message:
+            source === 'system_audio'
+              ? 'Meeting started with system audio capture. Transcript is being generated automatically.'
+              : 'Meeting started. Use inject_transcript to add transcript lines.',
         },
         null,
         2,
@@ -369,6 +439,19 @@ class MeetingAssistantServer {
       return this.err('No active meeting. Call start_meeting first.') as ReturnType<
         typeof this.ok
       >;
+    }
+
+    // 0. Stop the audio pipeline if running (Phase 3)
+    if (this.audioPipeline?.isRunning()) {
+      // Capture detected language before stopping
+      const detectedLang = this.audioPipeline.getDetectedLanguage();
+      if (detectedLang && this.session.detected_language === 'auto') {
+        this.session.detected_language = detectedLang;
+      }
+      await this.audioPipeline.stop().catch((e) =>
+        console.error('[meeting] Error stopping audio pipeline:', e),
+      );
+      this.audioPipeline = null;
     }
 
     // 1. Stop the live-notes update cycle
@@ -531,6 +614,15 @@ class MeetingAssistantServer {
     const durationMs = now.getTime() - startedAt.getTime();
     const durationMinutes = Math.round(durationMs / 60_000);
 
+    // Phase 3: Include audio pipeline status
+    const audioPipelineStatus = this.audioPipeline?.isRunning()
+      ? {
+          capturing: true,
+          sttProvider: this.audioPipeline.getProviderName(),
+          detectedLanguage: this.audioPipeline.getDetectedLanguage(),
+        }
+      : { capturing: false };
+
     return this.ok(
       JSON.stringify(
         {
@@ -539,16 +631,123 @@ class MeetingAssistantServer {
           title: this.session.title,
           startedAt: this.session.startedAt,
           durationMinutes,
+          source: this.session.source,
           liveNotesDocUrl: this.session.docUrl,
           transcriptLineCount: this.transcript.getCount(),
           liveNotesRunning: this.liveNotes.isRunning(),
           detected_language: this.session.detected_language,
+          audioPipeline: audioPipelineStatus,
         },
         null,
         2,
       ),
     );
   }
+
+  // ---------------------------------------------------------------------------
+  // Tool implementations — Phase 3
+  // ---------------------------------------------------------------------------
+
+  private getAudioStatus(): ReturnType<typeof this.ok> {
+    if (!this.session) {
+      return this.ok(
+        JSON.stringify(
+          {
+            active: false,
+            message: 'No active meeting.',
+          },
+          null,
+          2,
+        ),
+      );
+    }
+
+    if (!this.audioPipeline) {
+      return this.ok(
+        JSON.stringify(
+          {
+            active: true,
+            source: this.session.source,
+            audioPipeline: {
+              running: false,
+              message: this.session.source === 'manual'
+                ? 'Audio capture not started (manual mode).'
+                : 'Audio pipeline not initialized.',
+            },
+          },
+          null,
+          2,
+        ),
+      );
+    }
+
+    return this.ok(
+      JSON.stringify(
+        {
+          active: true,
+          source: this.session.source,
+          audioPipeline: {
+            running: this.audioPipeline.isRunning(),
+            sttProvider: this.audioPipeline.getProviderName(),
+            detectedLanguage: this.audioPipeline.getDetectedLanguage(),
+          },
+        },
+        null,
+        2,
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Audio pipeline lifecycle (Phase 3)
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Start the audio capture → STT → transcript pipeline.
+   * Uses config from meeting-assistant.json for STT provider settings.
+   */
+  private async startAudioPipeline(): Promise<void> {
+    const sttConfig = this.config?.stt ?? {
+      default_provider: 'deepgram',
+      deepgram: {
+        api_key_env: 'DEEPGRAM_API_KEY',
+        model: 'nova-2',
+        language: 'multi',
+        diarize: true,
+      },
+    };
+
+    const dgConfig = sttConfig.deepgram;
+
+    const capture = new SystemAudioCapture();
+    const stt = new DeepgramSTT();
+
+    this.audioPipeline = new AudioPipeline(
+      capture,
+      stt,
+      this.transcript,
+      (lang: string) => {
+        if (this.session && this.session.detected_language === 'auto') {
+          this.session.detected_language = lang;
+          console.error(`[meeting] Language detected by STT: ${lang}`);
+        }
+      },
+    );
+
+    await this.audioPipeline.start(
+      { sampleRate: 16000, channels: 1, chunkDurationMs: 100 },
+      {
+        apiKeyEnv: dgConfig.api_key_env,
+        model: dgConfig.model,
+        language: dgConfig.language,
+        diarize: dgConfig.diarize,
+      },
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Phase 2 tool implementations (continued)
+  // ---------------------------------------------------------------------------
 
   private async listMeetings(args: { limit?: number }): Promise<ReturnType<typeof this.ok>> {
     const sessionsPath = path.join(DATA_DIR, 'sessions.json');
@@ -814,7 +1013,7 @@ class MeetingAssistantServer {
       try {
         switch (name) {
           case 'start_meeting':
-            return await this.startMeeting((args ?? {}) as { title?: string });
+            return await this.startMeeting((args ?? {}) as { title?: string; source?: string });
           case 'stop_meeting':
             return await this.stopMeeting();
           case 'inject_transcript':
@@ -823,6 +1022,8 @@ class MeetingAssistantServer {
             );
           case 'get_meeting_status':
             return this.getMeetingStatus();
+          case 'get_audio_status':
+            return this.getAudioStatus();
           case 'list_meetings':
             return await this.listMeetings((args ?? {}) as { limit?: number });
           case 'get_action_items':
@@ -851,17 +1052,17 @@ class MeetingAssistantServer {
   // ---------------------------------------------------------------------------
 
   async run(): Promise<void> {
-    const config = await loadConfig();
+    this.config = await loadConfig();
 
     // Re-create LiveNotesEngine with config values
     this.liveNotes = new LiveNotesEngine(this.gdoc, this.transcript, {
-      updateIntervalMs: config.live_notes.update_interval_ms,
-      claudeModel: config.live_notes.model,
+      updateIntervalMs: this.config.live_notes.update_interval_ms,
+      claudeModel: this.config.live_notes.model,
     });
 
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
-    console.error('Meeting Assistant MCP server running on stdio (Phase 2)');
+    console.error('Meeting Assistant MCP server running on stdio (Phase 3)');
   }
 }
 
