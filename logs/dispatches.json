@@ -157,5 +157,38 @@
     "started_at": "2026-02-19T03:48:19.470Z",
     "completed_at": "2026-02-19T03:48:19.470Z",
     "duration_seconds": 198
+  },
+  {
+    "type": "vk-health",
+    "task": "Health check 03002",
+    "workspace": "strokmatic.visionking",
+    "model": "opus",
+    "status": "complete",
+    "created_at": "2026-02-22T20:46:16.545Z",
+    "started_at": "2026-02-22T20:46:16.545Z",
+    "completed_at": "2026-02-22T20:46:16.545Z",
+    "duration_seconds": 8174
+  },
+  {
+    "type": "vk-health",
+    "task": "Health check 03002",
+    "workspace": "strokmatic.visionking",
+    "model": "opus",
+    "status": "complete",
+    "created_at": "2026-02-22T23:16:20.756Z",
+    "started_at": "2026-02-22T23:16:20.756Z",
+    "completed_at": "2026-02-22T23:16:20.756Z",
+    "duration_seconds": 8179
+  },
+  {
+    "type": "vk-health",
+    "task": "Health check 03002",
+    "workspace": "strokmatic.visionking",
+    "model": "opus",
+    "status": "complete",
+    "created_at": "2026-02-23T01:43:19.178Z",
+    "started_at": "2026-02-23T01:43:19.178Z",
+    "completed_at": "2026-02-23T01:43:19.178Z",
+    "duration_seconds": 7997
   }
 ]
