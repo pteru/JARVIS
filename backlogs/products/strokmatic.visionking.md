@@ -22,6 +22,7 @@
 - [ ] [simple] QUAL-02: Add API documentation (OpenAPI/Swagger) — NestJS backends have no Swagger setup.
 
 ## Product Features
+- [ ] [medium] FEAT-08: Migrate pixel-to-object debug viewer from trimesh+pyglet to PyVista — Replace `visualize_ray_intersection()` in `src/transformer.py` (trimesh Scene + pyglet OpenGL) with PyVista-based viewer. Benefits: interactive picking, widgets, text labels, camera frustums via `Camera.view_frustum()`, headless rendering (`PYVISTA_OFF_SCREEN`), dark theme. Keep trimesh for geometry processing (ray-casting, mesh loading). Add pyvista to dev requirements, remove pyglet dependency. Matches inspection-grouping-optimizer's PyVista stack for consistency across Strokmatic SDK visualization.
 - [ ] [complex] FEAT-01: Implement sophisticated config and testing for pixel-to-object — Configurable parameters, edge case handling, comprehensive test coverage.
 - [ ] [complex] FEAT-02: Implement and test all model combinations for vk-inference — YOLO/ONNX × classification/detection/segmentation/OBB. Ensure all paths work end-to-end.
 - [ ] [complex] FEAT-03: Refine length-measure — Improve accuracy, calibration, edge detection. Add test cases for known measurements.
