@@ -1,6 +1,6 @@
 # Strokmatic GitHub Access Matrix
 
-> Generated: 2026-02-16 19:07
+> Generated: 2026-02-23 09:03
 
 ## Organization Owners
 
@@ -20,8 +20,8 @@
 
 Rules: `develop` and `master` require Pull Requests — no direct commits allowed.
 
-- **Fully protected** (develop + master): 64 repos
-- **No branch protection**: 32 repos
+- **Fully protected** (develop + master): 65 repos
+- **No branch protection**: 33 repos
 
 ## Per-Repository Access
 
@@ -32,12 +32,28 @@ Branch protection: PR = PRs required on develop & master, `-` = no protection
 | Repository | Protection | PoletoSkm | VVS-skm | arthurmallmann-strokmatic | gui-strokmatic | teruelskm | viniciusfigueredo-dev | viniciussotero | williamabe-strokmatic |
 |:-----------|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
 | diemaster | - | **A** | **R** | **R** | **W** | **A** | **R** | **W** | **A** |
+| diemaster-back-end | PR | **A** | **R** | **R** | **M** | **A** | **R** | **W** | **A** |
+| diemaster-connect | PR | **A** | **R** | **R** | **R** | **A** | **R** | **W** | **A** |
+| diemaster-database-writer | PR | **A** | **R** | **R** | **R** | **A** | **R** | **W** | **A** |
+| diemaster-firmware-hub | PR | **A** | **R** | **R** | **R** | **A** | **R** | **W** | **A** |
+| diemaster-firmware-switch | PR | **A** | **R** | **R** | **R** | **A** | **R** | **W** | **A** |
+| diemaster-front-end | PR | **A** | **R** | **R** | **M** | **A** | **R** | **W** | **A** |
+| diemaster-get-data | PR | **A** | **R** | **R** | **R** | **A** | **R** | **W** | **A** |
+| diemaster-infra-setup | PR | **A** | **R** | **R** | **R** | **A** | **R** | **W** | **A** |
+| diemaster-loader | PR | **A** | **R** | **R** | **R** | **A** | **R** | **W** | **A** |
+| diemaster-pamstamp-io | PR | **A** | **R** | **R** | **R** | **A** | **W** | **W** | **A** |
+| diemaster-plc-monitor | PR | **A** | **R** | **R** | **R** | **A** | **R** | **W** | **A** |
+| diemaster-processing-data | PR | **A** | **R** | **R** | **R** | **A** | **R** | **W** | **A** |
+| diemaster-setting | PR | **A** | **R** | **R** | **R** | **A** | **R** | **W** | **A** |
+| diemaster-status | PR | **A** | **R** | **R** | **R** | **A** | **R** | **W** | **A** |
+| diemaster-trigger | PR | **A** | **R** | **R** | **R** | **A** | **R** | **W** | **A** |
 | sdk-agent-standards | - | **A** | **R** | **R** | **R** | **A** | **R** | **R** | **A** |
 | sdk-bos6000-toolkit | - | **A** | **R** | **R** | **R** | **A** | **R** | **R** | **A** |
 | sdk-connector-bosch | - | **A** | **W** | **M** | **R** | **A** | **R** | **R** | **A** |
 | sdk-defect-visualizer | - | **A** | **R** | **R** | **R** | **A** | **R** | **R** | **A** |
 | sdk-ds-dashboard | - | **A** | **M** | **R** | **R** | **A** | **R** | **R** | **A** |
 | sdk-image-exporter | - | **A** | **R** | **R** | **R** | **A** | **R** | **R** | **A** |
+| sdk-inspection-grouping-optimizer | PR | **A** | **R** | **R** | **R** | **A** | **R** | **R** | **A** |
 | sdk-label-studio-toolkit | - | **A** | **R** | **R** | **R** | **A** | **R** | **R** | **A** |
 | sdk-labeling-tool | - | **A** | **R** | **R** | **R** | **A** | **R** | **M** | **A** |
 | sdk-lib-rabbit-client | - | **A** | **R** | **R** | **R** | **A** | **R** | **R** | **A** |
@@ -47,21 +63,6 @@ Branch protection: PR = PRs required on develop & master, `-` = no protection
 | sdk-repository-reader | - | **A** | **R** | **R** | **R** | **A** | **R** | **R** | **A** |
 | sdk-ui-components | - | **A** | **R** | **R** | **M** | **A** | **R** | **R** | **A** |
 | sdk-video-cronoanalysis | - | **A** | **R** | **R** | **R** | **A** | **R** | **R** | **A** |
-| smartdie-back-end | PR | **A** | **R** | **R** | **M** | **A** | **R** | **W** | **A** |
-| smartdie-connect | PR | **A** | **R** | **R** | **R** | **A** | **R** | **W** | **A** |
-| smartdie-database-writer | PR | **A** | **R** | **R** | **R** | **A** | **R** | **W** | **A** |
-| smartdie-firmware-hub | PR | **A** | **R** | **R** | **R** | **A** | **R** | **W** | **A** |
-| smartdie-firmware-switch | PR | **A** | **R** | **R** | **R** | **A** | **R** | **W** | **A** |
-| smartdie-front-end | PR | **A** | **R** | **R** | **M** | **A** | **R** | **W** | **A** |
-| smartdie-get-data | PR | **A** | **R** | **R** | **R** | **A** | **R** | **W** | **A** |
-| smartdie-infra-setup | PR | **A** | **R** | **R** | **R** | **A** | **R** | **W** | **A** |
-| smartdie-loader | PR | **A** | **R** | **R** | **R** | **A** | **R** | **W** | **A** |
-| smartdie-pamstamp-io | PR | **A** | **R** | **R** | **R** | **A** | **W** | **W** | **A** |
-| smartdie-plc-monitor | PR | **A** | **R** | **R** | **R** | **A** | **R** | **W** | **A** |
-| smartdie-processing-data | PR | **A** | **R** | **R** | **R** | **A** | **R** | **W** | **A** |
-| smartdie-setting | PR | **A** | **R** | **R** | **R** | **A** | **R** | **W** | **A** |
-| smartdie-status | PR | **A** | **R** | **R** | **R** | **A** | **R** | **W** | **A** |
-| smartdie-trigger | PR | **A** | **R** | **R** | **R** | **A** | **R** | **W** | **A** |
 | spotfusion | - | **A** | **R** | **M** | **R** | **A** | **R** | **R** | **A** |
 | spotfusion-backend | PR | **A** | **R** | **M** | **R** | **A** | **R** | **R** | **A** |
 | spotfusion-backend-vision | PR | **A** | **R** | **M** | **R** | **A** | **R** | **R** | **A** |
@@ -81,6 +82,7 @@ Branch protection: PR = PRs required on develop & master, `-` = no protection
 | spotfusion-get-image | PR | **A** | **R** | **M** | **R** | **A** | **R** | **R** | **A** |
 | spotfusion-get-result | PR | **A** | **R** | **M** | **R** | **A** | **R** | **R** | **A** |
 | spotfusion-image-processing | PR | **A** | **R** | **M** | **R** | **A** | **R** | **R** | **A** |
+| spotfusion-inference | - | **A** | **R** | **A** | **R** | **A** | **R** | **R** | **A** |
 | spotfusion-lldpd | PR | **A** | **R** | **M** | **R** | **A** | **R** | **R** | **A** |
 | spotfusion-module-a | PR | **A** | **R** | **M** | **R** | **A** | **R** | **R** | **A** |
 | spotfusion-opener | PR | **A** | **R** | **M** | **R** | **A** | **R** | **R** | **A** |
@@ -110,7 +112,7 @@ Branch protection: PR = PRs required on develop & master, `-` = no protection
 | visionking-data-manager | PR | **A** | **R** | **R** | **R** | **A** | **R** | **R** | **A** |
 | visionking-database-writer | PR | **A** | **R** | **R** | **R** | **A** | **R** | **R** | **A** |
 | visionking-defect-aggregator | PR | **A** | **R** | **R** | **R** | **A** | **R** | **R** | **A** |
-| visionking-defect-collection-toolkit | - | **A** | **R** | **R** | **R** | **A** | **R** | **R** | **A** |
+| visionking-defect-report-toolkit | - | **A** | **R** | **R** | **R** | **A** | **R** | **R** | **A** |
 | visionking-ds-label-predictor | - | **A** | **M** | **R** | **R** | **A** | **R** | **R** | **A** |
 | visionking-ds-training | - | **A** | **M** | **R** | **R** | **A** | **R** | **R** | **A** |
 | visionking-frontend | PR | **A** | **R** | **R** | **M** | **A** | **R** | **R** | **A** |
