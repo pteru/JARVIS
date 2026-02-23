@@ -190,5 +190,79 @@
     "started_at": "2026-02-23T01:43:19.178Z",
     "completed_at": "2026-02-23T01:43:19.178Z",
     "duration_seconds": 7997
+  },
+  {
+    "type": "vk-health",
+    "task": "Health check 03002",
+    "workspace": "strokmatic.visionking",
+    "model": "opus",
+    "status": "complete",
+    "created_at": "2026-02-23T04:00:09.378Z",
+    "started_at": "2026-02-23T04:00:09.378Z",
+    "completed_at": "2026-02-23T04:00:09.378Z",
+    "duration_seconds": 8108
+  },
+  {
+    "type": "vk-health",
+    "task": "Health check 03002",
+    "workspace": "strokmatic.visionking",
+    "model": "opus",
+    "status": "complete",
+    "created_at": "2026-02-23T06:27:20.085Z",
+    "started_at": "2026-02-23T06:27:20.085Z",
+    "completed_at": "2026-02-23T06:27:20.085Z",
+    "duration_seconds": 7939
+  },
+  {
+    "type": "vk-health",
+    "task": "Health check 03002",
+    "workspace": "strokmatic.visionking",
+    "model": "opus",
+    "status": "complete",
+    "created_at": "2026-02-23T08:44:18.048Z",
+    "started_at": "2026-02-23T08:44:18.048Z",
+    "completed_at": "2026-02-23T08:44:18.048Z",
+    "duration_seconds": 8057
+  },
+  {
+    "type": "orchestrator",
+    "task": "orchestrator.sh update-access",
+    "workspace": "orchestrator",
+    "model": "none",
+    "status": "complete",
+    "created_at": "2026-02-23T09:03:26.785Z",
+    "started_at": "2026-02-23T09:03:26.785Z",
+    "completed_at": "2026-02-23T09:03:26.785Z"
+  },
+  {
+    "type": "orchestrator",
+    "task": "orchestrator.sh fetch-remotes",
+    "workspace": "orchestrator",
+    "model": "none",
+    "status": "complete",
+    "created_at": "2026-02-23T10:33:52.754Z",
+    "started_at": "2026-02-23T10:33:52.754Z",
+    "completed_at": "2026-02-23T10:33:52.754Z"
+  },
+  {
+    "type": "vk-health",
+    "task": "Health check 03002",
+    "workspace": "strokmatic.visionking",
+    "model": "opus",
+    "status": "complete",
+    "created_at": "2026-02-23T10:58:14.004Z",
+    "started_at": "2026-02-23T10:58:14.004Z",
+    "completed_at": "2026-02-23T10:58:14.004Z",
+    "duration_seconds": 7992
+  },
+  {
+    "type": "orchestrator",
+    "task": "orchestrator.sh suggest-goals",
+    "workspace": "orchestrator",
+    "model": "none",
+    "status": "complete",
+    "created_at": "2026-02-23T11:00:01.117Z",
+    "started_at": "2026-02-23T11:00:01.117Z",
+    "completed_at": "2026-02-23T11:00:01.117Z"
   }
 ]
