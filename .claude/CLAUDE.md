@@ -12,7 +12,7 @@ This is an automated orchestration system that dispatches coding tasks to Claude
 
 - Keep changes minimal and focused on the task at hand
 - Follow existing code style and conventions in each workspace
-- Write tests for new functionality when a test framework is present
+- Follow TDD guidelines (`docs/tdd-guidelines.md`). Write tests before implementation for new features; write regression tests for bug fixes
 - Never commit secrets, credentials, or environment-specific configuration
 
 ## Markdown Report Conventions
@@ -40,10 +40,11 @@ Entries go under date headers (`## YYYY-MM-DD`) with section headers (`### Added
 Before marking any task as complete:
 
 1. Code changes are implemented and working
-2. Existing tests still pass
-3. No linting or type errors introduced
-4. Changelog entry added via the changelog-writer MCP tool
-5. Backlog task marked complete via the backlog-manager MCP tool
+2. New tests written for new functionality (test-first preferred per `docs/tdd-guidelines.md`)
+3. Existing tests still pass
+4. No linting or type errors introduced
+5. Changelog entry added via the changelog-writer MCP tool
+6. Backlog task marked complete via the backlog-manager MCP tool
 
 ## MCP Tools Available
 
