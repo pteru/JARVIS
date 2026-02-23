@@ -1,6 +1,6 @@
 # Telegram Bot Manager — Multi-Bot Notification Routing
 
-**Status:** Planned
+**Status:** Done (2026-02-22)
 **Priority:** Medium
 **Estimated complexity:** Medium
 

@@ -4,17 +4,37 @@
 
 set -euo pipefail
 
-NOTIFICATIONS_CONFIG="${ORCHESTRATOR_HOME:-$HOME/JARVIS}/config/orchestrator/notifications.json"
+ORCHESTRATOR_HOME="${ORCHESTRATOR_HOME:-$HOME/JARVIS}"
+NOTIFICATIONS_CONFIG="${ORCHESTRATOR_HOME}/config/orchestrator/notifications.json"
+
+# Source the router if available
+_VK_ROUTER_AVAILABLE=false
+_ROUTER_PATH="${ORCHESTRATOR_HOME}/scripts/lib/telegram-router.sh"
+if [[ -f "$_ROUTER_PATH" ]]; then
+    # shellcheck source=../lib/telegram-router.sh
+    source "$_ROUTER_PATH"
+    _VK_ROUTER_AVAILABLE=true
+fi
 
 # ---------------------------------------------------------------------------
-# send_telegram <message>
+# send_telegram <message> [domain]
 # Sends a plain text message via Telegram Bot API.
-# Reads bot_token and chat_id from notifications.json.
+# When the router is available and bot_manager_enabled, delegates to
+# send_telegram_routed with the given domain (default: "vk-health").
+# Otherwise falls back to legacy inline resolution.
 # Truncates message to 4000 chars. Returns the HTTP status code.
 # ---------------------------------------------------------------------------
 send_telegram() {
     local message="$1"
+    local domain="${2:-vk-health}"
 
+    # Try router first
+    if [[ "$_VK_ROUTER_AVAILABLE" == "true" ]]; then
+        send_telegram_routed "$domain" "$message"
+        return $?
+    fi
+
+    # Legacy fallback: inline resolution from notifications.json
     if [[ ! -f "$NOTIFICATIONS_CONFIG" ]]; then
         echo "ERROR: Notifications config not found: $NOTIFICATIONS_CONFIG" >&2
         return 1
