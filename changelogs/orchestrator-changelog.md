@@ -5,6 +5,7 @@ All notable changes to the orchestrator workspace.
 ## 2026-02-23
 
 ### Added
+- `/system-update` skill and `scripts/system-update.sh` — consolidated system update command with 17 targets across 4 groups (data, libs, ai, docker). Supports `--full`, `--data`, `--libs`, `--docker`, `--ai`, `--skip`, `--only`, `--dry-run`, `--quiet` flags. Generates report in `reports/system-update/`.
 - Telegram Bot Manager: multi-bot routing with `config/orchestrator/telegram-bots.json` registry, `scripts/lib/telegram-router.sh` shared library, and `scripts/helpers/validate-telegram-bots.sh` validation script
 
 Format: [Keep a Changelog](https://keepachangelog.com/)
