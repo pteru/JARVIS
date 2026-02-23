@@ -830,7 +830,7 @@ class MeetingAssistantServer {
     }
 
     // Extract action items via Claude
-    const jsonResult = this.minutesGenerator.extractActionItems(minutesContent);
+    const jsonResult = await this.minutesGenerator.extractActionItems(minutesContent);
     if (!jsonResult) {
       return this.err('Claude returned empty output when extracting action items.') as ReturnType<
         typeof this.ok
