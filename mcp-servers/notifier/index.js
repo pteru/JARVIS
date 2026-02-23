@@ -15,7 +15,7 @@ const ORCHESTRATOR_HOME =
 class NotifierServer {
   constructor() {
     this.server = new Server(
-      { name: "notifier", version: "1.2.0" },
+      { name: "notifier", version: "1.3.0" },
       { capabilities: { tools: {} } },
     );
 
@@ -49,6 +49,83 @@ class NotifierServer {
     }
 
     return config;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Bot Manager — Registry + Routing
+  // ---------------------------------------------------------------------------
+
+  async loadBotRegistry() {
+    const registryPath = path.join(
+      ORCHESTRATOR_HOME,
+      "config",
+      "orchestrator",
+      "telegram-bots.json",
+    );
+    try {
+      const registry = JSON.parse(await fs.readFile(registryPath, "utf-8"));
+
+      // Resolve all bot_token_file paths to actual tokens
+      for (const [name, bot] of Object.entries(registry.bots || {})) {
+        if (bot.bot_token_file && !bot.bot_token) {
+          const tokenPath = bot.bot_token_file.replace(/^~/, process.env.HOME);
+          try {
+            bot.bot_token = (await fs.readFile(tokenPath, "utf-8")).trim();
+          } catch {
+            console.error(`[bot-manager] Failed to read token for bot '${name}': ${tokenPath}`);
+          }
+        }
+      }
+
+      return registry;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Resolves bot_token + chat_id for a notification domain.
+   * When bot_manager_enabled=true and the registry exists, routes via
+   * telegram-bots.json. Otherwise returns legacy credentials from
+   * notifications.json.
+   *
+   * @returns {{ bot_token: string, chat_id: string } | null}
+   */
+  async resolveRoute(config, domain) {
+    const tg = config.backends?.telegram;
+    if (!tg?.enabled) return null;
+
+    // Legacy path: bot manager disabled or registry missing
+    if (!config.bot_manager_enabled) {
+      return { bot_token: tg.bot_token, chat_id: tg.chat_id };
+    }
+
+    const registry = await this.loadBotRegistry();
+    if (!registry) {
+      // Graceful fallback to legacy
+      return { bot_token: tg.bot_token, chat_id: tg.chat_id };
+    }
+
+    // Look up domain → bot name
+    let botName = registry.domains?.[domain]?.bot;
+    if (!botName) botName = registry.default_bot;
+    if (!botName) {
+      return { bot_token: tg.bot_token, chat_id: tg.chat_id };
+    }
+
+    const bot = registry.bots?.[botName];
+    if (!bot?.bot_token) {
+      console.error(`[bot-manager] No token for bot '${botName}', falling back to legacy`);
+      return { bot_token: tg.bot_token, chat_id: tg.chat_id };
+    }
+
+    // Chat ID: domain-level override > bot default_chat_id > legacy chat_id
+    const chatId =
+      registry.domains?.[domain]?.chat_id ||
+      bot.default_chat_id ||
+      tg.chat_id;
+
+    return { bot_token: bot.bot_token, chat_id: chatId };
   }
 
   // ---------------------------------------------------------------------------
@@ -247,14 +324,15 @@ class NotifierServer {
 
     // Telegram
     if (config.backends?.telegram?.enabled) {
-      const tg = config.backends.telegram;
-      if (!tg.bot_token || !tg.chat_id) {
+      const domain = metadata?.domain || "task-dispatch";
+      const route = await this.resolveRoute(config, domain);
+      if (!route?.bot_token || !route?.chat_id) {
         errors.push({ backend: "telegram", error: "Missing bot_token or chat_id in config" });
       } else {
         const text = this.formatTelegramMessage(
           eventType, workspace, message, durationSeconds, category, metadata,
         );
-        const result = await this.sendTelegram(tg, text);
+        const result = await this.sendTelegram(route, text);
         if (result.success) {
           backendsNotified.push("telegram");
         } else {
@@ -282,8 +360,9 @@ class NotifierServer {
       }
     }
 
+    const domain = metadata?.domain || "task-dispatch";
     await this.logNotification({
-      eventType, workspace, message, durationSeconds, category,
+      eventType, workspace, message, domain, durationSeconds, category,
       backendsNotified, errors: errors.length > 0 ? errors : undefined,
     }).catch(() => {});
 
@@ -292,7 +371,7 @@ class NotifierServer {
     );
   }
 
-  async testNotification(backend) {
+  async testNotification(backend, domain) {
     const config = await this.loadConfig();
     const results = {};
 
@@ -305,14 +384,18 @@ class NotifierServer {
         const tg = config.backends?.telegram;
         if (!tg?.enabled) {
           results.telegram = { success: false, error: "Telegram backend is disabled" };
-        } else if (!tg.bot_token || !tg.chat_id) {
-          results.telegram = { success: false, error: "Missing bot_token or chat_id" };
         } else {
-          const res = await this.sendTelegram(tg,
-            "\u{1F916} Orchestrator notification test — if you see this, it works\\!");
-          results.telegram = res.success
-            ? { success: true, message: "Test sent to Telegram" }
-            : { success: false, error: res.error || `HTTP ${res.status}` };
+          const route = await this.resolveRoute(config, domain || "task-dispatch");
+          if (!route?.bot_token || !route?.chat_id) {
+            results.telegram = { success: false, error: "Missing bot_token or chat_id" };
+          } else {
+            const domainLabel = domain ? ` \\(domain: ${this.escapeMarkdown(domain)}\\)` : "";
+            const res = await this.sendTelegram(route,
+              `\u{1F916} Orchestrator notification test${domainLabel} — if you see this, it works\\!`);
+            results.telegram = res.success
+              ? { success: true, message: `Test sent to Telegram${domain ? ` (domain: ${domain})` : ""}` }
+              : { success: false, error: res.error || `HTTP ${res.status}` };
+          }
         }
       }
 
@@ -483,13 +566,19 @@ class NotifierServer {
       return this.textResult(JSON.stringify({ error: "Telegram inbound not enabled" }));
     }
 
+    // Use inbound domain route for bot token + chat_id
+    const inboundRoute = await this.resolveRoute(config, "inbound");
+    if (!inboundRoute?.bot_token || !inboundRoute?.chat_id) {
+      return this.textResult(JSON.stringify({ error: "No Telegram credentials for inbound domain" }));
+    }
+
     const offset = await this.loadOffset();
     const commands = [];
     const inboxMessages = [];
     const errors = [];
 
     try {
-      const url = `https://api.telegram.org/bot${tg.bot_token}/getUpdates?offset=${offset}&timeout=1&allowed_updates=["message"]`;
+      const url = `https://api.telegram.org/bot${inboundRoute.bot_token}/getUpdates?offset=${offset}&timeout=1&allowed_updates=["message"]`;
       const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
       const data = await res.json();
 
@@ -506,7 +595,7 @@ class NotifierServer {
         if (!msg) continue;
 
         // Security: only accept messages from configured chat_id
-        if (String(msg.chat.id) !== String(tg.chat_id)) continue;
+        if (String(msg.chat.id) !== String(inboundRoute.chat_id)) continue;
 
         let text = msg.text || "";
         let originalType = "text";
@@ -514,7 +603,7 @@ class NotifierServer {
         // Voice message handling
         if (msg.voice) {
           originalType = "voice";
-          const result = await this.transcribeVoice(msg.voice.file_id, tg.bot_token, config);
+          const result = await this.transcribeVoice(msg.voice.file_id, inboundRoute.bot_token, config);
           if (result.text) {
             text = result.text;
           } else {
@@ -528,7 +617,7 @@ class NotifierServer {
         if (cmd) {
           commands.push({ ...cmd, message_id: msg.message_id, raw: text });
           // Acknowledge command
-          await this.sendTelegramReply(tg, `✓ Command received: ${cmd.command}`, msg.message_id).catch(() => {});
+          await this.sendTelegramReply(inboundRoute, `✓ Command received: ${cmd.command}`, msg.message_id).catch(() => {});
         } else {
           // Store in inbox
           const entry = {
@@ -551,7 +640,7 @@ class NotifierServer {
         inbox.push(...inboxMessages);
         await this.saveInbox(inbox);
         // Acknowledge receipt
-        await this.sendTelegramReply(tg, `📥 ${inboxMessages.length} message(s) received and stored`).catch(() => {});
+        await this.sendTelegramReply(inboundRoute, `📥 ${inboxMessages.length} message(s) received and stored`).catch(() => {});
       }
 
       return this.textResult(JSON.stringify({ commands, inbox_messages: inboxMessages, errors, updates_checked: data.result.length }, null, 2));
@@ -607,14 +696,14 @@ class NotifierServer {
 
   async replyTelegram(message, replyToMessageId) {
     const config = await this.loadConfig();
-    const tg = config.backends?.telegram;
 
-    if (!tg?.enabled || !tg.bot_token || !tg.chat_id) {
+    const route = await this.resolveRoute(config, "inbound");
+    if (!route?.bot_token || !route?.chat_id) {
       return this.textResult(JSON.stringify({ success: false, error: "Telegram not configured" }));
     }
 
     try {
-      const result = await this.sendTelegramReply(tg, message, replyToMessageId);
+      const result = await this.sendTelegramReply(route, message, replyToMessageId);
       return this.textResult(JSON.stringify(result));
     } catch (err) {
       return this.textResult(JSON.stringify({ success: false, error: err.message }));
@@ -655,7 +744,7 @@ class NotifierServer {
               metadata: {
                 type: "object",
                 description:
-                  "Optional: model, task_id, error, complexity, changelog_path",
+                  "Optional: model, task_id, error, complexity, changelog_path, domain (routing key for bot manager: vk-health, task-dispatch, morning-report, inbound, pr-review)",
               },
             },
             required: ["event_type", "workspace", "message"],
@@ -672,6 +761,10 @@ class NotifierServer {
                 type: "string",
                 enum: ["telegram", "discord", "all"],
                 description: "Which backend to test",
+              },
+              domain: {
+                type: "string",
+                description: "Optional notification domain to test routing (e.g. vk-health, morning-report). Only used when bot_manager_enabled=true.",
               },
             },
             required: ["backend"],
@@ -742,7 +835,7 @@ class NotifierServer {
             );
 
           case "test_notification":
-            return await this.testNotification(args.backend);
+            return await this.testNotification(args.backend, args.domain);
 
           case "check_telegram_inbox":
             return await this.checkTelegramInbox();

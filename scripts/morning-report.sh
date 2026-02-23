@@ -67,8 +67,17 @@ echo "$REPORT" > "$REPORT_DIR/morning-${DATE}.txt"
 log "Report saved to $REPORT_DIR/morning-${DATE}.txt"
 
 # Send via Telegram
-BOT_TOKEN=$(node -e "const c=JSON.parse(require('fs').readFileSync('$CONFIG','utf-8'));const tg=c.backends.telegram;if(tg.bot_token){console.log(tg.bot_token)}else if(tg.bot_token_file){console.log(require('fs').readFileSync(tg.bot_token_file.replace(/^~/,process.env.HOME),'utf-8').trim())}" 2>/dev/null)
-CHAT_ID=$(node -e "const c=JSON.parse(require('fs').readFileSync('$CONFIG','utf-8'));console.log(c.backends.telegram.chat_id)" 2>/dev/null)
+ROUTER_PATH="$ORCHESTRATOR_HOME/scripts/lib/telegram-router.sh"
+if [[ -f "$ROUTER_PATH" ]]; then
+  source "$ROUTER_PATH"
+  resolve_telegram_route "morning-report"
+  BOT_TOKEN="$RESOLVED_BOT_TOKEN"
+  CHAT_ID="$RESOLVED_CHAT_ID"
+else
+  # Legacy fallback: inline node-based resolution
+  BOT_TOKEN=$(node -e "const c=JSON.parse(require('fs').readFileSync('$CONFIG','utf-8'));const tg=c.backends.telegram;if(tg.bot_token){console.log(tg.bot_token)}else if(tg.bot_token_file){console.log(require('fs').readFileSync(tg.bot_token_file.replace(/^~/,process.env.HOME),'utf-8').trim())}" 2>/dev/null)
+  CHAT_ID=$(node -e "const c=JSON.parse(require('fs').readFileSync('$CONFIG','utf-8'));console.log(c.backends.telegram.chat_id)" 2>/dev/null)
+fi
 
 if [[ -n "$BOT_TOKEN" && -n "$CHAT_ID" ]]; then
   HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \

@@ -1,0 +1,17 @@
+{
+  "default_bot": "jarvis-main",
+  "bots": {
+    "jarvis-main": {
+      "description": "General-purpose JARVIS bot (current)",
+      "bot_token_file": "~/.secrets/telegram-bot-tokens/jarvis-main",
+      "default_chat_id": "-5179349649"
+    }
+  },
+  "domains": {
+    "vk-health":      { "bot": "jarvis-main", "description": "VK health monitoring alerts" },
+    "task-dispatch":   { "bot": "jarvis-main", "description": "Task completion/failure notifications" },
+    "morning-report":  { "bot": "jarvis-main", "description": "Daily morning briefing" },
+    "inbound":         { "bot": "jarvis-main", "description": "Inbound command polling and replies" },
+    "pr-review":       { "bot": "jarvis-main", "description": "PR review notifications" }
+  }
+}
