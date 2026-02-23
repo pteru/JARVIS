@@ -264,5 +264,56 @@
     "created_at": "2026-02-23T11:00:01.117Z",
     "started_at": "2026-02-23T11:00:01.117Z",
     "completed_at": "2026-02-23T11:00:01.117Z"
+  },
+  {
+    "type": "orchestrator",
+    "task": "orchestrator.sh process-backlogs",
+    "workspace": "orchestrator",
+    "model": "none",
+    "status": "complete",
+    "created_at": "2026-02-23T12:10:19.389Z",
+    "started_at": "2026-02-23T12:10:19.389Z",
+    "completed_at": "2026-02-23T12:10:19.389Z"
+  },
+  {
+    "type": "vk-health",
+    "task": "Health check 03002",
+    "workspace": "strokmatic.visionking",
+    "model": "opus",
+    "status": "complete",
+    "created_at": "2026-02-23T13:31:18.446Z",
+    "started_at": "2026-02-23T13:31:18.446Z",
+    "completed_at": "2026-02-23T13:31:18.446Z",
+    "duration_seconds": 9077
+  },
+  {
+    "type": "orchestrator",
+    "task": "orchestrator.sh daily-report",
+    "workspace": "orchestrator",
+    "model": "none",
+    "status": "complete",
+    "created_at": "2026-02-23T20:00:01.764Z",
+    "started_at": "2026-02-23T20:00:01.764Z",
+    "completed_at": "2026-02-23T20:00:01.764Z"
+  },
+  {
+    "type": "pr-review",
+    "task": "Review visionking-backend#69: Fix/868hdwn07/layout fix",
+    "workspace": "strokmatic.visionking.services.backend",
+    "model": "claude-opus-4-5-20251101",
+    "status": "complete",
+    "created_at": "2026-02-23T22:42:29.402Z",
+    "started_at": "2026-02-23T22:42:29.402Z",
+    "completed_at": "2026-02-23T22:42:29.402Z"
+  },
+  {
+    "type": "pr-review",
+    "task": "Review visionking-frontend#65: Fix/868hdwn07/layout fix",
+    "workspace": "strokmatic.visionking.services.frontend",
+    "model": "claude-opus-4-5-20251101",
+    "status": "complete",
+    "created_at": "2026-02-23T22:43:20.880Z",
+    "started_at": "2026-02-23T22:43:20.880Z",
+    "completed_at": "2026-02-23T22:43:20.880Z"
   }
 ]

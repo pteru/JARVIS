@@ -22,6 +22,7 @@ Ideas for new features, skills, and integrations. Full specs live in this direct
 | Multi-User Network Interface | **Planned** | [multi-user-interface.md](multi-user-interface.md) |
 | `/cleanup` Skill | **Planned** | [cleanup-skill.md](cleanup-skill.md) |
 | `/backlog-add` Skill | **Done** | — |
+| `/system-update` Skill | **Done** | — |
 | Sandbox Dev Environment | **In Progress** | [sandbox-dev-environment.md](sandbox-dev-environment.md) |
 | Telegram Command Intake Pipeline | **Planned** | [telegram-command-intake.md](telegram-command-intake.md) |
 | Android JARVIS App | **Planned** | [android-jarvis-app.md](android-jarvis-app.md) |
