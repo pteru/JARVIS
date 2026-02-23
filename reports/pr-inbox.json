@@ -1,37 +1,21 @@
 {
-  "fetched_at": "2026-02-19T00:30:03-03:00",
+  "fetched_at": "2026-02-22T23:30:02-03:00",
   "pull_requests": [
     {
-      "repo": "diemaster-back-end",
-      "number": 12,
-      "title": "Feat/868fvx1qw/configurar triggers",
+      "repo": "visionking-backend",
+      "number": 69,
+      "title": "Fix/868hdwn07/layout fix",
       "author": "gui-strokmatic",
-      "created_at": "2025-10-09T18:46:53Z",
-      "updated_at": "2025-10-09T18:46:53Z",
-      "head": "feat/868fvx1qw/configurar-triggers",
-      "base": "master",
-      "additions": 27118,
-      "deletions": 9532,
-      "changed_files": 180,
-      "url": "https://github.com/strokmatic/diemaster-back-end/pull/12",
-      "is_draft": false,
-      "review_decision": "REVIEW_REQUIRED"
-    },
-    {
-      "repo": "diemaster-infra-setup",
-      "number": 1,
-      "title": "Feat schema completo e lógica batch",
-      "author": "teruelskm",
-      "created_at": "2025-05-07T17:30:59Z",
-      "updated_at": "2025-05-09T13:10:24Z",
-      "head": "feat-schema-completo-e-lógica-batch",
+      "created_at": "2026-02-19T21:28:09Z",
+      "updated_at": "2026-02-19T22:44:42Z",
+      "head": "fix/868hdwn07/layout-fix",
       "base": "develop",
-      "additions": 601,
-      "deletions": 260,
-      "changed_files": 7,
-      "url": "https://github.com/strokmatic/diemaster-infra-setup/pull/1",
+      "additions": 63,
+      "deletions": 52,
+      "changed_files": 11,
+      "url": "https://github.com/strokmatic/visionking-backend/pull/69",
       "is_draft": false,
-      "review_decision": "REVIEW_REQUIRED"
+      "review_decision": ""
     }
   ]
 }
