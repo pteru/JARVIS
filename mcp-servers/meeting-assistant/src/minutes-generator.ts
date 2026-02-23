@@ -12,10 +12,10 @@
  *   - Raw transcript in a collapsed <details> section
  *
  * Written in the same detected_language as the live notes.
- * Uses claude --print via spawnSync (same pattern as live-notes.ts).
+ * Uses claude --print via async spawn (same pattern as live-notes.ts).
  */
 
-import { spawnSync } from 'child_process';
+import { spawn } from 'child_process';
 import type { GDocBridge } from './gdoc-bridge.js';
 import type { TranscriptLine } from './transcript.js';
 
@@ -23,6 +23,7 @@ import type { TranscriptLine } from './transcript.js';
 const MINUTES_MODEL = 'claude-sonnet-4-6';
 // Use a faster model for quick extraction tasks (action items)
 const EXTRACT_MODEL = 'claude-haiku-4-5-20251001';
+const MAX_BUFFER_BYTES = 10 * 1024 * 1024; // 10 MB
 
 export interface MinutesResult {
   docId: string;
@@ -68,7 +69,7 @@ export class MinutesGenerator {
 
     // Generate the main minutes body via Claude
     const prompt = buildMinutesPrompt(session, liveNotesContent, rawTranscript);
-    const minutesBody = this.callClaude(prompt, MINUTES_MODEL);
+    const minutesBody = await this.callClaude(prompt, MINUTES_MODEL);
 
     if (!minutesBody) {
       throw new Error('[minutes-generator] Claude returned empty output — cannot create minutes.');
@@ -105,7 +106,7 @@ export class MinutesGenerator {
    * @param minutesContent  Plain text of the minutes doc
    * @returns JSON string with array of action items
    */
-  extractActionItems(minutesContent: string): string {
+  async extractActionItems(minutesContent: string): Promise<string> {
     const prompt = buildActionItemsPrompt(minutesContent);
     return this.callClaude(prompt, EXTRACT_MODEL);
   }
@@ -115,31 +116,71 @@ export class MinutesGenerator {
   // ---------------------------------------------------------------------------
 
   /**
-   * Calls `claude --print` with the prompt via stdin.
+   * Calls `claude --print` with the prompt via stdin (async).
    * Per JARVIS lessons learned: pipe prompt via stdin (not CLI arg) to avoid escaping issues.
    */
-  private callClaude(prompt: string, model: string): string {
-    const result = spawnSync('claude', ['--print', '--model', model], {
-      input: prompt,
-      encoding: 'utf-8',
-      timeout: 180_000, // 3 minutes for post-meeting processing
-      maxBuffer: 10 * 1024 * 1024,
+  private callClaude(prompt: string, model: string): Promise<string> {
+    return new Promise((resolve) => {
+      const child = spawn('claude', ['--print', '--model', model], {
+        stdio: ['pipe', 'pipe', 'pipe'],
+      });
+
+      const stdoutChunks: Buffer[] = [];
+      const stderrChunks: Buffer[] = [];
+      let collectedBytes = 0;
+      let killed = false;
+
+      // Timeout: 3 minutes for post-meeting processing
+      const timer = setTimeout(() => {
+        killed = true;
+        child.kill('SIGTERM');
+      }, 180_000);
+
+      child.stdout.on('data', (chunk: Buffer) => {
+        collectedBytes += chunk.length;
+        if (collectedBytes > MAX_BUFFER_BYTES) {
+          killed = true;
+          child.kill('SIGTERM');
+          return;
+        }
+        stdoutChunks.push(chunk);
+      });
+
+      child.stderr.on('data', (chunk: Buffer) => {
+        stderrChunks.push(chunk);
+      });
+
+      child.on('error', (err) => {
+        clearTimeout(timer);
+        console.error('[minutes-generator] claude spawn error:', err.message);
+        resolve('');
+      });
+
+      child.on('close', (code) => {
+        clearTimeout(timer);
+
+        if (killed) {
+          const reason = collectedBytes > MAX_BUFFER_BYTES ? 'output exceeded 10MB' : 'timeout (180s)';
+          console.error(`[minutes-generator] claude killed: ${reason}`);
+          resolve('');
+          return;
+        }
+
+        if (code !== 0) {
+          const stderr = Buffer.concat(stderrChunks).toString('utf-8');
+          console.error('[minutes-generator] claude exited with status', code, stderr);
+          resolve('');
+          return;
+        }
+
+        const stdout = Buffer.concat(stdoutChunks).toString('utf-8');
+        resolve(stdout.trim());
+      });
+
+      // Write prompt to stdin and close
+      child.stdin.write(prompt);
+      child.stdin.end();
     });
-
-    if (result.error) {
-      console.error('[minutes-generator] claude spawn error:', result.error.message);
-      return '';
-    }
-    if (result.status !== 0) {
-      console.error(
-        '[minutes-generator] claude exited with status',
-        result.status,
-        result.stderr ?? '',
-      );
-      return '';
-    }
-
-    return (result.stdout ?? '').trim();
   }
 }
 

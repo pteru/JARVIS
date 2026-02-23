@@ -13,12 +13,14 @@
  * are injected manually via the inject_transcript MCP tool.
  */
 
-import { spawnSync } from 'child_process';
+import { spawn } from 'child_process';
 import type { GDocBridge } from './gdoc-bridge.js';
 import type { TranscriptAccumulator } from './transcript.js';
 
 const DEFAULT_UPDATE_INTERVAL_MS = 30_000;
 const DEFAULT_CLAUDE_MODEL = 'claude-haiku-4-5-20251001';
+const MAX_BUFFER_BYTES = 10 * 1024 * 1024; // 10 MB
+const MAX_CONSECUTIVE_FAILURES = 3;
 
 export interface LiveNotesConfig {
   updateIntervalMs?: number;
@@ -29,6 +31,8 @@ export class LiveNotesEngine {
   private timer: NodeJS.Timeout | null = null;
   private lastProcessedIndex = 0;
   private docId: string | null = null;
+  private updating = false;
+  private consecutiveFailures = 0;
   private readonly intervalMs: number;
   private readonly model: string;
 
@@ -52,6 +56,8 @@ export class LiveNotesEngine {
     }
     this.docId = docId;
     this.lastProcessedIndex = 0;
+    this.updating = false;
+    this.consecutiveFailures = 0;
     this.timer = setInterval(() => {
       this.runUpdateCycle().catch((err) =>
         console.error('[live-notes] Unhandled update error:', err),
@@ -67,6 +73,8 @@ export class LiveNotesEngine {
       this.timer = null;
     }
     this.docId = null;
+    this.updating = false;
+    this.consecutiveFailures = 0;
     console.error('[live-notes] Stopped.');
   }
 
@@ -89,40 +97,63 @@ export class LiveNotesEngine {
   async runUpdateCycle(): Promise<void> {
     if (!this.docId) return;
 
+    // Concurrency guard — skip if a previous cycle is still running
+    if (this.updating) {
+      console.error('[live-notes] Previous cycle still running — skipping.');
+      return;
+    }
+
+    // Circuit breaker — pause after repeated failures
+    if (this.consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
+      console.error(
+        `[live-notes] Circuit breaker open (${this.consecutiveFailures} consecutive failures) — skipping cycle.`,
+      );
+      return;
+    }
+
     const newLines = this.transcript.getSince(this.lastProcessedIndex);
     if (newLines.length === 0) {
       // Nothing new — skip this cycle
       return;
     }
 
-    const newLineCount = newLines.length;
-    this.lastProcessedIndex = this.transcript.getCount();
-
-    let currentContent: string;
+    this.updating = true;
     try {
-      currentContent = await this.gdoc.readDoc(this.docId);
-    } catch (err) {
-      console.error('[live-notes] Failed to read doc:', err);
-      return;
-    }
+      const newLineCount = newLines.length;
+      this.lastProcessedIndex = this.transcript.getCount();
 
-    const newTranscript = this.transcript.format(newLines);
+      let currentContent: string;
+      try {
+        currentContent = await this.gdoc.readDoc(this.docId);
+      } catch (err) {
+        console.error('[live-notes] Failed to read doc:', err);
+        this.consecutiveFailures++;
+        return;
+      }
 
-    const prompt = buildPrompt(currentContent, newTranscript);
+      const newTranscript = this.transcript.format(newLines);
 
-    const updatedContent = this.callClaude(prompt);
-    if (!updatedContent) {
-      console.error('[live-notes] Claude returned empty output — skipping write.');
-      return;
-    }
+      const prompt = buildPrompt(currentContent, newTranscript);
 
-    try {
-      await this.gdoc.replaceContent(this.docId, updatedContent);
-      console.error(
-        `[live-notes] Notes updated. Processed ${newLineCount} new transcript line(s).`,
-      );
-    } catch (err) {
-      console.error('[live-notes] Failed to write updated notes to doc:', err);
+      const updatedContent = await this.callClaude(prompt);
+      if (!updatedContent) {
+        console.error('[live-notes] Claude returned empty output — skipping write.');
+        this.consecutiveFailures++;
+        return;
+      }
+
+      try {
+        await this.gdoc.replaceContent(this.docId, updatedContent);
+        console.error(
+          `[live-notes] Notes updated. Processed ${newLineCount} new transcript line(s).`,
+        );
+        this.consecutiveFailures = 0;
+      } catch (err) {
+        console.error('[live-notes] Failed to write updated notes to doc:', err);
+        this.consecutiveFailures++;
+      }
+    } finally {
+      this.updating = false;
     }
   }
 
@@ -131,34 +162,74 @@ export class LiveNotesEngine {
   // ---------------------------------------------------------------------------
 
   /**
-   * Calls `claude --print` with the given prompt via stdin.
+   * Calls `claude --print` with the given prompt via stdin (async).
    *
    * Per JARVIS lessons learned:
    *  - Pipe prompt via stdin (never pass as CLI argument) to avoid shell escaping issues
-   *  - claude --print inside loops consumes stdin; using spawnSync with `input` avoids this
+   *  - Uses async spawn to avoid blocking the Node.js event loop
    */
-  private callClaude(prompt: string): string {
-    const result = spawnSync('claude', ['--print', '--model', this.model], {
-      input: prompt,
-      encoding: 'utf-8',
-      timeout: 60_000,
-      maxBuffer: 10 * 1024 * 1024,
+  private callClaude(prompt: string): Promise<string> {
+    return new Promise((resolve) => {
+      const child = spawn('claude', ['--print', '--model', this.model], {
+        stdio: ['pipe', 'pipe', 'pipe'],
+      });
+
+      const stdoutChunks: Buffer[] = [];
+      const stderrChunks: Buffer[] = [];
+      let collectedBytes = 0;
+      let killed = false;
+
+      // Timeout: kill the process after 60s
+      const timer = setTimeout(() => {
+        killed = true;
+        child.kill('SIGTERM');
+      }, 60_000);
+
+      child.stdout.on('data', (chunk: Buffer) => {
+        collectedBytes += chunk.length;
+        if (collectedBytes > MAX_BUFFER_BYTES) {
+          killed = true;
+          child.kill('SIGTERM');
+          return;
+        }
+        stdoutChunks.push(chunk);
+      });
+
+      child.stderr.on('data', (chunk: Buffer) => {
+        stderrChunks.push(chunk);
+      });
+
+      child.on('error', (err) => {
+        clearTimeout(timer);
+        console.error('[live-notes] claude spawn error:', err.message);
+        resolve('');
+      });
+
+      child.on('close', (code) => {
+        clearTimeout(timer);
+
+        if (killed) {
+          const reason = collectedBytes > MAX_BUFFER_BYTES ? 'output exceeded 10MB' : 'timeout (60s)';
+          console.error(`[live-notes] claude killed: ${reason}`);
+          resolve('');
+          return;
+        }
+
+        if (code !== 0) {
+          const stderr = Buffer.concat(stderrChunks).toString('utf-8');
+          console.error('[live-notes] claude exited with status', code, stderr);
+          resolve('');
+          return;
+        }
+
+        const stdout = Buffer.concat(stdoutChunks).toString('utf-8');
+        resolve(stdout.trim());
+      });
+
+      // Write prompt to stdin and close
+      child.stdin.write(prompt);
+      child.stdin.end();
     });
-
-    if (result.error) {
-      console.error('[live-notes] claude spawn error:', result.error.message);
-      return '';
-    }
-    if (result.status !== 0) {
-      console.error(
-        '[live-notes] claude exited with status',
-        result.status,
-        result.stderr ?? '',
-      );
-      return '';
-    }
-
-    return (result.stdout ?? '').trim();
   }
 }
 
