@@ -25,10 +25,12 @@ Control the real-time meeting assistant via the `meeting-assistant` MCP server.
 
 ## Argument Parsing
 
-### `start [title]`
+### `start [title]` or `start --manual [title]`
 Call `start_meeting` with an optional title.
+- **Default: `source: "system_audio"`** — activates PipeWire audio capture + Deepgram STT
+- Use `--manual` flag to disable audio capture and use inject-only mode
 - No title → use a timestamped default (e.g. "Meeting 2/22/2026 10:30 AM")
-- Returns: `sessionId`, `docId`, `docUrl`, confirmation message
+- Returns: `sessionId`, `docId`, `docUrl`, `audioStatus`, confirmation message
 
 ### `stop`
 Call `stop_meeting`.
@@ -67,11 +69,15 @@ Call `create_tasks_from_meeting` after getting action items.
 
 ```
 /meeting start
-→ Starts a meeting with a default timestamped title.
-→ Returns the Google Doc URL for live notes.
+→ Starts a meeting with audio capture (PipeWire + Deepgram STT).
+→ Returns the Google Doc URL for live notes + audio status.
 
 /meeting start "Sprint Review Q1 2026"
-→ Starts a meeting with the given title.
+→ Starts a meeting with audio capture and the given title.
+
+/meeting start --manual
+→ Starts a meeting in manual-only mode (no audio capture).
+→ Use inject_transcript to add transcript lines manually.
 
 /meeting inject Pedro: The CI pipeline needs to be fixed by Friday.
 → Appends a transcript line from speaker "Pedro".
@@ -129,8 +135,13 @@ After `stop_meeting`:
 
 ## Notes
 
-- Phase 1 only: no audio capture or STT. Use `inject` to feed transcript lines manually.
+- **Default mode is `system_audio`** — PipeWire captures system audio (Google Meet, etc.) + microphone via Deepgram Nova-2 STT.
+- Use `--manual` only when audio capture is not needed or not available.
+- Audio capture requires PipeWire (`pw-record`) and the `DEEPGRAM_API_KEY` env var (configured in `.claude.json`).
+- Diarization is enabled — Deepgram identifies different speakers automatically.
+- Language detection is automatic (`language: "multi"`) — supports multilingual meetings (EN/PT-BR).
+- If audio pipeline fails to start, the meeting gracefully falls back to manual mode.
 - The live-notes engine updates the Google Doc every ~30 seconds when new lines are present.
 - Both Google Docs are created in the **Meeting Assistant** folder inside the JARVIS Shared Drive.
-- Language detection is a placeholder (`detected_language: "auto"`). Future phases will auto-detect.
 - Minutes generation uses `claude-sonnet-4-6` for quality; action item extraction uses `claude-haiku-4-5-20251001` for speed.
+- `inject_transcript` still works alongside audio capture — useful for adding context or corrections.

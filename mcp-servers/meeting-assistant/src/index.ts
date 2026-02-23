@@ -362,7 +362,11 @@ class MeetingAssistantServer {
 
     const now = new Date();
     const sessionId = `mtg-${now.toISOString().replace(/[:.]/g, '-')}`;
-    const title = args.title?.trim() || `Meeting ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
+    const dateSuffix = `${now.toISOString().slice(0, 10)} ${now.toISOString().slice(11, 16).replace(':', 'h')}`;
+    const rawTitle = args.title?.trim();
+    const title = rawTitle
+      ? `${rawTitle} — ${dateSuffix}`
+      : `Meeting ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
     const source = (args.source === 'system_audio' ? 'system_audio' : 'manual') as 'manual' | 'system_audio';
 
     let docId: string;
