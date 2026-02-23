@@ -1,0 +1,22 @@
+---
+Good morning, sir. JARVIS daily briefing for 2026-02-23.
+
+SYSTEMS STATUS:
+- Orchestrator: master branch, 5 dirty files
+- Workspaces: 97 registered (32 VisionKing, 40 SpotFusion, 20 DieMaster, 5 SDK)
+
+HIGH-PRIORITY ITEMS:
+VisionKing: SEC-01 rotate credentials, TEST-01 Python test suites, TEST-02 C++ test infrastructure
+DieMaster: SEC-01 remove hardcoded credentials, SEC-02 fix eval() in redis_handlers, FW-01 test firmware
+
+VK PRODUCTION HEALTH:
+- Overall status: WARNING (idle/standby, persistent data pipeline defects)
+- Key findings: is-sis-surface leaking 2.9GB/hour during idle, PostgreSQL grew 5.2GB in 2.25h despite zero connections, bar_uuid='empty' causing 100% inspection data loss
+- Open improvements: 5 critical items (memory leaks, data integrity, GPU telemetry)
+
+RECENT ACTIVITY:
+- f6dc6d2 chore: add daily, sandbox, and self-improvement reports
+- 819157a chore: update PR inbox and archive merged review files
+- a081a43 chore: update VK health and system health reports
+
+Ready when you are, sir.
