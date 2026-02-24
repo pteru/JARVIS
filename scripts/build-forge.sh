@@ -49,12 +49,18 @@ echo ""
 # ── Clean old build ─────────────────────────────────────────────────────────
 if [[ -d "$BUILD_DIR" ]]; then
     if $CLEAN; then
-        log_warn "Removendo build anterior..."
-        rm -rf "$BUILD_DIR"
+        # Preserve .git (submodule file or standalone dir) and .gitmodules
+        if [[ -e "$BUILD_DIR/.git" ]]; then
+            log_warn "Removendo build anterior (preservando repo git)..."
+            find "$BUILD_DIR" -mindepth 1 -maxdepth 1 \
+                ! -name '.git' ! -name '.gitmodules' \
+                -exec rm -rf {} +
+        else
+            log_warn "Removendo build anterior..."
+            rm -rf "$BUILD_DIR"
+        fi
     else
-        log_error "Build anterior encontrado em $BUILD_DIR"
-        log_error "Use --clean para sobrescrever."
-        exit 1
+        log_info "Build anterior encontrado — atualizando in-place"
     fi
 fi
 
@@ -70,7 +76,8 @@ log_step "Fase 1.1 — Copiando árvore de arquivos (rsync)"
 
 cd "$JARVIS_ROOT"
 rsync -a --quiet \
-    --exclude='.git/' \
+    --exclude='.git' \
+    --exclude='.gitmodules' \
     --exclude='node_modules/' \
     --exclude='.venv/' \
     --exclude='__pycache__/' \
@@ -126,12 +133,13 @@ sed -i '/^!workspaces\/\.gitkeep$/d; /^!workspaces\/strokmatic\/\.gitkeep$/d' \
     "$BUILD_DIR/.gitignore"
 
 # Register product workspaces as git submodules
+# .git can be a directory (standalone) or file (when FORGE is a JARVIS submodule)
 SUBMODULES=(
     "workspaces/strokmatic/diemaster|git@github.com:strokmatic/diemaster.git"
     "workspaces/strokmatic/spotfusion|git@github.com:strokmatic/spotfusion.git"
     "workspaces/strokmatic/visionking|git@github.com:strokmatic/visionking.git"
 )
-if [[ -d "$BUILD_DIR/.git" ]]; then
+if [[ -e "$BUILD_DIR/.git" ]]; then
     for entry in "${SUBMODULES[@]}"; do
         sm_path="${entry%%|*}"
         sm_url="${entry##*|}"
