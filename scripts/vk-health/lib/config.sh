@@ -35,9 +35,9 @@ export NODE_NAMES
 # ---------------------------------------------------------------------------
 # Export pipeline control fields
 # ---------------------------------------------------------------------------
-PIPELINE_ENABLED=$(jq -r '.enabled // true' "$CONFIG_FILE")
+PIPELINE_ENABLED=$(jq -r 'if .enabled == false then "false" else "true" end' "$CONFIG_FILE")
 HEARTBEAT_INTERVAL_MINUTES=$(jq -r '.heartbeat_interval_minutes // 60' "$CONFIG_FILE")
-ANALYSIS_ENABLED=$(jq -r '.analysis_enabled // true' "$CONFIG_FILE")
+ANALYSIS_ENABLED=$(jq -r 'if .analysis_enabled == false then "false" else "true" end' "$CONFIG_FILE")
 ANALYSIS_INTERVAL_MINUTES=$(jq -r '.analysis_interval_minutes // 240' "$CONFIG_FILE")
 
 # ---------------------------------------------------------------------------
