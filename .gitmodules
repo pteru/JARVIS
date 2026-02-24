@@ -1,9 +1,3 @@
-[submodule "releases/FORGE/workspaces/strokmatic/diemaster"]
-	path = releases/FORGE/workspaces/strokmatic/diemaster
-	url = git@github.com:strokmatic/diemaster.git
-[submodule "releases/FORGE/workspaces/strokmatic/spotfusion"]
-	path = releases/FORGE/workspaces/strokmatic/spotfusion
-	url = git@github.com:strokmatic/spotfusion.git
-[submodule "releases/FORGE/workspaces/strokmatic/visionking"]
-	path = releases/FORGE/workspaces/strokmatic/visionking
-	url = git@github.com:strokmatic/visionking.git
+[submodule "releases/FORGE"]
+	path = releases/FORGE
+	url = git@github.com:strokmatic/FORGE.git
