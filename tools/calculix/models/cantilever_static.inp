@@ -1,0 +1,67 @@
+**
+** Cantilever Beam - Static Structural Analysis
+** Steel beam 200x20x10mm, fixed at x=0, gravity + tip force at x=200
+**
+** ============================================
+** MESH (include GMSH-generated mesh)
+** ============================================
+*INCLUDE, INPUT=cantilever_beam_mesh_clean.inp
+**
+** ============================================
+** NODE SETS (extracted from surface elements)
+** ============================================
+*INCLUDE, INPUT=cantilever_beam_nsets.inp
+**
+** Node set aliases for readability
+*NSET, NSET=NFIXED
+NSURFACE6
+*NSET, NSET=NLOAD
+NSURFACE4
+**
+** ============================================
+** MATERIAL: Structural Steel
+** ============================================
+*MATERIAL, NAME=STEEL
+*ELASTIC
+210000, 0.3
+*DENSITY
+7.85E-9
+**
+** ============================================
+** SECTION: Assign material to volume elements
+** ============================================
+*SOLID SECTION, ELSET=VOLUME1, MATERIAL=STEEL
+**
+** ============================================
+** BOUNDARY CONDITIONS
+** ============================================
+** Fixed support at x=0 (all DOF constrained)
+*BOUNDARY
+NSURFACE6, 1, 3, 0.0
+**
+** ============================================
+** STEP 1: Static Analysis
+** ============================================
+*STEP
+*STATIC
+**
+** Gravity load (Y-direction, 9810 mm/s^2 with density in tonne/mm^3)
+*DLOAD
+VOLUME1, GRAV, 9810, 0, -1, 0
+**
+** Concentrated force at free end: 100 N distributed over load face nodes
+** (100N total, applied as CLOAD on a reference direction)
+*CLOAD
+NSURFACE4, 2, -0.629
+**
+** ============================================
+** OUTPUT REQUESTS
+** ============================================
+*NODE FILE
+U
+*EL FILE
+S, E
+*NODE PRINT, NSET=NSURFACE4
+U
+**
+*END STEP

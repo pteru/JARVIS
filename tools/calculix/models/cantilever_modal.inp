@@ -1,0 +1,52 @@
+**
+** Cantilever Beam - Modal Analysis
+** Steel beam 200x20x10mm, fixed at x=0
+** Extract first 10 natural frequencies
+**
+** ============================================
+** MESH
+** ============================================
+*INCLUDE, INPUT=cantilever_beam_mesh_clean.inp
+**
+** ============================================
+** NODE SETS
+** ============================================
+*INCLUDE, INPUT=cantilever_beam_nsets.inp
+**
+** ============================================
+** MATERIAL: Structural Steel
+** ============================================
+*MATERIAL, NAME=STEEL
+*ELASTIC
+210000, 0.3
+*DENSITY
+7.85E-9
+**
+** ============================================
+** SECTION
+** ============================================
+*SOLID SECTION, ELSET=VOLUME1, MATERIAL=STEEL
+**
+** ============================================
+** BOUNDARY CONDITIONS
+** ============================================
+** Fixed support at x=0
+*BOUNDARY
+NSURFACE6, 1, 3, 0.0
+**
+** ============================================
+** STEP 1: Frequency extraction
+** ============================================
+*STEP
+*FREQUENCY
+10
+**
+** ============================================
+** OUTPUT REQUESTS
+** ============================================
+*NODE FILE
+U
+*EL FILE
+S
+**
+*END STEP
