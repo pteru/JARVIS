@@ -4,7 +4,7 @@
 - [ ] [complex] SEC-01: Remove hardcoded credentials from entire codebase — 10+ locations with `skm@@2022`, `SmartDie@@2022`. GCP JSON in repo root.
 - [ ] [medium] SEC-02: Remove eval() usage in redis_handlers.py — Arbitrary code execution via Redis deserialization. Replace with json.loads/ast.literal_eval.
 - [ ] [complex] FW-01: Test and stabilize firmware implementations — Both firmware branches marked "untested". Unhandled error in hub state machine (app.c:814).
-- [ ] [complex] TEST-01: Add automated test suites across all services — Only backend has Jest (4 specs), database-writer has 1 parse test. Everything else: 0%.
+- [x] - [ ] [complex] TEST-01: Add automated test suites across all services — Only backend has Jest (4 specs), database-writer has 1 parse test. Everything else: 0%. (Completed: 2026-02-26)
 - [ ] [medium] QUAL-01: Fix bare except clauses across legacy codebase — 5+ bare except:/except: pass in drawin_features, dashboard, sensor_config, smartdie-connect.
 - [ ] [medium] QUAL-02: Deduplicate format.py across legacy services — Identical code in dashboard, enrichment, setup (3 copies). Extract to shared lib.
 - [ ] [medium] GIT-01: Resolve unmerged feature branches and stale work — 8 unmerged legacy branches, 2 stalled firmware README branches.
@@ -22,7 +22,7 @@
 ## Product Features
 - [ ] [complex] FEAT-01: Implement full data processing pipeline — End-to-end flow from sensor data ingestion through processing to database storage and API exposure.
 - [ ] [complex] FEAT-02: Create mock data generator — Generate realistic sensor/die data for development and testing. Configurable profiles, batch sizes, anomaly injection.
-- [ ] [complex] FEAT-03: Create integrated testing suite — Cross-service tests covering firmware → connect → processing → database → backend → frontend.
+- [x] - [ ] [complex] FEAT-03: Create integrated testing suite — Cross-service tests covering firmware → connect → processing → database → backend → frontend. (Completed: 2026-02-26)
 
 ## Low Priority
 - [ ] [simple] CLEAN-01: Clean up repository artifacts and organize submodules — __pycache__ tracked, empty scaffold dirs, submodule docs missing.
