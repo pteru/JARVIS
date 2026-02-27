@@ -18,6 +18,8 @@ export interface AudioCaptureConfig {
   device?: string;          // Single target (legacy). Ignored when targets is set.
   /** Multiple capture targets. Each spawns a separate pw-record/parec process; PCM is mixed. */
   targets?: string[];
+  /** Indices into `targets` that are sinks (require stream.capture.sink=true for monitor capture). */
+  sinkTargetIndices?: number[];
 }
 
 type AudioBackend = 'pipewire' | 'pulseaudio';
@@ -127,16 +129,24 @@ export class SystemAudioCapture {
     backend: AudioBackend,
     config: AudioCaptureConfig,
     target?: string,
+    isSinkTarget?: boolean,
   ): { cmd: string; args: string[] } {
     const sampleRate = config.sampleRate ?? 16000;
     const channels = config.channels ?? 1;
 
     if (backend === 'pipewire') {
-      const args = [
+      const args: string[] = [];
+      // When targeting a Sink node for monitor capture, set the PipeWire property
+      // stream.capture.sink=true so WirePlumber links to the sink's monitor ports
+      // instead of redirecting to the associated source (mic).
+      if (isSinkTarget) {
+        args.push('-P', '{ stream.capture.sink=true }');
+      }
+      args.push(
         `--format=s16`,
         `--rate=${sampleRate}`,
         `--channels=${channels}`,
-      ];
+      );
       if (target) {
         args.push(`--target=${target}`);
       }
@@ -144,7 +154,7 @@ export class SystemAudioCapture {
       return { cmd: 'pw-record', args };
     }
 
-    // PulseAudio
+    // PulseAudio: monitor sources already have .monitor suffix, no special flag needed
     const args = [
       `--format=s16le`,
       `--rate=${sampleRate}`,
@@ -205,10 +215,16 @@ export class SystemAudioCapture {
     const backend = SystemAudioCapture.detectBackend();
     const chunkSize = SystemAudioCapture.calculateChunkSize(config);
 
-    // Determine targets
+    // Determine targets and which ones are sinks (need monitor capture)
     let targets: string[];
+    let sinkIndices: Set<number> = new Set();
+
     if (config.targets && config.targets.length > 0) {
       targets = config.targets;
+      // If caller explicitly marked sink targets, use that
+      if (config.sinkTargetIndices) {
+        sinkIndices = new Set(config.sinkTargetIndices);
+      }
     } else if (config.device) {
       targets = [config.device];
     } else {
@@ -216,8 +232,10 @@ export class SystemAudioCapture {
       const detected = SystemAudioCapture.detectTargets(backend);
       if (detected.sink && detected.mic) {
         targets = [detected.sink, detected.mic];
+        sinkIndices.add(0); // First target is the sink
       } else if (detected.sink) {
         targets = [detected.sink];
+        sinkIndices.add(0);
       } else if (detected.mic) {
         targets = [detected.mic];
       } else {
@@ -230,10 +248,11 @@ export class SystemAudioCapture {
 
     if (targets.length === 1) {
       // Single target — simple capture, no mixing needed
-      this.startSingleCapture(backend, config, targets[0] || undefined, chunkSize, onChunk);
+      const isSink = sinkIndices.has(0);
+      this.startSingleCapture(backend, config, targets[0] || undefined, chunkSize, onChunk, isSink);
     } else {
       // Multiple targets — capture each, mix PCM
-      this.startMixedCapture(backend, config, targets, chunkSize, onChunk);
+      this.startMixedCapture(backend, config, targets, chunkSize, onChunk, sinkIndices);
     }
   }
 
@@ -246,8 +265,9 @@ export class SystemAudioCapture {
     target: string | undefined,
     chunkSize: number,
     onChunk: (chunk: Buffer) => void,
+    isSinkTarget = false,
   ): void {
-    const { cmd, args } = SystemAudioCapture.buildCommand(backend, config, target);
+    const { cmd, args } = SystemAudioCapture.buildCommand(backend, config, target, isSinkTarget);
     console.error(`[audio-capture] Starting single: ${cmd} ${args.join(' ')}`);
 
     const proc = spawn(cmd, args, { stdio: ['pipe', 'pipe', 'pipe'] });
@@ -291,15 +311,17 @@ export class SystemAudioCapture {
     targets: string[],
     chunkSize: number,
     onChunk: (chunk: Buffer) => void,
+    sinkIndices: Set<number> = new Set(),
   ): void {
-    console.error(`[audio-capture] Starting mixed capture: ${targets.length} targets (${targets.join(', ')})`);
+    console.error(`[audio-capture] Starting mixed capture: ${targets.length} targets (${targets.join(', ')}), sinks: [${[...sinkIndices].join(',')}]`);
 
     // Per-target buffers and chunk queues
     const chunkQueues: Buffer[][] = targets.map(() => []);
 
     for (let i = 0; i < targets.length; i++) {
       const target = targets[i];
-      const { cmd, args } = SystemAudioCapture.buildCommand(backend, config, target || undefined);
+      const isSink = sinkIndices.has(i);
+      const { cmd, args } = SystemAudioCapture.buildCommand(backend, config, target || undefined, isSink);
       console.error(`[audio-capture]   [${i}] ${cmd} ${args.join(' ')}`);
 
       const proc = spawn(cmd, args, { stdio: ['pipe', 'pipe', 'pipe'] });

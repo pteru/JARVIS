@@ -25,10 +25,11 @@ Control the real-time meeting assistant via the `meeting-assistant` MCP server.
 
 ## Argument Parsing
 
-### `start [title]` or `start --manual [title]`
+### `start [--manual] [--language <code>] [title]`
 Call `start_meeting` with an optional title.
 - **Default: `source: "system_audio"`** — activates PipeWire audio capture + Deepgram STT
 - Use `--manual` flag to disable audio capture and use inject-only mode
+- Use `--language <code>` to set STT language (e.g., `pt-br`, `en`, `es`, `multi`). Defaults to config value (`multi` = auto-detect). Set explicitly for better accuracy in single-language meetings.
 - No title → use a timestamped default (e.g. "Meeting 2/22/2026 10:30 AM")
 - Returns: `sessionId`, `docId`, `docUrl`, `audioStatus`, confirmation message
 
@@ -78,6 +79,12 @@ Call `create_tasks_from_meeting` after getting action items.
 /meeting start --manual
 → Starts a meeting in manual-only mode (no audio capture).
 → Use inject_transcript to add transcript lines manually.
+
+/meeting start --language pt-br "Reuniao de Projeto"
+→ Starts with audio capture, PT-BR language for better STT accuracy.
+
+/meeting start --language en --manual
+→ Manual mode with English language hint (for future audio toggle).
 
 /meeting inject Pedro: The CI pipeline needs to be fixed by Friday.
 → Appends a transcript line from speaker "Pedro".
