@@ -207,6 +207,12 @@ class MeetingAssistantServer {
                 'Audio source. "manual" = inject_transcript only (default). ' +
                 '"system_audio" = capture system audio via PipeWire/PulseAudio + Deepgram STT.',
             },
+            language: {
+              type: 'string',
+              description:
+                'Language code for STT transcription. Examples: "pt-br", "en", "es", "multi" (auto-detect). ' +
+                'Defaults to config value (usually "multi"). Set explicitly for better accuracy.',
+            },
           },
           required: [],
         },
@@ -352,7 +358,7 @@ class MeetingAssistantServer {
   // Tool implementations — Phase 1
   // ---------------------------------------------------------------------------
 
-  private async startMeeting(args: { title?: string; source?: string }): Promise<ReturnType<typeof this.ok>> {
+  private async startMeeting(args: { title?: string; source?: string; language?: string }): Promise<ReturnType<typeof this.ok>> {
     if (this.session) {
       return this.err(
         `A meeting is already active (session: ${this.session.sessionId}). ` +
@@ -404,9 +410,10 @@ class MeetingAssistantServer {
 
     // Phase 3: Start audio pipeline if source is system_audio
     let audioStatus = 'not started (manual mode)';
+    const languageOverride = args.language?.trim() || undefined;
     if (source === 'system_audio') {
       try {
-        await this.startAudioPipeline();
+        await this.startAudioPipeline(languageOverride);
         audioStatus = 'capturing';
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : String(err);
@@ -710,7 +717,7 @@ class MeetingAssistantServer {
    * Start the audio capture → STT → transcript pipeline.
    * Uses config from meeting-assistant.json for STT provider settings.
    */
-  private async startAudioPipeline(): Promise<void> {
+  private async startAudioPipeline(languageOverride?: string): Promise<void> {
     const sttConfig = this.config?.stt ?? {
       default_provider: 'deepgram',
       deepgram: {
@@ -722,6 +729,10 @@ class MeetingAssistantServer {
     };
 
     const dgConfig = sttConfig.deepgram;
+    const sttLanguage = languageOverride ?? dgConfig.language;
+    if (languageOverride) {
+      console.error(`[meeting] Language override: ${languageOverride} (config default: ${dgConfig.language})`);
+    }
 
     const capture = new SystemAudioCapture();
     const stt = new DeepgramSTT();
@@ -759,7 +770,7 @@ class MeetingAssistantServer {
       {
         apiKeyEnv: dgConfig.api_key_env,
         model: dgConfig.model,
-        language: dgConfig.language,
+        language: sttLanguage,
         diarize: dgConfig.diarize,
       },
     );
@@ -1033,7 +1044,7 @@ class MeetingAssistantServer {
       try {
         switch (name) {
           case 'start_meeting':
-            return await this.startMeeting((args ?? {}) as { title?: string; source?: string });
+            return await this.startMeeting((args ?? {}) as { title?: string; source?: string; language?: string });
           case 'stop_meeting':
             return await this.stopMeeting();
           case 'inject_transcript':
