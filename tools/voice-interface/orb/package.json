@@ -1,0 +1,19 @@
+{
+  "name": "jarvis-orb",
+  "version": "1.0.0",
+  "description": "JARVIS Energy Orb — Reactive visual identity",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "mock": "node test/mock-server.js",
+    "dev": "concurrently \"npm run mock\" \"npm start\""
+  },
+  "dependencies": {
+    "electron": "^33.0.0",
+    "three": "^0.170.0",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0"
+  }
+}
