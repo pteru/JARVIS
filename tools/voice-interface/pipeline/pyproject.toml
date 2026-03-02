@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "JARVIS Voice Interface — wake word, STT, LLM, TTS pipeline"
 requires-python = ">=3.12"
 dependencies = [
-    "pvporcupine~=3.0",
+    "pvporcupine~=4.0",
     "deepgram-sdk~=3.0",
     "elevenlabs~=1.0",
     "pyaudio~=0.2.14",
