@@ -33,6 +33,12 @@ function createWindow() {
       ]
     },
     {
+      label: 'Full Screen',
+      type: 'checkbox',
+      checked: false,
+      click: (item) => win.setFullScreen(item.checked)
+    },
+    {
       label: 'Always on Top',
       type: 'checkbox',
       checked: true,
@@ -50,6 +56,11 @@ function createWindow() {
   // Handle context menu via IPC
   ipcMain.on('show-context-menu', () => {
     contextMenu.popup({ window: win });
+  });
+
+  // Handle fullscreen toggle via IPC (F11)
+  ipcMain.on('toggle-fullscreen', () => {
+    win.setFullScreen(!win.isFullScreen());
   });
 
   // Handle manual window dragging via IPC

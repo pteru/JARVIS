@@ -72,6 +72,14 @@
       e.preventDefault();
       window.electronAPI.showContextMenu();
     });
+
+    // F11 toggles full screen
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'F11') {
+        e.preventDefault();
+        window.electronAPI.toggleFullScreen();
+      }
+    });
   </script>
   <script type="module" src="./renderer.js"></script>
 </body>

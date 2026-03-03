@@ -9,6 +9,7 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
 import { EnergyOrb } from './orb.js';
 import { ParticleSystem } from './particles.js';
+import { Floor } from './floor.js';
 import { StateMachine } from './states.js';
 import { WebSocketClient } from './ws-client.js';
 import { SessionDashboard } from './session-dashboard.js';
@@ -49,6 +50,9 @@ const stateMachine = new StateMachine();
 // --- Orb ---
 const energyOrb = new EnergyOrb();
 
+// --- Floor ---
+const floor = new Floor();
+
 // --- Particles ---
 const particleSystem = new ParticleSystem();
 
@@ -57,6 +61,10 @@ let currentAmplitude = 0;
 
 // --- Initialize ---
 async function init() {
+  // Init floor (rendered first, behind orb)
+  const floorMesh = floor.init();
+  scene.add(floorMesh);
+
   // Init orb (loads shaders)
   const orbMesh = await energyOrb.init();
   scene.add(orbMesh);
@@ -113,6 +121,9 @@ async function init() {
 
     // Update bloom
     bloomPass.strength = stateValues.bloomStrength;
+
+    // Update floor
+    floor.update(deltaTime);
 
     // Update orb
     energyOrb.update(deltaTime, stateValues, currentAmplitude);

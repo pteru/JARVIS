@@ -9,7 +9,7 @@
     "dev": "concurrently \"npm run mock\" \"npm start\""
   },
   "dependencies": {
-    "electron": "^33.0.0",
+    "electron": "^33.4.11",
     "three": "^0.170.0",
     "ws": "^8.18.0"
   },
