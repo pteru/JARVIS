@@ -3,17 +3,17 @@
 import asyncio
 import logging
 import signal
-import sys
 from pathlib import Path
 
 from .config import Config
 from .audio import MicStream
 from .wake_word import WakeWordDetector
 from .stt import StreamingSTT
-from .llm import build_prompt, load_system_prompt, query_claude
+from .llm import load_system_prompt, query_claude
 from .tts import TextToSpeech
 from .orb_bridge import OrbBridge
 from .conversation import Conversation
+from .session import VoiceSession, detect_meta_command
 
 logging.basicConfig(
     level=logging.INFO,
@@ -28,6 +28,7 @@ class JarvisVoice:
         self.cfg = config
         self.conversation = Conversation(max_exchanges=config.history_max_exchanges)
         self.system_prompt = load_system_prompt(config.system_prompt_path)
+        self.session = VoiceSession()
         self.running = False
 
         # Components initialized in start()
@@ -40,6 +41,7 @@ class JarvisVoice:
     async def start(self) -> None:
         """Initialize all components and start the main loop."""
         logger.info("Initializing JARVIS Voice Pipeline...")
+        logger.info("Session ID: %s", self.session.session_id[:8])
 
         # Orb bridge (WebSocket server)
         self.orb = OrbBridge(port=self.cfg.orb_ws_port)
@@ -100,13 +102,23 @@ class JarvisVoice:
 
             logger.info("User said: %s", transcript)
 
-            # 4. Think — query Claude
-            await self.orb.set_state("thinking")
-            prompt = build_prompt(self.system_prompt, transcript, self.conversation)
-            t2 = _time.monotonic()
-            response = await query_claude(prompt, model=self.cfg.claude_model)
-            t3 = _time.monotonic()
-            logger.info("⏱ LLM took %.1fs", t3 - t2)
+            # 4. Check for meta-commands (new session, clear history)
+            meta_cmd = detect_meta_command(transcript)
+            if meta_cmd:
+                response = self._handle_meta_command(meta_cmd)
+            else:
+                # 5. Think — query Claude with session persistence
+                await self.orb.set_state("thinking")
+                t2 = _time.monotonic()
+                response = await query_claude(
+                    transcript,
+                    session=self.session,
+                    system_prompt=self.system_prompt,
+                    model=self.cfg.claude_model,
+                )
+                t3 = _time.monotonic()
+                logger.info("⏱ LLM took %.1fs (turn %d)", t3 - t2, self.session.turn_count)
+
             logger.info("JARVIS: %s", response)
 
             # 5. Speak — TTS with amplitude to orb
@@ -123,7 +135,25 @@ class JarvisVoice:
             # 6. Save to history and return to idle
             self.conversation.add(transcript, response)
             await self.orb.set_state("idle")
-            logger.info("Ready for next command")
+            logger.info("Ready for next command (session %s, turn %d)",
+                        self.session.session_id[:8], self.session.turn_count)
+
+    def _handle_meta_command(self, command: str) -> str:
+        """Handle voice meta-commands (new session, clear history, etc.)."""
+        if command == "new_session":
+            self.session.reset()
+            self.conversation.clear()
+            logger.info("Meta-command: new session started")
+            return "Very well, sir. Fresh session initialized. How may I assist you?"
+
+        if command == "clear_history":
+            self.session.reset()
+            self.conversation.clear()
+            logger.info("Meta-command: history cleared")
+            return "Conversation history cleared, sir. Starting with a clean slate."
+
+        logger.warning("Unknown meta-command: %s", command)
+        return "I'm not quite sure what you're asking me to do, sir."
 
     async def shutdown(self) -> None:
         """Clean up all resources."""
