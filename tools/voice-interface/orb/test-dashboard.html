@@ -32,48 +32,95 @@
     z-index: 5;
   }
 
-  /* Reflective floor */
+  /* Reflective floor — perspective surface behind everything */
   #dashboard-floor {
     position: fixed;
-    bottom: 0; left: 0; right: 0;
-    height: 50%;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    z-index: 1;
+    overflow: hidden;
+  }
+
+  /* The floor plane itself — perspective-projected rectangle */
+  #dashboard-floor .floor-surface {
+    position: absolute;
+    left: -80%;
+    right: -80%;
+    top: 35%;
+    bottom: 0;
+    transform: perspective(500px) rotateX(50deg);
+    transform-origin: center top;
+    background:
+      /* Horizontal grid lines */
+      repeating-linear-gradient(
+        to bottom,
+        transparent 0px,
+        transparent 30px,
+        rgba(60,110,180,0.12) 30px,
+        rgba(60,110,180,0.12) 31px
+      ),
+      /* Vertical grid lines */
+      repeating-linear-gradient(
+        to right,
+        transparent 0px,
+        transparent 60px,
+        rgba(60,110,180,0.06) 60px,
+        rgba(60,110,180,0.06) 61px
+      ),
+      /* Base floor surface — dark with slight blue tint */
+      linear-gradient(
+        to bottom,
+        rgba(6,10,20,0.0) 0%,
+        rgba(6,10,20,0.5) 5%,
+        rgba(4,8,16,0.8) 30%,
+        rgba(3,6,12,0.95) 100%
+      );
+  }
+
+  /* Horizon fade — masks the top edge of the floor into background */
+  #dashboard-floor .horizon-fade {
+    position: absolute;
+    left: 0; right: 0;
+    top: 28%;
+    height: 16%;
     background: linear-gradient(
       to bottom,
-      rgba(6,10,18,0.6) 0%,
-      rgba(10,14,22,0.82) 30%,
-      rgba(8,12,18,0.92) 60%,
-      rgba(6,8,14,0.97) 100%
+      rgba(5,8,14,1) 0%,
+      rgba(5,8,14,0.8) 30%,
+      transparent 100%
     );
-    pointer-events: none;
-    z-index: 3;
+    z-index: 1;
   }
-  #dashboard-floor::before {
-    content: '';
+
+  /* Center glow on floor — orb light spill */
+  #dashboard-floor .floor-glow {
     position: absolute;
-    top: 0; left: 2%; right: 2%;
-    height: 1px;
-    background: linear-gradient(
-      to right, transparent,
-      rgba(80,120,180,0.10) 15%,
-      rgba(100,160,220,0.20) 50%,
-      rgba(80,120,180,0.10) 85%,
-      transparent
+    left: 50%;
+    top: 44%;
+    transform: translate(-50%, 0);
+    width: 600px;
+    height: 400px;
+    background: radial-gradient(
+      ellipse,
+      rgba(80,150,255,0.12) 0%,
+      rgba(60,120,220,0.05) 35%,
+      transparent 65%
     );
   }
 
   /* Orb reflection on floor */
   #orb-reflection {
     position: fixed;
-    top: 50%;
+    top: 46%;
     left: 50%;
-    transform: translateX(-50%) scaleY(-0.45);
-    width: 180px;
-    height: 180px;
+    transform: translateX(-50%) scaleY(0.4);
+    width: 160px;
+    height: 160px;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(255,255,255,0.20) 0%, rgba(100,160,255,0.10) 35%, transparent 65%);
-    filter: blur(14px);
-    opacity: 0.35;
-    z-index: 4;
+    background: radial-gradient(circle, rgba(180,210,255,0.18) 0%, rgba(100,160,255,0.08) 40%, transparent 65%);
+    filter: blur(18px);
+    opacity: 0.4;
+    z-index: 2;
     pointer-events: none;
   }
 
@@ -180,7 +227,11 @@
 <body>
 
 <div id="orb-placeholder"></div>
-<div id="dashboard-floor"></div>
+<div id="dashboard-floor">
+  <div class="horizon-fade"></div>
+  <div class="floor-surface"></div>
+  <div class="floor-glow"></div>
+</div>
 <div id="orb-reflection"></div>
 <div id="session-dashboard"></div>
 

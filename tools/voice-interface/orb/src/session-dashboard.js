@@ -30,69 +30,35 @@ function escapeHtml(text) {
   return d.innerHTML;
 }
 
+// Reference size — all dimensions are ratios of this base width
+const BASE_W = 800;
+
+function scalePx(px) {
+  return px * (window.innerWidth / BASE_W);
+}
+
 let cssInjected = false;
+let styleEl = null;
 
 function injectCSS() {
-  if (cssInjected) return;
+  if (!styleEl) {
+    styleEl = document.createElement('style');
+    document.head.appendChild(styleEl);
+  }
   cssInjected = true;
+  updateCSS();
+}
 
-  const style = document.createElement('style');
-  style.textContent = `
-    /* Reflective floor — bottom half */
-    #dashboard-floor {
-      position: fixed;
-      bottom: 0; left: 0; right: 0;
-      height: 50%;
-      background: linear-gradient(
-        to bottom,
-        rgba(6,10,18,0.6) 0%,
-        rgba(10,14,22,0.82) 30%,
-        rgba(8,12,18,0.92) 60%,
-        rgba(6,8,14,0.97) 100%
-      );
-      pointer-events: none;
-      z-index: 3;
-    }
-    #dashboard-floor::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 2%; right: 2%;
-      height: 1px;
-      background: linear-gradient(
-        to right, transparent,
-        rgba(80,120,180,0.10) 15%,
-        rgba(100,160,220,0.20) 50%,
-        rgba(80,120,180,0.10) 85%,
-        transparent
-      );
-    }
+function updateCSS() {
+  if (!styleEl) return;
+  const s = (px) => `${scalePx(px).toFixed(1)}px`;
 
-    /* Orb reflection on the floor */
-    #orb-reflection {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translateX(-50%) scaleY(-0.45);
-      width: 180px;
-      height: 180px;
-      border-radius: 50%;
-      background: radial-gradient(
-        circle,
-        rgba(255,255,255,0.20) 0%,
-        rgba(100,160,255,0.10) 35%,
-        transparent 65%
-      );
-      filter: blur(14px);
-      opacity: 0.35;
-      z-index: 4;
-      pointer-events: none;
-    }
-
+  styleEl.textContent = `
     .session-card {
       position: fixed;
-      width: 160px;
-      padding: 12px 14px 10px;
-      border-radius: 10px;
+      width: ${s(160)};
+      padding: ${s(12)} ${s(14)} ${s(10)};
+      border-radius: ${s(10)};
       background: rgba(12,16,28,0.85);
       backdrop-filter: blur(24px);
       -webkit-backdrop-filter: blur(24px);
@@ -108,7 +74,7 @@ function injectCSS() {
       transform-origin: center center;
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       color: #e0e4ea;
-      font-size: 9.5px;
+      font-size: ${s(9.5)};
     }
 
     .session-card:hover {
@@ -128,19 +94,19 @@ function injectCSS() {
 
     /* Card header */
     .card-header {
-      display: flex; align-items: center; gap: 6px;
-      margin-bottom: 10px;
-      padding-bottom: 8px;
+      display: flex; align-items: center; gap: ${s(6)};
+      margin-bottom: ${s(10)};
+      padding-bottom: ${s(8)};
       border-bottom: 1px solid rgba(255,255,255,0.04);
     }
     .card-icon {
-      width: 18px; height: 18px;
-      border-radius: 4px;
+      width: ${s(18)}; height: ${s(18)};
+      border-radius: ${s(4)};
       display: flex; align-items: center; justify-content: center;
-      font-size: 9px; flex-shrink: 0;
+      font-size: ${s(9)}; flex-shrink: 0;
     }
     .card-name {
-      font-size: 10px; font-weight: 700;
+      font-size: ${s(10)}; font-weight: 700;
       letter-spacing: 0.8px; text-transform: uppercase;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       color: #8899aa;
@@ -149,14 +115,14 @@ function injectCSS() {
 
     /* Card rows */
     .card-row {
-      display: flex; align-items: center; gap: 6px;
-      margin-bottom: 6px;
+      display: flex; align-items: center; gap: ${s(6)};
+      margin-bottom: ${s(6)};
       letter-spacing: 0.3px;
     }
     .card-row .label {
       color: #556677; font-weight: 600;
       text-transform: uppercase; letter-spacing: 0.6px;
-      min-width: 48px; font-size: 8.5px;
+      min-width: ${s(48)}; font-size: ${s(8.5)};
     }
     .card-row .value {
       color: #a0b0c0;
@@ -165,10 +131,10 @@ function injectCSS() {
 
     /* Context progress bar */
     .context-bar-bg {
-      flex: 1; height: 4px;
+      flex: 1; height: ${s(4)};
       background: rgba(255,255,255,0.06);
       border-radius: 2px; overflow: hidden;
-      margin-right: 6px;
+      margin-right: ${s(6)};
     }
     .context-bar-fill {
       height: 100%; border-radius: 2px;
@@ -176,32 +142,31 @@ function injectCSS() {
       box-shadow: 0 0 6px currentColor;
     }
     .context-pct {
-      font-size: 9px; font-weight: 700;
-      min-width: 26px; text-align: right;
+      font-size: ${s(9)}; font-weight: 700;
+      min-width: ${s(26)}; text-align: right;
     }
 
     /* Status */
     .status-dot {
-      width: 7px; height: 7px;
+      width: ${s(7)}; height: ${s(7)};
       border-radius: 50%; flex-shrink: 0;
     }
     .status-label {
-      font-weight: 700; font-size: 9px;
+      font-weight: 700; font-size: ${s(9)};
       letter-spacing: 0.5px;
     }
 
     /* Log */
     .card-log {
-      margin-top: 8px; padding-top: 7px;
+      margin-top: ${s(8)}; padding-top: ${s(7)};
       border-top: 1px solid rgba(255,255,255,0.04);
-      font-size: 8.5px; color: #445566; line-height: 1.6;
+      font-size: ${s(8.5)}; color: #445566; line-height: 1.6;
     }
     .card-log .log-label {
       color: #556677; font-weight: 600;
       text-transform: uppercase; letter-spacing: 0.6px;
     }
   `;
-  document.head.appendChild(style);
 }
 
 export class SessionDashboard {
@@ -217,28 +182,15 @@ export class SessionDashboard {
     this._dragStartRotation = 0;
     this._velocity = 0;
 
-    // Ellipse radii (top-down perspective)
-    this.radiusX = 280;
-    this.radiusY = 80;
-    this.cardW = 160;
-    this.cardH = 180;
-
     injectCSS();
     this._createElements();
     this._initKeys();
+    this._initResize();
     this._startAnimLoop();
   }
 
   _createElements() {
-    // Floor
-    this.floor = document.createElement('div');
-    this.floor.id = 'dashboard-floor';
-    document.body.appendChild(this.floor);
-
-    // Orb reflection
-    this.reflection = document.createElement('div');
-    this.reflection.id = 'orb-reflection';
-    document.body.appendChild(this.reflection);
+    // Floor and reflection are now rendered in the Three.js scene (floor.js)
   }
 
   _initKeys() {
@@ -250,6 +202,10 @@ export class SessionDashboard {
         this._step(-1);
       }
     });
+  }
+
+  _initResize() {
+    window.addEventListener('resize', () => updateCSS());
   }
 
   /** Step one card position in the given direction (+1 = right, -1 = left) */
@@ -279,9 +235,6 @@ export class SessionDashboard {
 
   toggle() {
     this.visible = !this.visible;
-    const op = this.visible ? '1' : '0';
-    this.floor.style.opacity = op;
-    this.reflection.style.opacity = op;
     this.cardElements.forEach(c => c.style.display = this.visible ? '' : 'none');
   }
 
@@ -302,6 +255,12 @@ export class SessionDashboard {
     const count = this.cardElements.length;
     if (count === 0) return;
 
+    const ratio = window.innerWidth / BASE_W;
+    const radiusX = 280 * ratio;
+    const radiusY = 80 * ratio;
+    const cardW = 160 * ratio;
+    const cardH = 180 * ratio;
+
     const centerX = window.innerWidth / 2;
     const centerY = window.innerHeight * 0.62;
     const step = 360 / count;
@@ -311,11 +270,11 @@ export class SessionDashboard {
       const angle = step * i + this.rotation;
       const rad = (angle * Math.PI) / 180;
 
-      const x = Math.sin(rad) * this.radiusX;
-      const y = Math.cos(rad) * this.radiusY;
+      const x = Math.sin(rad) * radiusX;
+      const y = Math.cos(rad) * radiusY;
 
       // Depth: front (positive y, bottom) = 1, back (negative y, top) = 0
-      const normalizedDepth = (y + this.radiusY) / (2 * this.radiusY);
+      const normalizedDepth = (y + radiusY) / (2 * radiusY);
 
       return { card, x, y, normalizedDepth };
     });
@@ -327,8 +286,8 @@ export class SessionDashboard {
       const scale = 0.55 + normalizedDepth * 0.45;
       const opacity = 0.1 + normalizedDepth * 0.9;
 
-      const left = centerX + x - (this.cardW / 2) * scale;
-      const top = centerY + y - (this.cardH / 2) * scale;
+      const left = centerX + x - (cardW / 2) * scale;
+      const top = centerY + y - (cardH / 2) * scale;
 
       card.style.left = `${left}px`;
       card.style.top = `${top}px`;
