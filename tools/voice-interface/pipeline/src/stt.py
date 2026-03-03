@@ -17,9 +17,15 @@ class StreamingSTT:
         self._client = DeepgramClient(api_key)
         self._transcript_parts: list[str] = []
         self._done_event: asyncio.Event | None = None
+        self._loop: asyncio.AbstractEventLoop | None = None
         self._connection = None
         self._last_speech_time: float = 0
-        self._silence_timeout: float = 2.0  # seconds of silence after speech = done
+        self._silence_timeout: float = 1.5  # seconds of silence after speech = done
+
+    def _set_done(self) -> None:
+        """Thread-safe: signal done from Deepgram's callback thread."""
+        if self._done_event and self._loop:
+            self._loop.call_soon_threadsafe(self._done_event.set)
 
     async def transcribe(self, mic_read_fn, timeout: float = 15.0) -> str:
         """
@@ -32,6 +38,7 @@ class StreamingSTT:
         """
         self._transcript_parts = []
         self._done_event = asyncio.Event()
+        self._loop = asyncio.get_event_loop()
 
         options = LiveOptions(
             model="nova-2",
@@ -56,9 +63,8 @@ class StreamingSTT:
         logger.info("Deepgram STT streaming started")
 
         # Stream mic audio in a background task
-        loop = asyncio.get_event_loop()
         self._last_speech_time = 0
-        stream_task = asyncio.create_task(self._stream_audio(mic_read_fn, loop))
+        stream_task = asyncio.create_task(self._stream_audio(mic_read_fn, self._loop))
         silence_task = asyncio.create_task(self._silence_monitor())
 
         try:
@@ -87,7 +93,7 @@ class StreamingSTT:
         """Monitor for silence after speech — if no new speech for _silence_timeout, we're done."""
         try:
             while not self._done_event.is_set():
-                await asyncio.sleep(0.5)
+                await asyncio.sleep(0.25)
                 if (
                     self._last_speech_time > 0
                     and self._transcript_parts
@@ -99,6 +105,7 @@ class StreamingSTT:
             pass
 
     def _on_transcript(self, _self, result, **kwargs) -> None:
+        """Called from Deepgram's thread — must use thread-safe event signaling."""
         transcript = result.channel.alternatives[0].transcript
         if transcript and result.is_final:
             self._transcript_parts.append(transcript)
@@ -107,14 +114,11 @@ class StreamingSTT:
         elif transcript:
             # Interim result — user is still speaking
             self._last_speech_time = time.monotonic()
-            logger.debug("STT interim: %s", transcript)
         # speech_final fires after endpointing silence
         if getattr(result, "speech_final", False) and self._transcript_parts:
             logger.info("Speech final detected, ending STT")
-            if self._done_event:
-                self._done_event.set()
+            self._set_done()
 
     def _on_error(self, _self, error, **kwargs) -> None:
         logger.error("Deepgram error: %s", error)
-        if self._done_event:
-            self._done_event.set()
+        self._set_done()

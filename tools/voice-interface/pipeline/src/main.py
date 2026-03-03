@@ -75,6 +75,7 @@ class JarvisVoice:
 
     async def _main_loop(self) -> None:
         """Main loop: wake -> listen -> think -> speak -> repeat."""
+        import time as _time
         loop = asyncio.get_event_loop()
 
         while self.running:
@@ -83,12 +84,15 @@ class JarvisVoice:
             if not self.wake.process(pcm):
                 continue
 
-            # 2. Wake word detected!
+            # 2. Wake word detected
             logger.info("Wake word detected!")
             await self.orb.set_state("listening")
 
             # 3. Transcribe speech
-            transcript = await self.stt.transcribe(self.mic.read_frame, timeout=15.0)
+            t0 = _time.monotonic()
+            transcript = await self.stt.transcribe(self.mic.read_frame, timeout=10.0)
+            t1 = _time.monotonic()
+            logger.info("⏱ STT took %.1fs", t1 - t0)
             if not transcript:
                 logger.info("No speech detected, returning to idle")
                 await self.orb.set_state("idle")
@@ -99,7 +103,10 @@ class JarvisVoice:
             # 4. Think — query Claude
             await self.orb.set_state("thinking")
             prompt = build_prompt(self.system_prompt, transcript, self.conversation)
+            t2 = _time.monotonic()
             response = await query_claude(prompt, model=self.cfg.claude_model)
+            t3 = _time.monotonic()
+            logger.info("⏱ LLM took %.1fs", t3 - t2)
             logger.info("JARVIS: %s", response)
 
             # 5. Speak — TTS with amplitude to orb
