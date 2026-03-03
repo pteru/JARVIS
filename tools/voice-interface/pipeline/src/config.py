@@ -12,7 +12,7 @@ class Config:
     porcupine_keyword_path: str = ""
     elevenlabs_voice_id: str = "JBFqnCBsd6RMkjVDRZzb"  # "George" — deep British male
     elevenlabs_model: str = "eleven_turbo_v2_5"
-    claude_model: str = "sonnet"
+    claude_model: str = "haiku"
     mic_device_index: int | None = None  # None = system default
     sample_rate: int = 16000
     history_max_exchanges: int = 10
