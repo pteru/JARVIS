@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+# JARVIS Voice Interface — Launch script
+# Starts both the voice pipeline and the energy orb
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PIPELINE_DIR="$SCRIPT_DIR/pipeline"
+ORB_DIR="$SCRIPT_DIR/orb"
+
+PIPELINE_PID=""
+ORB_PID=""
+
+cleanup() {
+  echo ""
+  echo "[JARVIS] Shutting down..."
+  [ -n "$PIPELINE_PID" ] && kill "$PIPELINE_PID" 2>/dev/null && echo "[JARVIS] Pipeline stopped"
+  [ -n "$ORB_PID" ] && kill "$ORB_PID" 2>/dev/null && echo "[JARVIS] Orb stopped"
+  wait 2>/dev/null
+  echo "[JARVIS] Goodbye, sir."
+}
+
+trap cleanup EXIT INT TERM
+
+# Parse flags
+ORB_ONLY=false
+PIPELINE_ONLY=false
+for arg in "$@"; do
+  case "$arg" in
+    --orb-only) ORB_ONLY=true ;;
+    --pipeline-only) PIPELINE_ONLY=true ;;
+    --help|-h)
+      echo "Usage: $0 [--orb-only | --pipeline-only]"
+      echo "  --orb-only       Launch only the energy orb (no voice pipeline)"
+      echo "  --pipeline-only  Launch only the voice pipeline (no orb window)"
+      exit 0
+      ;;
+  esac
+done
+
+# Start voice pipeline
+if [ "$ORB_ONLY" = false ]; then
+  echo "[JARVIS] Starting voice pipeline..."
+  cd "$PIPELINE_DIR"
+  .venv/bin/python -m src &
+  PIPELINE_PID=$!
+  cd "$SCRIPT_DIR"
+  sleep 2  # Wait for WebSocket server to be ready
+fi
+
+# Start energy orb (must unset ELECTRON_RUN_AS_NODE for Electron to work)
+if [ "$PIPELINE_ONLY" = false ]; then
+  echo "[JARVIS] Starting energy orb..."
+  cd "$ORB_DIR"
+  ELECTRON_RUN_AS_NODE= npx electron . &
+  ORB_PID=$!
+  cd "$SCRIPT_DIR"
+fi
+
+echo "[JARVIS] All systems online."
+
+# Wait for either process to exit
+wait -n 2>/dev/null || true
