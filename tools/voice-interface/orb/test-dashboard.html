@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>JARVIS Dashboard Test — Carousel</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background: radial-gradient(ellipse at 50% 30%, #0a0e18 0%, #000000 100%);
+    font-family: 'Inter', -apple-system, sans-serif;
+    color: #e0e4ea;
+  }
+
+  /* Fake orb glow */
+  #orb-placeholder {
+    position: fixed;
+    top: 12%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #ffffff 0%, #99ccff 25%, #4477bb 55%, transparent 72%);
+    box-shadow: 0 0 80px 40px rgba(100, 160, 255, 0.25),
+                0 0 160px 80px rgba(80, 130, 220, 0.1);
+    z-index: 5;
+  }
+
+  /* Reflective floor */
+  #dashboard-floor {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 50%;
+    background: linear-gradient(
+      to bottom,
+      rgba(6,10,18,0.6) 0%,
+      rgba(10,14,22,0.82) 30%,
+      rgba(8,12,18,0.92) 60%,
+      rgba(6,8,14,0.97) 100%
+    );
+    pointer-events: none;
+    z-index: 3;
+  }
+  #dashboard-floor::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 2%; right: 2%;
+    height: 1px;
+    background: linear-gradient(
+      to right, transparent,
+      rgba(80,120,180,0.10) 15%,
+      rgba(100,160,220,0.20) 50%,
+      rgba(80,120,180,0.10) 85%,
+      transparent
+    );
+  }
+
+  /* Orb reflection on floor */
+  #orb-reflection {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translateX(-50%) scaleY(-0.45);
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,255,255,0.20) 0%, rgba(100,160,255,0.10) 35%, transparent 65%);
+    filter: blur(14px);
+    opacity: 0.35;
+    z-index: 4;
+    pointer-events: none;
+  }
+
+  /* Carousel anchor — positioned at center of the circle */
+  #session-dashboard {
+    position: fixed;
+    z-index: 10;
+    pointer-events: none;
+  }
+
+  .session-card {
+    position: fixed;
+    width: 160px;
+    padding: 12px 14px 10px;
+    border-radius: 10px;
+    background: rgba(12, 16, 28, 0.85);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(60, 90, 140, 0.22);
+    box-shadow:
+      0 2px 30px rgba(0,0,0,0.5),
+      inset 0 1px 0 rgba(255,255,255,0.05),
+      inset 0 -1px 0 rgba(0,0,0,0.2);
+    cursor: pointer;
+    user-select: none;
+    pointer-events: auto;
+    transition: opacity 0.15s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    transform-origin: center center;
+    font-size: 9.5px;
+  }
+
+  .session-card:hover {
+    border-color: rgba(100, 170, 255, 0.45) !important;
+  }
+
+  .session-card.state-active {
+    border-color: rgba(0, 255, 136, 0.3);
+    box-shadow:
+      0 0 30px rgba(0, 255, 136, 0.08),
+      0 4px 30px rgba(0,0,0,0.5),
+      inset 0 1px 0 rgba(255,255,255,0.07);
+  }
+
+  .card-header {
+    display: flex; align-items: center; gap: 6px;
+    margin-bottom: 10px; padding-bottom: 8px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .card-icon {
+    width: 18px; height: 18px; border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; flex-shrink: 0;
+  }
+  .card-name {
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 0.8px; text-transform: uppercase;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    color: #8899aa;
+  }
+  .state-active .card-name { color: #e8ecf0; }
+  .card-row {
+    display: flex; align-items: center; gap: 6px;
+    margin-bottom: 6px; letter-spacing: 0.3px;
+  }
+  .card-row .label {
+    color: #556677; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.6px;
+    min-width: 48px; font-size: 8.5px;
+  }
+  .card-row .value {
+    color: #a0b0c0;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .context-bar-bg {
+    flex: 1; height: 4px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 2px; overflow: hidden; margin-right: 6px;
+  }
+  .context-bar-fill {
+    height: 100%; border-radius: 2px;
+    box-shadow: 0 0 6px currentColor;
+  }
+  .context-pct {
+    font-size: 9px; font-weight: 700;
+    min-width: 26px; text-align: right;
+  }
+  .status-dot {
+    width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+  }
+  .status-label {
+    font-weight: 700; font-size: 9px; letter-spacing: 0.5px;
+  }
+  .card-log {
+    margin-top: 8px; padding-top: 7px;
+    border-top: 1px solid rgba(255,255,255,0.04);
+    font-size: 8.5px; color: #445566; line-height: 1.6;
+  }
+  .card-log .log-label {
+    color: #556677; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.6px;
+  }
+</style>
+</head>
+<body>
+
+<div id="orb-placeholder"></div>
+<div id="dashboard-floor"></div>
+<div id="orb-reflection"></div>
+<div id="session-dashboard"></div>
+
+<script>
+const STATE_COLORS = {
+  active:     { dot: '#00ff88', iconBg: 'rgba(0,255,136,0.12)' },
+  idle:       { dot: '#ffaa00', iconBg: 'rgba(255,170,0,0.10)' },
+  background: { dot: '#4488ff', iconBg: 'rgba(68,136,255,0.10)' },
+  complete:   { dot: '#00cc66', iconBg: 'rgba(0,204,102,0.10)' },
+  error:      { dot: '#ff4444', iconBg: 'rgba(255,68,68,0.12)' },
+};
+const STATE_ICONS = {
+  active: '\u25B6', idle: '\u275A\u275A', background: '\u2699', complete: '\u2713', error: '\u2717'
+};
+const STATE_LABELS = {
+  active: 'ACTIVE', idle: 'IDLE', background: 'BACKGROUND', complete: 'COMPLETE', error: 'ERROR'
+};
+
+function contextBarColor(pct) {
+  if (pct <= 60) return '#00ff88';
+  if (pct <= 85) return '#ffaa00';
+  return '#ff4444';
+}
+function escapeHtml(t) {
+  const d = document.createElement('div');
+  d.textContent = t;
+  return d.innerHTML;
+}
+
+const mockSessions = [
+  { id: 'aaa', name: 'Communication Agent', state: 'active', context_pct: 92, topic: 'Negotiation', log: 'Negotiation Progressing\nAnalyzing counter-offer' },
+  { id: 'bbb', name: 'Artistic Composer', state: 'idle', context_pct: 45, topic: 'Neoclassical Fusion', log: 'Last composition saved\nAwaiting input' },
+  { id: 'ccc', name: 'Scheduling Analyst', state: 'active', context_pct: 78, topic: 'Resource Optimization', log: 'Conflict Resolved\nRe-optimizing...' },
+  { id: 'ddd', name: 'General Assistant', state: 'idle', context_pct: 60, topic: 'Knowledge Retrieval', log: 'Query Processed\nSession Paused' },
+  { id: 'eee', name: 'PMO Reports', state: 'background', context_pct: 35, topic: 'Monthly Review', log: 'PDF exports complete' },
+  { id: 'fff', name: 'PR Review Bot', state: 'complete', context_pct: 88, topic: 'Code Quality', log: 'Reviewed PR #18\nApproved' },
+];
+
+// Carousel config
+const RADIUS_X = 280;  // horizontal spread (wide ellipse)
+const RADIUS_Y = 80;   // vertical spread (compressed — viewed from above)
+const CENTER_X = window.innerWidth / 2;
+const CENTER_Y = window.innerHeight * 0.62; // center of ellipse — lower in window
+const CARD_W = 160;
+const CARD_H = 180; // approx card height
+let rotation = 0;
+
+// Build cards
+const cards = mockSessions.map((s) => {
+  const colors = STATE_COLORS[s.state] || STATE_COLORS.idle;
+  const isActive = s.state === 'active';
+  const icon = STATE_ICONS[s.state] || STATE_ICONS.idle;
+  const barColor = contextBarColor(s.context_pct || 50);
+  const logLines = (s.log || '').split('\n').map(l => l.trim()).filter(Boolean);
+  const logHtml = logLines.length > 0
+    ? `<span class="log-label">Log: </span>${logLines.map(l => escapeHtml(l)).join('<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;')}`
+    : '';
+
+  const card = document.createElement('div');
+  card.className = `session-card ${isActive ? 'state-active' : ''}`;
+  card.innerHTML = `
+    <div class="card-header">
+      <span class="card-icon" style="background:${colors.iconBg}; color:${colors.dot};">${icon}</span>
+      <span class="card-name">${escapeHtml(s.name)}</span>
+    </div>
+    <div class="card-row">
+      <span class="label">Topic:</span>
+      <span class="value">${escapeHtml(s.topic || 'General')}</span>
+    </div>
+    <div class="card-row">
+      <span class="label">Context:</span>
+      <div class="context-bar-bg">
+        <div class="context-bar-fill" style="width:${s.context_pct}%; background:${barColor}; color:${barColor};"></div>
+      </div>
+      <span class="context-pct" style="color:${barColor}">${s.context_pct}%</span>
+    </div>
+    <div class="card-row">
+      <span class="label">Status:</span>
+      <span class="status-dot" style="background:${colors.dot}; box-shadow: 0 0 8px ${colors.dot};"></span>
+      <span class="status-label" style="color:${colors.dot}">${STATE_LABELS[s.state]}</span>
+    </div>
+    ${logHtml ? `<div class="card-log">${logHtml}</div>` : ''}
+  `;
+  document.body.appendChild(card);
+  return card;
+});
+
+function updatePositions() {
+  const count = cards.length;
+  const step = 360 / count;
+
+  // Collect positions for z-sorting
+  const positions = cards.map((card, i) => {
+    const angle = step * i + rotation;
+    const rad = (angle * Math.PI) / 180;
+
+    // Ellipse: wide horizontal, compressed vertical (top-down perspective)
+    const x = Math.sin(rad) * RADIUS_X;
+    const y = Math.cos(rad) * RADIUS_Y; // cos so angle=0 is at front (bottom)
+
+    // Depth: cards at back (negative y, top of ellipse) are "far away"
+    // normalizedDepth: 0 = back (top), 1 = front (bottom)
+    const normalizedDepth = (y + RADIUS_Y) / (2 * RADIUS_Y);
+
+    return { card, x, y, normalizedDepth, angle };
+  });
+
+  // Sort by depth so front cards render on top
+  positions.sort((a, b) => a.normalizedDepth - b.normalizedDepth);
+
+  positions.forEach(({ card, x, y, normalizedDepth }, sortIdx) => {
+    // Scale: back cards smaller, front cards larger
+    const scale = 0.55 + normalizedDepth * 0.45;
+
+    // Opacity: back cards faded
+    const opacity = 0.1 + normalizedDepth * 0.9;
+
+    // Position
+    const left = CENTER_X + x - (CARD_W / 2) * scale;
+    const top = CENTER_Y + y - (CARD_H / 2) * scale;
+
+    card.style.left = `${left}px`;
+    card.style.top = `${top}px`;
+    card.style.transform = `scale(${scale})`;
+    card.style.opacity = opacity;
+    card.style.zIndex = sortIdx + 10;
+  });
+}
+
+updatePositions();
+
+// Drag to rotate
+let dragging = false, dragStartX = 0, dragStartRot = 0;
+window.addEventListener('mousedown', (e) => {
+  if (e.button !== 0) return;
+  dragging = true;
+  dragStartX = e.clientX;
+  dragStartRot = rotation;
+});
+window.addEventListener('mousemove', (e) => {
+  if (!dragging) return;
+  rotation = dragStartRot + (e.clientX - dragStartX) * 0.5;
+  updatePositions();
+});
+window.addEventListener('mouseup', () => { dragging = false; });
+window.addEventListener('wheel', (e) => {
+  rotation += e.deltaY * 0.3;
+  updatePositions();
+}, { passive: true });
+</script>
+</body>
+</html>

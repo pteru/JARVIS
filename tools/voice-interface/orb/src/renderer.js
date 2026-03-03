@@ -17,7 +17,8 @@ import { SessionDashboard } from './session-dashboard.js';
 const scene = new THREE.Scene();
 
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
-camera.position.z = 6;
+camera.position.set(0, 0, 8);    // Farther back — orb ~25% smaller
+camera.lookAt(0, -1.0, 0);       // Look slightly below orb — orb in upper third
 
 const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
