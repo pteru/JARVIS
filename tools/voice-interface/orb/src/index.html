@@ -10,12 +10,15 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: transparent;
+      background: radial-gradient(ellipse at 50% 30%, #0a0e18 0%, #000000 100%);
     }
     #canvas-container {
+      position: fixed;
+      top: 0; left: 0;
       width: 100%;
       height: 100%;
-      cursor: grab;
+      z-index: 5;
+      pointer-events: none;
     }
     #canvas-container:active {
       cursor: grabbing;

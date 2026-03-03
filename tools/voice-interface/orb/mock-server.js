@@ -11,10 +11,36 @@ const states = ['idle', 'listening', 'thinking', 'speaking'];
 let stateIndex = 0;
 
 const mockSessions = [
-  { id: 'aaa-111', name: 'DieMaster Debug', state: 'active', turn_count: 5 },
-  { id: 'bbb-222', name: 'VisionKing Tests', state: 'idle', turn_count: 12 },
-  { id: 'ccc-333', name: 'SpotFusion Deploy', state: 'background', turn_count: 3 },
-  { id: 'ddd-444', name: 'API Refactor', state: 'complete', turn_count: 28 },
+  {
+    id: 'aaa-111', name: 'DieMaster Debug', state: 'active', turn_count: 14,
+    topic: 'Sensor Calibration', context_pct: 72,
+    log: 'GAP sensor offset adjusted\nRunning validation pass'
+  },
+  {
+    id: 'bbb-222', name: 'VisionKing Tests', state: 'idle', turn_count: 8,
+    topic: 'E2E Pipeline', context_pct: 45,
+    log: 'Last test run passed\nAwaiting next command'
+  },
+  {
+    id: 'ccc-333', name: 'SpotFusion Deploy', state: 'background', turn_count: 3,
+    topic: 'Staging Release', context_pct: 28,
+    log: 'Docker build in progress\nETA 2 minutes'
+  },
+  {
+    id: 'ddd-444', name: 'API Refactor', state: 'complete', turn_count: 28,
+    topic: 'REST Endpoints', context_pct: 95,
+    log: 'All endpoints migrated\nPR #42 ready for review'
+  },
+  {
+    id: 'eee-555', name: 'PMO Reports', state: 'idle', turn_count: 12,
+    topic: 'Monthly Review', context_pct: 60,
+    log: 'PDF exports complete\nAwaiting approval'
+  },
+  {
+    id: 'fff-666', name: 'PR Review Bot', state: 'background', turn_count: 6,
+    topic: 'Code Quality', context_pct: 35,
+    log: 'Reviewing PR #18\nAnalyzing diff'
+  },
 ];
 
 console.log(`Mock WS server on ws://localhost:${PORT}`);
