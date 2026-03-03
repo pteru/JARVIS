@@ -11,6 +11,7 @@ import { EnergyOrb } from './orb.js';
 import { ParticleSystem } from './particles.js';
 import { StateMachine } from './states.js';
 import { WebSocketClient } from './ws-client.js';
+import { SessionDashboard } from './session-dashboard.js';
 
 // --- Scene setup ---
 const scene = new THREE.Scene();
@@ -67,6 +68,12 @@ async function init() {
   const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
   scene.add(ambientLight);
 
+  // Session dashboard (glass-panel cards)
+  const dashboard = new SessionDashboard((sessionId) => {
+    console.log(`[Dashboard] Switch to session: ${sessionId}`);
+    wsClient.send('switch_session', { session_id: sessionId });
+  });
+
   // Connect WebSocket
   const wsClient = new WebSocketClient(
     (state) => {
@@ -82,6 +89,9 @@ async function init() {
     (alertName, level) => {
       console.log(`[Alert] ${alertName} — ${level}`);
       stateMachine.transition('alert');
+    },
+    (sessions) => {
+      dashboard.update(sessions);
     }
   );
   wsClient.connect();
