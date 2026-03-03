@@ -13,7 +13,7 @@ from .llm import load_system_prompt, query_claude
 from .tts import TextToSpeech
 from .orb_bridge import OrbBridge
 from .conversation import Conversation
-from .session import VoiceSession, detect_meta_command
+from .session import SessionManager, parse_voice_command
 
 logging.basicConfig(
     level=logging.INFO,
@@ -28,8 +28,12 @@ class JarvisVoice:
         self.cfg = config
         self.conversation = Conversation(max_exchanges=config.history_max_exchanges)
         self.system_prompt = load_system_prompt(config.system_prompt_path)
-        self.session = VoiceSession()
         self.running = False
+
+        # Session manager with persistent storage
+        data_dir = Path(config.sessions_data_dir)
+        self.sessions = SessionManager(data_dir)
+        self.sessions.ensure_active()
 
         # Components initialized in start()
         self.mic: MicStream | None = None
@@ -41,7 +45,9 @@ class JarvisVoice:
     async def start(self) -> None:
         """Initialize all components and start the main loop."""
         logger.info("Initializing JARVIS Voice Pipeline...")
-        logger.info("Session ID: %s", self.session.session_id[:8])
+        active = self.sessions.active
+        logger.info("Active session: '%s' (%s, %d turns)",
+                     active.name, active.id[:8], active.turn_count)
 
         # Orb bridge (WebSocket server)
         self.orb = OrbBridge(port=self.cfg.orb_ws_port)
@@ -94,7 +100,7 @@ class JarvisVoice:
             t0 = _time.monotonic()
             transcript = await self.stt.transcribe(self.mic.read_frame, timeout=10.0)
             t1 = _time.monotonic()
-            logger.info("⏱ STT took %.1fs", t1 - t0)
+            logger.info("STT took %.1fs", t1 - t0)
             if not transcript:
                 logger.info("No speech detected, returning to idle")
                 await self.orb.set_state("idle")
@@ -102,26 +108,28 @@ class JarvisVoice:
 
             logger.info("User said: %s", transcript)
 
-            # 4. Check for meta-commands (new session, clear history)
-            meta_cmd = detect_meta_command(transcript)
-            if meta_cmd:
-                response = self._handle_meta_command(meta_cmd)
+            # 4. Check for voice commands (session management)
+            cmd = parse_voice_command(transcript)
+            if cmd:
+                response = self._handle_command(cmd.action, cmd.param)
             else:
                 # 5. Think — query Claude with session persistence
                 await self.orb.set_state("thinking")
+                session = self.sessions.active
                 t2 = _time.monotonic()
                 response = await query_claude(
                     transcript,
-                    session=self.session,
+                    session=session,
                     system_prompt=self.system_prompt,
                     model=self.cfg.claude_model,
                 )
                 t3 = _time.monotonic()
-                logger.info("⏱ LLM took %.1fs (turn %d)", t3 - t2, self.session.turn_count)
+                logger.info("LLM took %.1fs (session '%s', turn %d)",
+                            t3 - t2, session.name, session.turn_count)
 
             logger.info("JARVIS: %s", response)
 
-            # 5. Speak — TTS with amplitude to orb
+            # 6. Speak — TTS with amplitude to orb
             await self.orb.set_state("speaking")
 
             def on_amplitude(amp: float) -> None:
@@ -132,27 +140,59 @@ class JarvisVoice:
 
             await loop.run_in_executor(None, self.tts.speak, response, on_amplitude)
 
-            # 6. Save to history and return to idle
+            # 7. Save to local history and return to idle
             self.conversation.add(transcript, response)
             await self.orb.set_state("idle")
-            logger.info("Ready for next command (session %s, turn %d)",
-                        self.session.session_id[:8], self.session.turn_count)
+            session = self.sessions.active
+            logger.info("Ready (session '%s', turn %d)", session.name, session.turn_count)
 
-    def _handle_meta_command(self, command: str) -> str:
-        """Handle voice meta-commands (new session, clear history, etc.)."""
-        if command == "new_session":
-            self.session.reset()
+    def _handle_command(self, action: str, param: str | None) -> str:
+        """Handle voice commands for session management."""
+
+        if action == "create_session":
+            name = param or "Untitled"
+            # Capitalize words for nicer display
+            name = " ".join(w.capitalize() for w in name.split())
+            session = self.sessions.create_session(name)
             self.conversation.clear()
-            logger.info("Meta-command: new session started")
-            return "Very well, sir. Fresh session initialized. How may I assist you?"
+            return f"New session created: {session.name}. Ready for your instructions, sir."
 
-        if command == "clear_history":
-            self.session.reset()
-            self.conversation.clear()
-            logger.info("Meta-command: history cleared")
-            return "Conversation history cleared, sir. Starting with a clean slate."
+        if action == "switch_session":
+            if not param:
+                return "Which session would you like to switch to, sir?"
+            session = self.sessions.switch_to(param)
+            if session:
+                return f"Switched to session {session.name}, sir. Turn {session.turn_count}."
+            return f"I couldn't find a session matching {param}, sir."
 
-        logger.warning("Unknown meta-command: %s", command)
+        if action == "list_sessions":
+            sessions = self.sessions.list_sessions()
+            if not sessions:
+                return "No sessions available, sir."
+            if len(sessions) == 1:
+                s = sessions[0]
+                return f"One session active: {s.name}, {s.turn_count} turns, {s.state}."
+            parts = []
+            for s in sessions[:5]:  # Limit to 5 for spoken output
+                parts.append(f"{s.name}, {s.state}")
+            return f"You have {len(sessions)} sessions, sir. " + ". ".join(parts) + "."
+
+        if action == "status":
+            session = self.sessions.active
+            if session:
+                return (f"Current session: {session.name}. "
+                        f"{session.turn_count} turns. Status: {session.state}.")
+            return "No active session, sir."
+
+        if action == "clear_history":
+            session = self.sessions.active
+            if session:
+                session.reset()
+                self.conversation.clear()
+                return "Conversation history cleared, sir. Starting with a clean slate."
+            return "No active session to clear, sir."
+
+        logger.warning("Unknown command action: %s", action)
         return "I'm not quite sure what you're asking me to do, sir."
 
     async def shutdown(self) -> None:

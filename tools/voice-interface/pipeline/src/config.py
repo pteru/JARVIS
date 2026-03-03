@@ -18,6 +18,7 @@ class Config:
     history_max_exchanges: int = 10
     orb_ws_port: int = 9000
     system_prompt_path: str = "config/system-prompt.md"
+    sessions_data_dir: str = "data/voice-sessions"
 
     @classmethod
     def load(cls, base_dir: Path | None = None) -> "Config":
@@ -42,4 +43,5 @@ class Config:
             elevenlabs_api_key=read_secret("elevenlabs-api-key"),
             porcupine_keyword_path=keyword_path,
             system_prompt_path=str(base / "config" / "system-prompt.md"),
+            sessions_data_dir=str(base / "data" / "voice-sessions"),
         )
