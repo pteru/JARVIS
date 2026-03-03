@@ -51,6 +51,7 @@ class JarvisVoice:
 
         # Orb bridge (WebSocket server)
         self.orb = OrbBridge(port=self.cfg.orb_ws_port)
+        self.orb.set_command_handler(self._handle_orb_command)
         await self.orb.start()
 
         # Audio
@@ -73,6 +74,7 @@ class JarvisVoice:
         )
 
         await self.orb.set_state("idle")
+        await self._broadcast_sessions()
         logger.info("All systems online. Listening for wake word...")
         self.running = True
 
@@ -111,7 +113,7 @@ class JarvisVoice:
             # 4. Check for voice commands (session management)
             cmd = parse_voice_command(transcript)
             if cmd:
-                response = self._handle_command(cmd.action, cmd.param)
+                response = await self._handle_command(cmd.action, cmd.param)
             else:
                 # 5. Think — query Claude with session persistence
                 await self.orb.set_state("thinking")
@@ -146,22 +148,23 @@ class JarvisVoice:
             session = self.sessions.active
             logger.info("Ready (session '%s', turn %d)", session.name, session.turn_count)
 
-    def _handle_command(self, action: str, param: str | None) -> str:
+    async def _handle_command(self, action: str, param: str | None) -> str:
         """Handle voice commands for session management."""
 
         if action == "create_session":
             name = param or "Untitled"
-            # Capitalize words for nicer display
             name = " ".join(w.capitalize() for w in name.split())
-            session = self.sessions.create_session(name)
+            self.sessions.create_session(name)
             self.conversation.clear()
-            return f"New session created: {session.name}. Ready for your instructions, sir."
+            await self._broadcast_sessions()
+            return f"New session created: {name}. Ready for your instructions, sir."
 
         if action == "switch_session":
             if not param:
                 return "Which session would you like to switch to, sir?"
             session = self.sessions.switch_to(param)
             if session:
+                await self._broadcast_sessions()
                 return f"Switched to session {session.name}, sir. Turn {session.turn_count}."
             return f"I couldn't find a session matching {param}, sir."
 
@@ -173,7 +176,7 @@ class JarvisVoice:
                 s = sessions[0]
                 return f"One session active: {s.name}, {s.turn_count} turns, {s.state}."
             parts = []
-            for s in sessions[:5]:  # Limit to 5 for spoken output
+            for s in sessions[:5]:
                 parts.append(f"{s.name}, {s.state}")
             return f"You have {len(sessions)} sessions, sir. " + ". ".join(parts) + "."
 
@@ -189,11 +192,40 @@ class JarvisVoice:
             if session:
                 session.reset()
                 self.conversation.clear()
+                await self._broadcast_sessions()
                 return "Conversation history cleared, sir. Starting with a clean slate."
             return "No active session to clear, sir."
 
         logger.warning("Unknown command action: %s", action)
         return "I'm not quite sure what you're asking me to do, sir."
+
+    async def _broadcast_sessions(self) -> None:
+        """Send current session list to the orb."""
+        if not self.orb:
+            return
+        sessions = [
+            {
+                "id": s.id,
+                "name": s.name,
+                "state": s.state,
+                "turn_count": s.turn_count,
+            }
+            for s in self.sessions.list_sessions()
+        ]
+        await self.orb.send_sessions(sessions)
+
+    def _handle_orb_command(self, command: str, msg: dict) -> None:
+        """Handle inbound commands from the orb UI (click-to-switch, etc.)."""
+        if command == "switch_session":
+            session_id = msg.get("session_id", "")
+            session = self.sessions.sessions.get(session_id)
+            if session:
+                self.sessions._activate(session)
+                self.conversation.clear()
+                logger.info("Orb UI switched to session '%s'", session.name)
+                # Schedule session broadcast
+                loop = asyncio.get_event_loop()
+                asyncio.run_coroutine_threadsafe(self._broadcast_sessions(), loop)
 
     async def shutdown(self) -> None:
         """Clean up all resources."""

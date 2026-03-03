@@ -1,15 +1,17 @@
 // JARVIS Energy Orb — WebSocket Client
 // Connects to ws://localhost:9000/orb with auto-reconnect
+// Bidirectional: receives state/amplitude/sessions, sends commands
 
 const WS_URL = 'ws://localhost:9000/orb';
 const RECONNECT_BASE = 1000; // 1s
 const RECONNECT_MAX = 10000; // 10s
 
 export class WebSocketClient {
-  constructor(onStateChange, onAmplitude, onAlert) {
+  constructor(onStateChange, onAmplitude, onAlert, onSessions) {
     this.onStateChange = onStateChange;
     this.onAmplitude = onAmplitude;
     this.onAlert = onAlert;
+    this.onSessions = onSessions || (() => {});
     this.ws = null;
     this.reconnectDelay = RECONNECT_BASE;
     this.reconnectTimer = null;
@@ -64,7 +66,7 @@ export class WebSocketClient {
       this.onStateChange(data.state);
     }
 
-    // { "amplitude": 0.5 } or { "state": "speaking", "amplitude": 0.73 }
+    // { "amplitude": 0.5 }
     if (data.amplitude !== undefined) {
       this.onAmplitude(data.amplitude);
     }
@@ -72,6 +74,18 @@ export class WebSocketClient {
     // { "alert": "vk-health", "level": "critical" }
     if (data.alert) {
       this.onAlert(data.alert, data.level);
+    }
+
+    // { "sessions": [...] }
+    if (data.sessions) {
+      this.onSessions(data.sessions);
+    }
+  }
+
+  /** Send a command to the pipeline (e.g., switch_session) */
+  send(command, payload = {}) {
+    if (this.ws && this.connected) {
+      this.ws.send(JSON.stringify({ command, ...payload }));
     }
   }
 
