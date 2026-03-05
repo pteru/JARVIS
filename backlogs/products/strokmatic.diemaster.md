@@ -1,6 +1,7 @@
 # DieMaster Backlog
 
 ## High Priority
+- [ ] [COMPLEX] FEAT-04: Develop diemaster-inference async ML worker (SENAI CT067/26) — New repo `strokmatic/diemaster-inference`, submodule in `diemaster/services/inference`. Async worker consuming from `inference-queue`, 4-stage pipeline (extract→preprocess→infer→result), Model Adapter pattern with 3 swap mechanisms (GenericAdapter JSON, plugin .py, built-in), 4 backends (PyTorch/TF/ONNX/TensorRT), Redis hot-reload, GPU support, 66+ tests. Spec: `backlogs/plans/diemaster-inference-spec.md`
 - [ ] [complex] SEC-01: Remove hardcoded credentials from entire codebase — 10+ locations with `skm@@2022`, `SmartDie@@2022`. GCP JSON in repo root.
 - [ ] [medium] SEC-02: Remove eval() usage in redis_handlers.py — Arbitrary code execution via Redis deserialization. Replace with json.loads/ast.literal_eval.
 - [ ] [complex] FW-01: Test and stabilize firmware implementations — Both firmware branches marked "untested". Unhandled error in hub state machine (app.c:814).
