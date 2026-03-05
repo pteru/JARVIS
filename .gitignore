@@ -50,6 +50,16 @@ Thumbs.db
 
 # Workspaces (embedded repos — managed separately)
 workspaces/*
+!workspaces/strokmatic/
+workspaces/strokmatic/*
+!workspaces/strokmatic/diemaster/
+workspaces/strokmatic/diemaster/*
+!workspaces/strokmatic/diemaster/services/
+workspaces/strokmatic/diemaster/services/*
+!workspaces/strokmatic/diemaster/services/inference/
+!workspaces/strokmatic/visionking/
+workspaces/strokmatic/visionking/*
+!workspaces/strokmatic/visionking/spark-test-topology/
 
 # VK Health Monitor data (snapshots)
 data/vk-health/
