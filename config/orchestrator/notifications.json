@@ -1,12 +1,12 @@
 {
-  "bot_manager_enabled": false,
+  "bot_manager_enabled": true,
   "enabled": true,
   "backends": {
     "telegram": {
       "enabled": true,
       "bot_token_file": "~/.secrets/telegram-bot-token",
       "chat_id_personal": "8051645832",
-      "chat_id": "-5179349649",
+      "chat_id": "8051645832",
       "inbound": {
         "enabled": true,
         "voice_transcription": {
