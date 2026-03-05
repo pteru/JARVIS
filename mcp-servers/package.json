@@ -6,7 +6,6 @@
     "backlog-manager",
     "changelog-reviewer",
     "changelog-writer",
-    "clickup-connector",
     "email-analyzer",
     "google-workspace",
     "model-learning-analyzer",

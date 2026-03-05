@@ -153,8 +153,7 @@ JARVIS/
 │   ├── workspace-analyzer/
 │   ├── email-analyzer/
 │   ├── self-improvement-miner/
-│   ├── model-learning-analyzer/
-│   └── clickup-connector/
+│   └── model-learning-analyzer/
 │
 ├── tools/                           # Python CLI tools
 │   ├── email-organizer/             # IMAP email ingestion (own .venv)
@@ -371,21 +370,9 @@ Learns from dispatch outcomes to suggest model routing improvements.
 | `apply_model_suggestion` | Apply suggestion to models.json (requires >=70% confidence) |
 | `reject_model_suggestion` | Mark suggestion rejected with reason |
 
-### clickup-connector (v1.0.0)
+### ClickUp (Official MCP)
 
-Bridges the orchestrator backlog with ClickUp project management.
-
-| Tool | Description |
-|------|-------------|
-| `discover_clickup_structure` | Discover ClickUp team/spaces/folders/lists |
-| `fetch_clickup_task` | Fetch task with PT-BR/English translation |
-| `push_task_to_clickup` | Create task in ClickUp with product routing |
-| `sync_task_status` | Bidirectional status sync |
-| `post_progress_update` | Post `[Orchestrator]` progress comments |
-| `update_task_description` | Update description with translation |
-| `link_backlog_to_clickup` | Cross-reference local backlog with ClickUp task IDs |
-
-**Status mapping**: pending ↔ "to do", running ↔ "in progress", verifying ↔ "in review", complete ↔ "complete".
+Uses the official ClickUp MCP server (`https://mcp.clickup.com/mcp`) with OAuth. JARVIS-specific business logic (product routing, status mapping, bilingual handling) is provided by the `/clickup` skill.
 
 ---
 
@@ -793,7 +780,6 @@ claude mcp add workspace-analyzer node ~/JARVIS/mcp-servers/workspace-analyzer/i
 claude mcp add email-analyzer node ~/JARVIS/mcp-servers/email-analyzer/index.js
 claude mcp add self-improvement-miner node ~/JARVIS/mcp-servers/self-improvement-miner/index.js
 claude mcp add model-learning-analyzer node ~/JARVIS/mcp-servers/model-learning-analyzer/index.js
-claude mcp add clickup-connector node ~/JARVIS/mcp-servers/clickup-connector/index.js
 claude mcp add changelog-reviewer node ~/JARVIS/mcp-servers/changelog-reviewer/index.js
 ```
 
