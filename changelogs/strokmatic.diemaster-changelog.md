@@ -2,6 +2,11 @@
 
 All notable changes to the strokmatic.diemaster workspace.
 
+## 2026-03-05
+
+### Added
+- Technical specification for `diemaster-inference` async ML worker (SENAI CT067/26) — full spec at `backlogs/plans/diemaster-inference-spec.md`
+
 ## 2026-02-26
 
 ### Added
