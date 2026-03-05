@@ -385,7 +385,7 @@ class NotifierServer {
         if (!tg?.enabled) {
           results.telegram = { success: false, error: "Telegram backend is disabled" };
         } else {
-          const route = await this.resolveRoute(config, domain || "task-dispatch");
+          const route = await this.resolveRoute(config, domain);
           if (!route?.bot_token || !route?.chat_id) {
             results.telegram = { success: false, error: "Missing bot_token or chat_id" };
           } else {

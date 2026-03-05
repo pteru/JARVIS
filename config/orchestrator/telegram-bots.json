@@ -2,16 +2,31 @@
   "default_bot": "jarvis-main",
   "bots": {
     "jarvis-main": {
-      "description": "General-purpose JARVIS bot (current)",
+      "description": "General-purpose JARVIS bot (fallback)",
       "bot_token_file": "~/.secrets/telegram-bot-tokens/jarvis-main",
-      "default_chat_id": "-5179349649"
+      "default_chat_id": "8051645832"
+    },
+    "jarvis-alerts": {
+      "description": "Critical alerts and health monitoring",
+      "bot_token_file": "~/.secrets/telegram-bot-tokens/jarvis-alerts",
+      "default_chat_id": "-1003505195531"
+    },
+    "jarvis-ops": {
+      "description": "Task dispatches, PR reviews, operational results",
+      "bot_token_file": "~/.secrets/telegram-bot-tokens/jarvis-ops",
+      "default_chat_id": "8051645832"
+    },
+    "jarvis-daily": {
+      "description": "Morning reports, daily summaries, inbound commands",
+      "bot_token_file": "~/.secrets/telegram-bot-tokens/jarvis-daily",
+      "default_chat_id": "8051645832"
     }
   },
   "domains": {
-    "vk-health":      { "bot": "jarvis-main", "description": "VK health monitoring alerts" },
-    "task-dispatch":   { "bot": "jarvis-main", "description": "Task completion/failure notifications" },
-    "morning-report":  { "bot": "jarvis-main", "description": "Daily morning briefing" },
-    "inbound":         { "bot": "jarvis-main", "description": "Inbound command polling and replies" },
-    "pr-review":       { "bot": "jarvis-main", "description": "PR review notifications" }
+    "vk-health":      { "bot": "jarvis-alerts", "description": "VK health monitoring alerts" },
+    "task-dispatch":   { "bot": "jarvis-ops", "description": "Task completion/failure notifications" },
+    "pr-review":       { "bot": "jarvis-ops", "description": "PR review notifications" },
+    "morning-report":  { "bot": "jarvis-daily", "description": "Daily morning briefing" },
+    "inbound":         { "bot": "jarvis-daily", "description": "Inbound command polling and replies" }
   }
 }

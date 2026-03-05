@@ -2,6 +2,24 @@
 
 All notable changes to the orchestrator workspace.
 
+## 2026-03-05
+
+### Added
+- Multi-bot Telegram routing (Phase 4): 4 bots registered (jarvis-main, jarvis-alerts, jarvis-ops, jarvis-daily) with domain-based routing to separate chats — alerts go to group, everything else to personal chat
+### Changed
+- Disabled VK health pipeline (03002 `enabled: false`) — VPN disconnect alerts were firing while monitoring is not needed
+- Enabled `bot_manager_enabled` in notifications.json — domain-based routing now active
+
+### Fixed
+- Updated Telegram group chat ID after supergroup migration (-5179349649 → -1003505195531)
+- Notifier test_notification no longer hardcodes `task-dispatch` domain fallback — unknown/missing domain correctly falls back to `default_bot`
+
+
+## 2026-03-03
+
+### Fixed
+- Google Workspace MCP: added `supportsAllDrives: true` to all `drive.files.*` API calls — fixes download/export failures for files on Shared Drives
+
 ## 2026-02-23
 
 ### Added
