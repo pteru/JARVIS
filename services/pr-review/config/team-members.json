@@ -1,0 +1,12 @@
+{
+  "members": [
+    { "github": "gui-strokmatic", "email": "guilherme.santos@strokmatic.com", "name": "Guilherme" },
+    { "github": "viniciussotero", "email": "vinicius.sotero@strokmatic.com", "name": "Vinicius Sotero" },
+    { "github": "williamabe-strokmatic", "email": "william.abe@strokmatic.com", "name": "William" },
+    { "github": "vanessa-strokmatic", "email": "vanessa.sousa@strokmatic.com", "name": "Vanessa" },
+    { "github": "poleto-strokmatic", "email": "poleto@strokmatic.com", "name": "Poleto" },
+    { "github": "arthur-strokmatic", "email": "arthur.mallmann@strokmatic.com", "name": "Arthur" },
+    { "github": "vinicius-figueredo", "email": "vinicius.figueredo@strokmatic.com", "name": "Vinicius Figueredo" },
+    { "github": "teruelskm", "email": "teruel@strokmatic.com", "name": "Pedro" }
+  ]
+}
