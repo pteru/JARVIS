@@ -6,6 +6,7 @@ import { parseDispatches } from './parsers/dispatches.js';
 import { parseBacklogs } from './parsers/backlogs.js';
 import { parseChangelogs } from './parsers/changelogs.js';
 import { parsePrInbox, parseArchivedReviews } from './parsers/pr-inbox.js';
+import { parseGitOverview, parseWorkspaceDetail, parseGitCompare, parseGitTimeline, clearGitCache } from './parsers/git-status.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ORCHESTRATOR_HOME = process.env.ORCHESTRATOR_HOME || path.join(process.env.HOME, 'JARVIS');
@@ -115,6 +116,61 @@ app.get('/api/notifications', async (_req, res) => {
   } catch {
     res.json([]);
   }
+});
+
+// API: Git Overview
+app.get('/api/git/overview', async (_req, res) => {
+  try {
+    const data = await parseGitOverview();
+    res.json(data);
+  } catch (err) {
+    console.error('Error scanning git overview:', err.message);
+    res.json({ summary: { total: 0, available: 0, dirty: 0, featureBranches: 0, syncIssues: 0 }, byProduct: {}, workspaces: [], scannedAt: null });
+  }
+});
+
+// API: Git Workspace Detail (DAG)
+app.get('/api/git/workspace/:name', async (req, res) => {
+  try {
+    const data = await parseWorkspaceDetail(req.params.name);
+    if (!data) return res.status(404).json({ error: 'Workspace not found' });
+    res.json(data);
+  } catch (err) {
+    console.error('Error scanning workspace:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// API: Git Branch Comparison
+app.get('/api/git/compare/:name', async (req, res) => {
+  try {
+    const { base, head } = req.query;
+    if (!base || !head) return res.status(400).json({ error: 'base and head query params required' });
+    const data = await parseGitCompare(req.params.name, base, head);
+    if (!data) return res.status(404).json({ error: 'Workspace not found' });
+    res.json(data);
+  } catch (err) {
+    console.error('Error comparing branches:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// API: Git Timeline
+app.get('/api/git/timeline', async (req, res) => {
+  try {
+    const since = parseInt(req.query.since) || 30;
+    const data = await parseGitTimeline(since);
+    res.json(data);
+  } catch (err) {
+    console.error('Error generating timeline:', err.message);
+    res.json({ commits: [], sinceDays: 30, generatedAt: null });
+  }
+});
+
+// API: Clear git cache (for refresh button)
+app.post('/api/git/refresh', (_req, res) => {
+  clearGitCache();
+  res.json({ cleared: true });
 });
 
 app.listen(PORT, () => {
