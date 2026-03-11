@@ -92,3 +92,12 @@
   scrollbar-width: thin;
   scrollbar-color: #4b5563 #1a1b2e;
 }
+
+/* Git page active states */
+.view-tab { color: #6b7280; }
+.view-tab.active { background: #6c63ff; color: white; }
+.view-tab:not(.active):hover { background: rgba(107, 114, 128, 0.2); }
+
+.product-filter { color: #6b7280; background: transparent; }
+.product-filter.active { background: rgba(108, 99, 255, 0.2); color: #6c63ff; border-color: #6c63ff; }
+.product-filter:not(.active):hover { background: rgba(107, 114, 128, 0.15); }
