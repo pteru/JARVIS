@@ -1,0 +1,15 @@
+{
+  "name": "jarvis-pr-review-service",
+  "version": "1.0.0",
+  "description": "Remote PR review service with Google Drive output and Chat notifications",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "upload": "node upload-to-drive.mjs",
+    "notify-chat": "node notify-chat.mjs",
+    "build-inbox": "node build-inbox.mjs"
+  },
+  "dependencies": {
+    "googleapis": "^144.0.0"
+  }
+}

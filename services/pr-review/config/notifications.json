@@ -1,0 +1,15 @@
+{
+  "enabled": true,
+  "telegram": {
+    "enabled": true,
+    "bot_token_file": "~/.secrets/telegram-bot-token",
+    "chat_id": "8051645832"
+  },
+  "google_chat": {
+    "enabled": true,
+    "service_account_file": "credentials/gcp-service-account.json",
+    "impersonate": "pedro@lumesolutions.com"
+  },
+  "cooldown_minutes": 30,
+  "heartbeat_interval_hours": 6
+}
