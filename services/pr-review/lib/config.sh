@@ -8,6 +8,7 @@ SERVICE_DIR="${SERVICE_DIR:-/opt/jarvis-pr-review}"
 # Data paths
 DATA_DIR="$SERVICE_DIR/data"
 REVIEWS_DIR="$SERVICE_DIR/reviews"
+ARCHIVE_DIR="$SERVICE_DIR/reviews/archive"
 REPORTS_DIR="$SERVICE_DIR/reports"
 LOGS_DIR="$SERVICE_DIR/logs"
 
@@ -17,6 +18,7 @@ MODELS_CONFIG="$SERVICE_DIR/config/models.json"
 NOTIFICATIONS_CONFIG="$SERVICE_DIR/config/notifications.json"
 TEAM_MEMBERS_CONFIG="$SERVICE_DIR/config/team-members.json"
 CLAUDE_MD_DIR="$SERVICE_DIR/config/claude-md"
+SERVICE_CONFIG="$SERVICE_DIR/config/service.json"
 CREDENTIALS_DIR="$SERVICE_DIR/credentials"
 
 # Data files
@@ -28,4 +30,4 @@ STATE_FILE="$DATA_DIR/state.json"
 ORG="strokmatic"
 
 # Ensure directories exist
-mkdir -p "$DATA_DIR" "$REVIEWS_DIR" "$REPORTS_DIR" "$LOGS_DIR"
+mkdir -p "$DATA_DIR" "$REVIEWS_DIR" "$ARCHIVE_DIR" "$REPORTS_DIR" "$LOGS_DIR"
