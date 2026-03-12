@@ -7,6 +7,7 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib/config.sh"
 source "$SCRIPT_DIR/lib/review-metadata.sh"
+source "$SCRIPT_DIR/lib/pr-context.sh"
 
 log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] [review] $*"; }
 
@@ -136,6 +137,128 @@ review_is_current() {
     fi
 }
 
+# Archive the current review file before overwriting it.
+# Gated by the archive_review_versions feature flag.
+# Args:
+#   $1 - repo name
+#   $2 - PR number
+#   $3 - review file path
+archive_previous_review() {
+    local repo="$1"
+    local number="$2"
+    local review_file="$3"
+
+    if [[ ! -f "$review_file" ]]; then
+        return 0
+    fi
+
+    # Check feature flag
+    local archive_enabled
+    archive_enabled=$(node -e "
+        const c = JSON.parse(require('fs').readFileSync('$SERVICE_CONFIG','utf-8'));
+        console.log(c.archive_review_versions === true ? 'true' : 'false');
+    " 2>/dev/null || echo "false")
+
+    if [[ "$archive_enabled" != "true" ]]; then
+        return 0
+    fi
+
+    local version
+    version=$(read_review_metadata "$repo" "$number" "current_version")
+    if [[ -z "$version" ]]; then
+        version="0"
+    fi
+
+    local archive_subdir="$ARCHIVE_DIR/${repo}-${number}"
+    mkdir -p "$archive_subdir"
+    cp "$review_file" "$archive_subdir/v${version}.md"
+    log "  Archived previous review as v${version}: $archive_subdir/v${version}.md"
+}
+
+# Build a contextual re-review prompt that includes the previous review,
+# new commits since last review, and PR comments.
+# Gated by the re_review_include_previous feature flag.
+# Args:
+#   $1 - repo name
+#   $2 - PR number
+#   $3 - review file path (previous review)
+#   $4 - title
+#   $5 - complexity
+# Output: the contextual prompt section to stdout, or empty if flag is off / no previous review
+build_rereview_context() {
+    local repo="$1"
+    local number="$2"
+    local review_file="$3"
+    local title="$4"
+    local complexity="$5"
+
+    # Not a re-review if no previous review exists
+    if [[ ! -f "$review_file" ]]; then
+        return 0
+    fi
+
+    # Check feature flag
+    local flag_value
+    flag_value=$(node -e "
+        const c = JSON.parse(require('fs').readFileSync('$SERVICE_CONFIG','utf-8'));
+        console.log(c.re_review_include_previous === true ? 'true' : 'false');
+    " 2>/dev/null || echo "false")
+
+    if [[ "$flag_value" != "true" ]]; then
+        return 0
+    fi
+
+    # Gather metadata from previous review
+    local prev_version prev_date prev_sha
+    prev_version=$(read_review_metadata "$repo" "$number" "current_version")
+    prev_date=$(read_review_metadata "$repo" "$number" "current_reviewed_at")
+    prev_sha=$(read_review_metadata "$repo" "$number" "current_head_sha")
+
+    if [[ -z "$prev_version" ]]; then
+        prev_version="1"
+    fi
+    if [[ -z "$prev_date" ]]; then
+        prev_date="unknown"
+    fi
+
+    local previous_content
+    previous_content=$(cat "$review_file")
+
+    # Fetch new commits and PR comments
+    local new_commits=""
+    if [[ -n "$prev_sha" ]]; then
+        new_commits=$(fetch_commits_since "$repo" "$number" "$prev_sha")
+    else
+        new_commits="(Previous review SHA not available — showing full diff)"
+    fi
+
+    local pr_comments
+    pr_comments=$(fetch_pr_comments "$repo" "$number")
+
+    # Build the contextual section
+    cat <<CONTEXT_EOF
+## Previous Review (v${prev_version}, reviewed ${prev_date})
+
+${previous_content}
+
+## Changes Since Previous Review
+
+### New Commits (since ${prev_sha:-unknown})
+${new_commits}
+
+### PR Comments
+${pr_comments}
+
+---
+
+You are RE-REVIEWING PR #${number} in strokmatic/${repo}.
+Focus on NEW CHANGES since commit ${prev_sha:-unknown}.
+Acknowledge previously-raised findings that have been addressed.
+Note any findings from the previous review that remain unresolved.
+
+CONTEXT_EOF
+}
+
 # Review a single PR
 review_single_pr() {
     local repo="$1"
@@ -161,8 +284,17 @@ review_single_pr() {
     local product
     product=$(map_repo_to_product "$repo")
 
+    # Detect if this is a re-review (previous review exists but is stale)
+    local is_rereview="false"
+    if [[ -f "$review_file" ]]; then
+        is_rereview="true"
+    fi
+
     log "Reviewing $repo#$number: $title"
     log "  Size: +$additions/-$deletions, $changed_files files | Complexity: $complexity | Product: ${product:-unknown}"
+    if [[ "$is_rereview" == "true" ]]; then
+        log "  Mode: re-review (previous review exists)"
+    fi
 
     # Build review prompt with embedded CLAUDE.md context
     local review_prompt=""
@@ -174,7 +306,64 @@ review_single_pr() {
         log "  Embedded CLAUDE.md for product: $product"
     fi
 
-    review_prompt+="$(cat <<PROMPT_EOF
+    # Build contextual re-review prompt if applicable
+    local rereview_context=""
+    if [[ "$is_rereview" == "true" ]]; then
+        rereview_context=$(build_rereview_context "$repo" "$number" "$review_file" "$title" "$complexity")
+    fi
+
+    if [[ -n "$rereview_context" ]]; then
+        # Contextual re-review prompt: includes previous review + delta instructions
+        review_prompt+="${rereview_context}"
+        review_prompt+="$(cat <<PROMPT_EOF
+Steps:
+1. Run: gh pr view ${number} --repo strokmatic/${repo}
+2. Run: gh pr diff ${number} --repo strokmatic/${repo}
+3. Review the FULL diff but focus your attention on changes since the previous review.
+4. Output the complete review to stdout (do NOT use Write tool or Bash to write files).
+
+Output the review in EXACTLY this format:
+
+# PR Review: ${repo}#${number}
+**Title:** ${title}
+**Reviewed:** $(date -Iseconds)
+**Complexity:** ${complexity}
+
+## Summary
+<2-3 sentence summary of what this PR does>
+
+## Findings
+
+### Critical
+<list critical issues or "None">
+
+### Warnings
+<list warnings or "None">
+
+### Suggestions
+<list suggestions or "None">
+
+## Delta from Previous Review
+
+### Addressed Findings
+<list findings from previous review that have been resolved, or "None">
+
+### Unresolved Findings
+<list findings from previous review that remain unresolved, or "None">
+
+### New Findings
+<list new issues found in changes since the previous review, or "None">
+
+## Verdict
+<One of: APPROVE | APPROVE WITH COMMENTS | CHANGES REQUESTED>
+
+<Brief justification for verdict>
+PROMPT_EOF
+)"
+        log "  Prompt: contextual re-review (with previous review context)"
+    else
+        # Standard first-review or re-review without context (flag off)
+        review_prompt+="$(cat <<PROMPT_EOF
 You are reviewing Pull Request #${number} in the repository strokmatic/${repo}.
 
 Steps:
@@ -214,12 +403,18 @@ Output the review in EXACTLY this format:
 <Brief justification for verdict>
 PROMPT_EOF
 )"
+    fi
 
     # Determine model from complexity
     local model
     model=$("$SCRIPT_DIR/model-selector.sh" "$complexity" "code review" 2>/dev/null || echo "sonnet")
 
     log "  Model: $model"
+
+    # Archive previous review before overwriting (if applicable)
+    if [[ "$is_rereview" == "true" ]]; then
+        archive_previous_review "$repo" "$number" "$review_file"
+    fi
 
     # Run Claude — no workspace cd needed, the prompt embeds all context
     mkdir -p "$(dirname "$review_file")"
