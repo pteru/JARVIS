@@ -11,7 +11,7 @@ if [[ -z "$FILE" || ! -f "$FILE" ]]; then
     exit 1
 fi
 
-awk '
+CLEANED=$(awk '
     BEGIN { in_review = 0; skip_tail = 0 }
 
     # Start capturing at the review header
@@ -26,4 +26,11 @@ awk '
 
     # Print lines that are inside the review and not skipped
     in_review && !skip_tail { print }
-' "$FILE" | sed -e :a -e '/^[[:space:]]*$/{ $d; N; ba; }'
+' "$FILE")
+
+# If no "# PR Review:" header was found, pass content through as-is
+if [[ -z "$CLEANED" ]]; then
+    cat "$FILE"
+else
+    echo "$CLEANED" | sed -e :a -e '/^[[:space:]]*$/{ $d; N; ba; }'
+fi

@@ -2,6 +2,9 @@
 # Deploy the PR review service to the remote infrastructure server.
 # Target: strokmatic@192.168.15.2:/opt/jarvis-pr-review/
 #
+# Uses sshpass for password-based SSH auth.
+# Password is read from ~/.secrets/vk-ssh-password (same as VK health monitor).
+#
 # Steps:
 # 1. Build stripped workspaces.json
 # 2. Copy CLAUDE.md files from workspace repos
@@ -14,6 +17,11 @@
 # 9. Set file permissions
 # 10. Smoke test (fetch only)
 set -euo pipefail
+
+AUTO_CONFIRM=false
+if [[ "${1:-}" == "--yes" || "${1:-}" == "-y" ]]; then
+    AUTO_CONFIRM=true
+fi
 
 ORCHESTRATOR_HOME="${ORCHESTRATOR_HOME:-$HOME/JARVIS}"
 SERVICE_SRC="$ORCHESTRATOR_HOME/services/pr-review"
@@ -31,6 +39,34 @@ log_info() { echo -e "${GREEN}[INFO]${NC} $1"; }
 log_warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
+# ─── SSH with password ───────────────────────────────────────────────────────
+SSH_PASS_FILE="$HOME/.secrets/vk-ssh-password"
+if [[ ! -f "$SSH_PASS_FILE" ]]; then
+    log_error "SSH password file not found at $SSH_PASS_FILE"
+    exit 1
+fi
+
+if ! command -v sshpass &>/dev/null; then
+    log_error "sshpass not installed (sudo apt install sshpass)"
+    exit 1
+fi
+
+SSH_PASS=$(cat "$SSH_PASS_FILE")
+SSH_OPTS="-o PreferredAuthentications=password -o PubkeyAuthentication=no -o StrictHostKeyChecking=accept-new"
+
+# Wrapper functions for remote commands
+remote_ssh() {
+    sshpass -p "$SSH_PASS" ssh $SSH_OPTS "$REMOTE" "$@"
+}
+
+remote_rsync() {
+    sshpass -p "$SSH_PASS" rsync -e "ssh $SSH_OPTS" "$@"
+}
+
+remote_scp() {
+    sshpass -p "$SSH_PASS" scp -o PreferredAuthentications=password -o PubkeyAuthentication=no "$@"
+}
+
 # ─── Pre-flight checks ──────────────────────────────────────────────────────
 log_info "Pre-flight checks..."
 
@@ -39,7 +75,7 @@ if ! ping -c 1 -W 3 "$REMOTE_HOST" &>/dev/null; then
     exit 1
 fi
 
-if ! ssh -o ConnectTimeout=5 "$REMOTE" "echo ok" &>/dev/null; then
+if ! remote_ssh "echo ok" &>/dev/null; then
     log_error "SSH connection to $REMOTE failed"
     exit 1
 fi
@@ -112,20 +148,24 @@ done < <(find "$SERVICE_SRC" -type f \( -name '*.sh' -o -name '*.mjs' -o -name '
     -print0)
 
 if [[ "$LEAK_FOUND" == "true" ]]; then
-    log_warn "Secret scan found potential leaks — review before continuing"
-    read -r -p "Continue deployment? [y/N] " confirm
-    if [[ "$confirm" != "y" && "$confirm" != "Y" ]]; then
-        log_error "Deployment aborted by user"
-        exit 1
+    log_warn "Secret scan found potential leaks — review above"
+    if [[ "$AUTO_CONFIRM" == "true" ]]; then
+        log_info "  Auto-confirmed (--yes flag)"
+    else
+        read -r -p "Continue deployment? [y/N] " confirm
+        if [[ "$confirm" != "y" && "$confirm" != "Y" ]]; then
+            log_error "Deployment aborted by user"
+            exit 1
+        fi
     fi
 fi
 
 # ─── Step 4: rsync service files ────────────────────────────────────────────
 log_info "Step 4/10: Syncing service files to $REMOTE:$REMOTE_DIR"
 
-ssh "$REMOTE" "sudo mkdir -p $REMOTE_DIR && sudo chown $REMOTE_USER:$REMOTE_USER $REMOTE_DIR"
+remote_ssh "echo '$SSH_PASS' | sudo -S mkdir -p $REMOTE_DIR && echo '$SSH_PASS' | sudo -S chown $REMOTE_USER:$REMOTE_USER $REMOTE_DIR"
 
-rsync -avz --delete \
+remote_rsync -avz --delete \
     --exclude 'data/' \
     --exclude 'reviews/' \
     --exclude 'reports/' \
@@ -142,9 +182,9 @@ log_info "Step 5/10: Deploying credentials"
 
 GCP_KEY="$ORCHESTRATOR_HOME/config/credentials/gcp-service-account.json"
 if [[ -f "$GCP_KEY" ]]; then
-    ssh "$REMOTE" "mkdir -p $REMOTE_DIR/credentials"
-    scp "$GCP_KEY" "$REMOTE:$REMOTE_DIR/credentials/gcp-service-account.json"
-    ssh "$REMOTE" "chmod 600 $REMOTE_DIR/credentials/gcp-service-account.json"
+    remote_ssh "mkdir -p $REMOTE_DIR/credentials"
+    remote_scp "$GCP_KEY" "$REMOTE:$REMOTE_DIR/credentials/gcp-service-account.json"
+    remote_ssh "chmod 600 $REMOTE_DIR/credentials/gcp-service-account.json"
     log_info "  GCP service account key deployed"
 else
     log_warn "  GCP key not found at $GCP_KEY — Drive upload will fail"
@@ -155,9 +195,9 @@ log_info "Step 6/10: Deploying Telegram bot token"
 
 LOCAL_TOKEN="$HOME/.secrets/telegram-bot-token"
 if [[ -f "$LOCAL_TOKEN" ]]; then
-    ssh "$REMOTE" "mkdir -p ~/.secrets"
-    scp "$LOCAL_TOKEN" "$REMOTE:~/.secrets/telegram-bot-token"
-    ssh "$REMOTE" "chmod 600 ~/.secrets/telegram-bot-token"
+    remote_ssh "mkdir -p ~/.secrets"
+    remote_scp "$LOCAL_TOKEN" "$REMOTE:~/.secrets/telegram-bot-token"
+    remote_ssh "chmod 600 ~/.secrets/telegram-bot-token"
     log_info "  Telegram token deployed"
 else
     log_warn "  Local token not found at $LOCAL_TOKEN"
@@ -166,28 +206,29 @@ fi
 # ─── Step 7: npm install on remote ──────────────────────────────────────────
 log_info "Step 7/10: Installing npm dependencies"
 
-ssh "$REMOTE" "cd $REMOTE_DIR && npm install --production" 2>&1 | while IFS= read -r line; do
+remote_ssh "source ~/.nvm/nvm.sh && cd $REMOTE_DIR && npm install --production" 2>&1 | while IFS= read -r line; do
     echo "  [remote] $line"
 done
 
 # ─── Step 8: Set up cron ────────────────────────────────────────────────────
 log_info "Step 8/10: Setting up cron job"
 
-CRON_ENTRY="*/5 * * * * $REMOTE_DIR/run.sh >> $REMOTE_DIR/logs/cron.log 2>&1"
+# Cron needs nvm sourced to find node/claude
+CRON_ENTRY="*/5 * * * * source /home/strokmatic/.nvm/nvm.sh && $REMOTE_DIR/run.sh >> $REMOTE_DIR/logs/cron.log 2>&1"
 
 # Check if cron entry already exists
-if ssh "$REMOTE" "crontab -l 2>/dev/null | grep -qF 'jarvis-pr-review/run.sh'"; then
+if remote_ssh "crontab -l 2>/dev/null | grep -qF 'jarvis-pr-review/run.sh'"; then
     log_info "  Cron entry already exists — updating"
-    ssh "$REMOTE" "crontab -l 2>/dev/null | grep -vF 'jarvis-pr-review/run.sh' | { cat; echo '$CRON_ENTRY'; } | crontab -"
+    remote_ssh "crontab -l 2>/dev/null | grep -vF 'jarvis-pr-review/run.sh' | { cat; echo '$CRON_ENTRY'; } | crontab -"
 else
     log_info "  Adding cron entry"
-    ssh "$REMOTE" "{ crontab -l 2>/dev/null; echo '$CRON_ENTRY'; } | crontab -"
+    remote_ssh "{ crontab -l 2>/dev/null; echo '$CRON_ENTRY'; } | crontab -"
 fi
 
 # ─── Step 9: Set file permissions ────────────────────────────────────────────
 log_info "Step 9/10: Setting file permissions"
 
-ssh "$REMOTE" "
+remote_ssh "
     chmod +x $REMOTE_DIR/run.sh
     chmod +x $REMOTE_DIR/fetch-open-prs.sh
     chmod +x $REMOTE_DIR/review-pr.sh
@@ -200,10 +241,10 @@ ssh "$REMOTE" "
 # ─── Step 10: Smoke test ────────────────────────────────────────────────────
 log_info "Step 10/10: Running smoke test (fetch only)"
 
-SMOKE_RESULT=$(ssh "$REMOTE" "
+SMOKE_RESULT=$(remote_ssh "
+    source ~/.nvm/nvm.sh
     export SERVICE_DIR=$REMOTE_DIR
     cd $REMOTE_DIR
-    # Test that fetch script runs
     bash fetch-open-prs.sh 2>&1 | tail -3
 " 2>&1 || echo "SMOKE TEST FAILED")
 
