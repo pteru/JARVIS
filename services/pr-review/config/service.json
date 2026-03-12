@@ -1,0 +1,8 @@
+{
+  "auto_post_github": false,
+  "auto_label_prs": false,
+  "build_check_enabled": false,
+  "build_check_repos": [],
+  "re_review_include_previous": true,
+  "archive_review_versions": true
+}

@@ -6,6 +6,7 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib/config.sh"
+source "$SCRIPT_DIR/lib/review-metadata.sh"
 
 log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] [review] $*"; }
 
@@ -84,15 +85,45 @@ get_complexity() {
     fi
 }
 
-# Check if review is stale (PR updated after review was written)
+# Check if review is current using commit SHA comparison.
+# Falls back to mtime-based check for reviews without metadata (backward compat).
+# Args:
+#   $1 - review file path
+#   $2 - PR updated_at timestamp (for mtime fallback)
+#   $3 - PR head_sha (optional, for SHA-based comparison)
 review_is_current() {
     local review_file="$1"
     local pr_updated_at="$2"
+    local pr_head_sha="${3:-}"
 
     if [[ ! -f "$review_file" ]]; then
         return 1  # No review exists
     fi
 
+    # Extract repo-number from review file path for metadata lookup
+    local basename
+    basename=$(basename "$review_file" .md)
+
+    # SHA-based check: compare current head SHA with reviewed head SHA
+    if [[ -n "$pr_head_sha" ]]; then
+        local reviewed_sha
+        # Parse repo and number from basename (e.g. "my-repo-123" -> repo="my-repo" number="123")
+        local repo number
+        number="${basename##*-}"
+        repo="${basename%-*}"
+        reviewed_sha=$(read_review_metadata "$repo" "$number" "current_head_sha")
+
+        if [[ -n "$reviewed_sha" ]]; then
+            if [[ "$reviewed_sha" == "$pr_head_sha" ]]; then
+                return 0  # Review matches current head SHA — current
+            else
+                return 1  # SHA mismatch — stale, needs re-review
+            fi
+        fi
+        # No metadata SHA found — fall through to mtime check
+    fi
+
+    # Fallback: mtime-based check for reviews without metadata
     local review_mtime
     review_mtime=$(date -r "$review_file" +%s 2>/dev/null || stat -c %Y "$review_file" 2>/dev/null || echo 0)
     local pr_epoch
@@ -114,11 +145,12 @@ review_single_pr() {
     local deletions="$5"
     local changed_files="$6"
     local updated_at="$7"
+    local head_sha="${8:-}"
 
     local review_file="$REVIEWS_DIR/${repo}-${number}.md"
 
-    # Check if already reviewed and current
-    if review_is_current "$review_file" "$updated_at"; then
+    # Check if already reviewed and current (SHA-based with mtime fallback)
+    if review_is_current "$review_file" "$updated_at" "$head_sha"; then
         log "Skipping $repo#$number — review is current"
         return 0
     fi
@@ -211,6 +243,14 @@ PROMPT_EOF
     fi
 
     mv -f "$tmp_review" "$review_file"
+
+    # Write review metadata sidecar with the head SHA
+    if write_review_metadata "$repo" "$number" "$head_sha"; then
+        log "Metadata written: ${repo}-${number}.meta.json"
+    else
+        log "WARNING: Failed to write metadata for $repo#$number"
+    fi
+
     log "Review complete: $review_file"
 }
 
@@ -226,7 +266,7 @@ if [[ "$MODE" == "all" ]]; then
         const prs = inbox.pull_requests || [];
         const toReview = prs.filter(pr => !pr.is_draft && pr.review_decision !== 'APPROVED');
         toReview.forEach(pr => {
-            console.log([pr.repo, pr.number, pr.title, pr.additions, pr.deletions, pr.changed_files, pr.updated_at].join('\t'));
+            console.log([pr.repo, pr.number, pr.title, pr.additions, pr.deletions, pr.changed_files, pr.updated_at, pr.head_sha || ''].join('\t'));
         });
     " 2>/dev/null || true)
 
@@ -239,12 +279,12 @@ if [[ "$MODE" == "all" ]]; then
     log "$TOTAL PR(s) to review"
 
     CURRENT=0
-    while IFS=$'\t' read -r repo number title additions deletions changed_files updated_at; do
+    while IFS=$'\t' read -r repo number title additions deletions changed_files updated_at head_sha; do
         CURRENT=$((CURRENT + 1))
         log "[$CURRENT/$TOTAL] $repo#$number"
 
-        if review_single_pr "$repo" "$number" "$title" "$additions" "$deletions" "$changed_files" "$updated_at"; then
-            if review_is_current "$REVIEWS_DIR/${repo}-${number}.md" "$updated_at" 2>/dev/null; then
+        if review_single_pr "$repo" "$number" "$title" "$additions" "$deletions" "$changed_files" "$updated_at" "$head_sha"; then
+            if review_is_current "$REVIEWS_DIR/${repo}-${number}.md" "$updated_at" "$head_sha" 2>/dev/null; then
                 REVIEWED=$((REVIEWED + 1))
             else
                 SKIPPED=$((SKIPPED + 1))
@@ -261,7 +301,7 @@ else
         const inbox = JSON.parse(require('fs').readFileSync('$INBOX_FILE', 'utf-8'));
         const pr = (inbox.pull_requests || []).find(p => p.repo === '$TARGET_REPO' && p.number === $TARGET_PR);
         if (pr) {
-            console.log([pr.repo, pr.number, pr.title, pr.additions, pr.deletions, pr.changed_files, pr.updated_at].join('\t'));
+            console.log([pr.repo, pr.number, pr.title, pr.additions, pr.deletions, pr.changed_files, pr.updated_at, pr.head_sha || ''].join('\t'));
         } else {
             process.exit(1);
         }
@@ -272,6 +312,6 @@ else
         exit 1
     fi
 
-    IFS=$'\t' read -r repo number title additions deletions changed_files updated_at <<< "$PR_DATA"
-    review_single_pr "$repo" "$number" "$title" "$additions" "$deletions" "$changed_files" "$updated_at"
+    IFS=$'\t' read -r repo number title additions deletions changed_files updated_at head_sha <<< "$PR_DATA"
+    review_single_pr "$repo" "$number" "$title" "$additions" "$deletions" "$changed_files" "$updated_at" "$head_sha"
 fi

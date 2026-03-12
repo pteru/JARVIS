@@ -36,7 +36,7 @@ for REPO in $REPOS; do
     PR_JSON=$(gh pr list \
         --repo "$ORG/$REPO" \
         --state open \
-        --json number,title,author,createdAt,updatedAt,headRefName,baseRefName,additions,deletions,changedFiles,url,isDraft,reviewDecision \
+        --json number,title,author,createdAt,updatedAt,headRefName,baseRefName,headRefOid,additions,deletions,changedFiles,url,isDraft,reviewDecision,labels,comments \
         2>/dev/null || echo "[]")
 
     PR_COUNT=$(echo "$PR_JSON" | node -e "
@@ -62,12 +62,15 @@ for REPO in $REPOS; do
                 updated_at: pr.updatedAt,
                 head: pr.headRefName,
                 base: pr.baseRefName,
+                head_sha: pr.headRefOid || '',
                 additions: pr.additions || 0,
                 deletions: pr.deletions || 0,
                 changed_files: pr.changedFiles || 0,
                 url: pr.url,
                 is_draft: pr.isDraft || false,
-                review_decision: pr.reviewDecision || ''
+                review_decision: pr.reviewDecision || '',
+                labels: (pr.labels || []).map(l => l.name),
+                comments_count: (pr.comments || []).length
             }));
             console.log(JSON.stringify([...existing, ...mapped]));
         " "$ALL_PRS" "$REPO" <<< "$PR_JSON" 2>/dev/null || echo "$ALL_PRS")
