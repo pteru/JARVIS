@@ -153,9 +153,9 @@ Steps:
    - **Security (OWASP)**: Injection, auth issues, secrets exposure, input validation
    - **Standards compliance**: Code style, naming conventions, error handling patterns
    - **Test coverage**: Are new paths tested? Are existing tests updated?
-4. Write the review to: ${review_file}
+4. Output the complete review to stdout (do NOT use Write tool or Bash to write files).
 
-The review file must follow this format:
+Output the review in EXACTLY this format:
 
 # PR Review: ${repo}#${number}
 **Title:** ${title}

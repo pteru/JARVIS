@@ -124,11 +124,13 @@ if [[ "$EXIT_STATUS" -eq 0 ]]; then
     log "Step 3/8: Reviewing PRs"
     STEP_START=$(date +%s)
 
-    # Count reviews before
+    # Snapshot review count before running
     REVIEWS_BEFORE=0
     if [[ -d "$REVIEWS_DIR" ]]; then
-        REVIEWS_BEFORE=$(find "$REVIEWS_DIR" -name '*.md' -newer "$PREV_INBOX_FILE" -type f 2>/dev/null | wc -l | tr -d ' ' || echo 0)
+        REVIEWS_BEFORE=$(find "$REVIEWS_DIR" -name '*.md' -type f 2>/dev/null | wc -l | tr -d ' ')
     fi
+    # Mark time before reviews start (for mtime comparison)
+    REVIEW_TIMESTAMP=$(date +%s)
 
     if "$SCRIPT_DIR/review-pr.sh" --all >> "$LOG_FILE" 2>&1; then
         STEP_DURATION=$(($(date +%s) - STEP_START))
@@ -139,10 +141,17 @@ if [[ "$EXIT_STATUS" -eq 0 ]]; then
         # Don't set EXIT_STATUS — partial reviews are still useful
     fi
 
-    # Count new reviews
-    REVIEWS_AFTER=$(find "$REVIEWS_DIR" -name '*.md' -newer "$PREV_INBOX_FILE" -type f 2>/dev/null | wc -l | tr -d ' ' || echo 0)
-    NEW_REVIEWS=$((REVIEWS_AFTER - REVIEWS_BEFORE))
-    if [[ $NEW_REVIEWS -lt 0 ]]; then NEW_REVIEWS=0; fi
+    # Count reviews written/updated during this run (mtime >= REVIEW_TIMESTAMP)
+    NEW_REVIEWS=0
+    if [[ -d "$REVIEWS_DIR" ]]; then
+        NEW_REVIEWS=$(find "$REVIEWS_DIR" -name '*.md' -type f -newermt "@${REVIEW_TIMESTAMP}" 2>/dev/null | wc -l | tr -d ' ')
+    fi
+    # Fallback: if find -newermt not supported, compare total counts
+    if [[ "$NEW_REVIEWS" -eq 0 ]]; then
+        REVIEWS_AFTER=$(find "$REVIEWS_DIR" -name '*.md' -type f 2>/dev/null | wc -l | tr -d ' ')
+        NEW_REVIEWS=$((REVIEWS_AFTER - REVIEWS_BEFORE))
+        if [[ $NEW_REVIEWS -lt 0 ]]; then NEW_REVIEWS=0; fi
+    fi
     log "New reviews generated: $NEW_REVIEWS"
 fi
 
