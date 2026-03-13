@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  pr-review-dashboard:
+    build: .
+    container_name: jarvis-pr-review-dashboard
+    ports:
+      - "8091:8091"
+    volumes:
+      # Mount the PR review service data directory (read-only)
+      - /opt/jarvis-pr-review:/data/service:ro
+      # Mount gh CLI auth for GitHub API calls (actions endpoints)
+      - /home/strokmatic/.config/gh:/root/.config/gh:ro
+    environment:
+      - SERVICE_DATA_DIR=/data/service
+      - PORT=8091
+    restart: unless-stopped
