@@ -1,6 +1,6 @@
 #!/bin/bash
 # PR Review Service — Pipeline Orchestrator
-# Runs the full pipeline: fetch → detect → review → post → label → report → upload → chat → notify → housekeep
+# Runs the full pipeline: fetch → detect → review → build-check → post → label → report → upload → chat → notify → housekeep
 # Uses flock-based locking to prevent overlapping runs.
 # Designed to run via cron every 5 minutes on 192.168.15.2.
 #
@@ -61,7 +61,7 @@ EXIT_STATUS=0
 NEW_REVIEWS=0
 
 # ─── Step 1: Fetch open PRs ─────────────────────────────────────────────────
-log "Step 1/10: Fetching open PRs"
+log "Step 1/11: Fetching open PRs"
 STEP_START=$(date +%s)
 if "$SCRIPT_DIR/fetch-open-prs.sh" >> "$LOG_FILE" 2>&1; then
     STEP_DURATION=$(($(date +%s) - STEP_START))
@@ -76,15 +76,15 @@ fi
 CHANGES_DETECTED=false
 
 if [[ "$EXIT_STATUS" -ne 0 ]]; then
-    log "Step 2/10: Skipping detection (fetch failed)"
+    log "Step 2/11: Skipping detection (fetch failed)"
 elif [[ "$FORCE" == "true" ]]; then
-    log "Step 2/10: Force mode — skipping detection"
+    log "Step 2/11: Force mode — skipping detection"
     CHANGES_DETECTED=true
 elif [[ ! -f "$PREV_INBOX_FILE" ]]; then
-    log "Step 2/10: No previous inbox — treating as changed"
+    log "Step 2/11: No previous inbox — treating as changed"
     CHANGES_DETECTED=true
 else
-    log "Step 2/10: Detecting changes"
+    log "Step 2/11: Detecting changes"
     CHANGES_DETECTED=$(node -e "
         const fs = require('fs');
         const prev = JSON.parse(fs.readFileSync('$PREV_INBOX_FILE', 'utf-8'));
@@ -121,7 +121,7 @@ fi
 
 # ─── Step 3: Review PRs ─────────────────────────────────────────────────────
 if [[ "$EXIT_STATUS" -eq 0 ]]; then
-    log "Step 3/10: Reviewing PRs"
+    log "Step 3/11: Reviewing PRs"
     STEP_START=$(date +%s)
 
     # Snapshot review count before running
@@ -155,7 +155,31 @@ if [[ "$EXIT_STATUS" -eq 0 ]]; then
     log "New reviews generated: $NEW_REVIEWS"
 fi
 
-# ─── Step 4: Post reviews to GitHub ──────────────────────────────────────────
+# ─── Step 4: Build checks ────────────────────────────────────────────────────
+if [[ "$EXIT_STATUS" -eq 0 && "$NEW_REVIEWS" -gt 0 ]]; then
+    local_build_check=$(node -e "
+        const c = JSON.parse(require('fs').readFileSync('$SERVICE_CONFIG','utf-8'));
+        console.log(c.build_check_enabled === true ? 'true' : 'false');
+    " 2>/dev/null || echo "false")
+
+    if [[ "$local_build_check" == "true" ]]; then
+        log "Step 4/11: Running build checks"
+        STEP_START=$(date +%s)
+        if "$SCRIPT_DIR/build-check.sh" --all >> "$LOG_FILE" 2>&1; then
+            STEP_DURATION=$(($(date +%s) - STEP_START))
+            log "Build checks completed in ${STEP_DURATION}s"
+        else
+            STEP_DURATION=$(($(date +%s) - STEP_START))
+            log "WARNING: Build checks had failures after ${STEP_DURATION}s (non-fatal)"
+        fi
+    else
+        log "Step 4/11: Skipping build checks (build_check_enabled disabled)"
+    fi
+else
+    log "Step 4/11: Skipping build checks (no new reviews)"
+fi
+
+# ─── Step 5: Post reviews to GitHub ──────────────────────────────────────────
 if [[ "$EXIT_STATUS" -eq 0 && "$NEW_REVIEWS" -gt 0 ]]; then
     local_auto_post=$(node -e "
         const c = JSON.parse(require('fs').readFileSync('$SERVICE_CONFIG','utf-8'));
@@ -163,7 +187,7 @@ if [[ "$EXIT_STATUS" -eq 0 && "$NEW_REVIEWS" -gt 0 ]]; then
     " 2>/dev/null || echo "false")
 
     if [[ "$local_auto_post" == "true" ]]; then
-        log "Step 4/10: Posting reviews to GitHub"
+        log "Step 5/11: Posting reviews to GitHub"
         STEP_START=$(date +%s)
         if "$SCRIPT_DIR/post-review.sh" --all >> "$LOG_FILE" 2>&1; then
             STEP_DURATION=$(($(date +%s) - STEP_START))
@@ -173,13 +197,13 @@ if [[ "$EXIT_STATUS" -eq 0 && "$NEW_REVIEWS" -gt 0 ]]; then
             log "WARNING: GitHub posting had failures after ${STEP_DURATION}s (non-fatal)"
         fi
     else
-        log "Step 4/10: Skipping GitHub posting (auto_post_github disabled)"
+        log "Step 5/11: Skipping GitHub posting (auto_post_github disabled)"
     fi
 else
-    log "Step 4/10: Skipping GitHub posting (no new reviews)"
+    log "Step 5/11: Skipping GitHub posting (no new reviews)"
 fi
 
-# ─── Step 5: Label PRs ──────────────────────────────────────────────────────
+# ─── Step 6: Label PRs ──────────────────────────────────────────────────────
 if [[ "$EXIT_STATUS" -eq 0 && "$NEW_REVIEWS" -gt 0 ]]; then
     local_auto_label=$(node -e "
         const c = JSON.parse(require('fs').readFileSync('$SERVICE_CONFIG','utf-8'));
@@ -187,7 +211,7 @@ if [[ "$EXIT_STATUS" -eq 0 && "$NEW_REVIEWS" -gt 0 ]]; then
     " 2>/dev/null || echo "false")
 
     if [[ "$local_auto_label" == "true" ]]; then
-        log "Step 5/10: Labeling PRs"
+        log "Step 6/11: Labeling PRs"
         STEP_START=$(date +%s)
         if "$SCRIPT_DIR/label-prs.sh" --all >> "$LOG_FILE" 2>&1; then
             STEP_DURATION=$(($(date +%s) - STEP_START))
@@ -197,15 +221,15 @@ if [[ "$EXIT_STATUS" -eq 0 && "$NEW_REVIEWS" -gt 0 ]]; then
             log "WARNING: PR labeling had failures after ${STEP_DURATION}s (non-fatal)"
         fi
     else
-        log "Step 5/10: Skipping PR labeling (auto_label_prs disabled)"
+        log "Step 6/11: Skipping PR labeling (auto_label_prs disabled)"
     fi
 else
-    log "Step 5/10: Skipping PR labeling (no new reviews)"
+    log "Step 6/11: Skipping PR labeling (no new reviews)"
 fi
 
-# ─── Step 6: Build inbox report ─────────────────────────────────────────────
+# ─── Step 7: Build inbox report ─────────────────────────────────────────────
 if [[ "$EXIT_STATUS" -eq 0 ]]; then
-    log "Step 6/10: Building inbox report"
+    log "Step 7/11: Building inbox report"
     STEP_START=$(date +%s)
     if node "$SCRIPT_DIR/build-inbox.mjs" >> "$LOG_FILE" 2>&1; then
         STEP_DURATION=$(($(date +%s) - STEP_START))
@@ -217,9 +241,9 @@ if [[ "$EXIT_STATUS" -eq 0 ]]; then
     fi
 fi
 
-# ─── Step 7: Upload to Google Drive ─────────────────────────────────────────
+# ─── Step 8: Upload to Google Drive ─────────────────────────────────────────
 if [[ "$EXIT_STATUS" -eq 0 ]]; then
-    log "Step 7/10: Uploading to Google Drive"
+    log "Step 8/11: Uploading to Google Drive"
     STEP_START=$(date +%s)
     if node "$SCRIPT_DIR/upload-to-drive.mjs" >> "$LOG_FILE" 2>&1; then
         STEP_DURATION=$(($(date +%s) - STEP_START))
@@ -231,9 +255,9 @@ if [[ "$EXIT_STATUS" -eq 0 ]]; then
     fi
 fi
 
-# ─── Step 8: Google Chat DMs ────────────────────────────────────────────────
+# ─── Step 9: Google Chat DMs ────────────────────────────────────────────────
 if [[ "$EXIT_STATUS" -eq 0 && "$NEW_REVIEWS" -gt 0 ]]; then
-    log "Step 8/10: Sending Google Chat DMs"
+    log "Step 9/11: Sending Google Chat DMs"
     STEP_START=$(date +%s)
     if node "$SCRIPT_DIR/notify-chat.mjs" >> "$LOG_FILE" 2>&1; then
         STEP_DURATION=$(($(date +%s) - STEP_START))
@@ -243,24 +267,24 @@ if [[ "$EXIT_STATUS" -eq 0 && "$NEW_REVIEWS" -gt 0 ]]; then
         log "WARNING: Chat notifications failed after ${STEP_DURATION}s (non-fatal)"
     fi
 else
-    log "Step 8/10: Skipping Chat DMs (no new reviews)"
+    log "Step 9/11: Skipping Chat DMs (no new reviews)"
 fi
 
-# ─── Step 9: Telegram summary ───────────────────────────────────────────────
+# ─── Step 10: Telegram summary ──────────────────────────────────────────────
 if [[ "$NEW_REVIEWS" -gt 0 ]]; then
-    log "Step 9/10: Sending Telegram summary"
+    log "Step 10/11: Sending Telegram summary"
     if "$SCRIPT_DIR/notify.sh" summary >> "$LOG_FILE" 2>&1; then
         log "Telegram notification sent"
     else
         log "WARNING: Telegram notification failed (non-fatal)"
     fi
 else
-    log "Step 9/10: Sending heartbeat"
+    log "Step 10/11: Sending heartbeat"
     "$SCRIPT_DIR/notify.sh" heartbeat >> "$LOG_FILE" 2>&1 || true
 fi
 
-# ─── Step 10: Housekeeping ──────────────────────────────────────────────────
-log "Step 10/10: Housekeeping"
+# ─── Step 11: Housekeeping ──────────────────────────────────────────────────
+log "Step 11/11: Housekeeping"
 
 # Rotate inbox
 cp -f "$INBOX_FILE" "$PREV_INBOX_FILE" 2>/dev/null || true
