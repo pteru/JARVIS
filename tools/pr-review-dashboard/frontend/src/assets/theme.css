@@ -1,0 +1,459 @@
+:root {
+  --surface-ground: #121212;
+  --surface-section: #1e1e1e;
+  --surface-card: #252525;
+  --surface-overlay: #2a2a2a;
+  --text-color: #e0e0e0;
+  --text-color-secondary: #a0a0a0;
+  --primary-color: #60a5fa;
+  --green-500: #22c55e;
+  --red-500: #ef4444;
+  --yellow-500: #eab308;
+}
+
+body {
+  background-color: var(--surface-ground);
+  color: var(--text-color);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  margin: 0;
+}
+
+/* ── Layout ──────────────────────────────────────────────────────────────── */
+
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.app-sidebar {
+  width: 220px;
+  min-width: 220px;
+  background-color: var(--surface-section);
+  border-right: 1px solid #333;
+  padding: 1rem 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-sidebar .logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+.app-sidebar .logo i {
+  font-size: 1.3rem;
+}
+
+.app-sidebar nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.app-sidebar nav a {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 1.25rem;
+  color: var(--text-color-secondary);
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: background-color 0.15s, color 0.15s;
+  border-left: 3px solid transparent;
+}
+
+.app-sidebar nav a:hover {
+  background-color: var(--surface-card);
+  color: var(--text-color);
+}
+
+.app-sidebar nav a.router-link-active {
+  color: var(--primary-color);
+  background-color: var(--surface-card);
+  border-left-color: var(--primary-color);
+}
+
+.app-sidebar nav a i {
+  width: 1.25rem;
+  text-align: center;
+}
+
+.app-main {
+  flex: 1;
+  padding: 1.5rem 2rem;
+  overflow-y: auto;
+}
+
+/* ── Page headers ────────────────────────────────────────────────────────── */
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+/* ── Cards ───────────────────────────────────────────────────────────────── */
+
+.stat-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat-card {
+  background-color: var(--surface-card);
+  border-radius: 8px;
+  padding: 1.25rem;
+  border: 1px solid #333;
+}
+
+.stat-card .label {
+  color: var(--text-color-secondary);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+}
+
+.stat-card .value {
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+/* ── Review markdown rendering ───────────────────────────────────────────── */
+
+.review-content {
+  background-color: var(--surface-card);
+  border-radius: 8px;
+  padding: 1.5rem 2rem;
+  border: 1px solid #333;
+  line-height: 1.65;
+}
+
+.review-content h1,
+.review-content h2,
+.review-content h3,
+.review-content h4 {
+  color: var(--text-color);
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid #333;
+  padding-bottom: 0.5rem;
+}
+
+.review-content h1 {
+  font-size: 1.4rem;
+}
+
+.review-content h2 {
+  font-size: 1.2rem;
+}
+
+.review-content h3 {
+  font-size: 1.05rem;
+}
+
+.review-content code {
+  background-color: var(--surface-overlay);
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  font-size: 0.88em;
+}
+
+.review-content pre {
+  background-color: var(--surface-ground);
+  border: 1px solid #333;
+  border-radius: 6px;
+  padding: 1rem;
+  overflow-x: auto;
+}
+
+.review-content pre code {
+  background: none;
+  padding: 0;
+}
+
+.review-content blockquote {
+  border-left: 3px solid var(--primary-color);
+  padding-left: 1rem;
+  margin-left: 0;
+  color: var(--text-color-secondary);
+}
+
+.review-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+}
+
+.review-content th,
+.review-content td {
+  border: 1px solid #333;
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+}
+
+.review-content th {
+  background-color: var(--surface-overlay);
+}
+
+.review-content ul,
+.review-content ol {
+  padding-left: 1.5rem;
+}
+
+.review-content li {
+  margin-bottom: 0.25rem;
+}
+
+.review-content a {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+.review-content a:hover {
+  text-decoration: underline;
+}
+
+/* ── Log viewer ──────────────────────────────────────────────────────────── */
+
+.log-viewer {
+  background-color: var(--surface-ground);
+  border: 1px solid #333;
+  border-radius: 6px;
+  padding: 1rem;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  max-height: 500px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: #b0b0b0;
+}
+
+/* ── Chips / badges ──────────────────────────────────────────────────────── */
+
+.size-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.size-badge.size-s {
+  background-color: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+}
+
+.size-badge.size-m {
+  background-color: rgba(234, 179, 8, 0.15);
+  color: #eab308;
+}
+
+.size-badge.size-l {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+.filter-chips {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.filter-chip {
+  padding: 0.35rem 0.75rem;
+  border-radius: 16px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  border: 1px solid #444;
+  background-color: var(--surface-card);
+  color: var(--text-color-secondary);
+  transition: all 0.15s;
+}
+
+.filter-chip:hover {
+  border-color: var(--primary-color);
+  color: var(--text-color);
+}
+
+.filter-chip.active {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  color: #111;
+}
+
+/* ── Review detail layout ────────────────────────────────────────────────── */
+
+.review-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 1.5rem;
+}
+
+.review-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.review-sidebar .info-card {
+  background-color: var(--surface-card);
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.review-sidebar .info-card h3 {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-color-secondary);
+}
+
+.review-sidebar .info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.35rem 0;
+  font-size: 0.85rem;
+}
+
+.review-sidebar .info-row .label {
+  color: var(--text-color-secondary);
+}
+
+.review-sidebar .info-row .value {
+  color: var(--text-color);
+  font-weight: 500;
+}
+
+.review-sidebar .action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* ── Finding chips ───────────────────────────────────────────────────────── */
+
+.finding-chips {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.finding-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.finding-chip.critical {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+.finding-chip.warning {
+  background-color: rgba(234, 179, 8, 0.15);
+  color: #eab308;
+}
+
+.finding-chip.suggestion {
+  background-color: rgba(96, 165, 250, 0.15);
+  color: #60a5fa;
+}
+
+/* ── Chart containers ────────────────────────────────────────────────────── */
+
+.chart-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 1.5rem;
+}
+
+.chart-card {
+  background-color: var(--surface-card);
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 1.25rem;
+}
+
+.chart-card h3 {
+  margin: 0 0 1rem 0;
+  font-size: 0.95rem;
+  color: var(--text-color);
+}
+
+.chart-wrapper {
+  position: relative;
+  height: 280px;
+}
+
+/* ── Misc ────────────────────────────────────────────────────────────────── */
+
+.fetched-at {
+  font-size: 0.8rem;
+  color: var(--text-color-secondary);
+}
+
+.loading-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  color: var(--text-color-secondary);
+}
+
+.error-message {
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 8px;
+  padding: 1rem;
+  color: #ef4444;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .app-sidebar {
+    width: 60px;
+    min-width: 60px;
+  }
+
+  .app-sidebar .logo span,
+  .app-sidebar nav a span {
+    display: none;
+  }
+
+  .review-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .chart-grid {
+    grid-template-columns: 1fr;
+  }
+}
