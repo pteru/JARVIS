@@ -15,7 +15,8 @@
 # 7. npm install --production on remote
 # 8. Set up cron (idempotent)
 # 9. Set file permissions
-# 10. Smoke test (fetch only)
+# 10. Deploy dashboard container
+# 11. Smoke test (fetch + dashboard)
 set -euo pipefail
 
 AUTO_CONFIRM=false
@@ -83,7 +84,7 @@ fi
 log_info "Remote host reachable"
 
 # ─── Step 1: Build stripped workspaces.json ──────────────────────────────────
-log_info "Step 1/10: Building stripped workspaces.json"
+log_info "Step 1/11: Building stripped workspaces.json"
 
 node -e "
 const config = JSON.parse(require('fs').readFileSync('$ORCHESTRATOR_HOME/config/orchestrator/workspaces.json', 'utf-8'));
@@ -104,7 +105,7 @@ console.log(JSON.stringify(stripped, null, 2));
 " > "$SERVICE_SRC/config/workspaces.json"
 
 # ─── Step 2: Copy CLAUDE.md files from workspace repos ──────────────────────
-log_info "Step 2/10: Copying CLAUDE.md files"
+log_info "Step 2/11: Copying CLAUDE.md files"
 
 for product in diemaster spotfusion visionking; do
     WORKSPACE_DIR="$ORCHESTRATOR_HOME/workspaces/strokmatic/$product"
@@ -120,7 +121,7 @@ for product in diemaster spotfusion visionking; do
 done
 
 # ─── Step 3: Secret scan ────────────────────────────────────────────────────
-log_info "Step 3/10: Scanning for secrets"
+log_info "Step 3/11: Scanning for secrets"
 
 LEAK_FOUND=false
 PATTERNS=(
@@ -161,7 +162,7 @@ if [[ "$LEAK_FOUND" == "true" ]]; then
 fi
 
 # ─── Step 4: rsync service files ────────────────────────────────────────────
-log_info "Step 4/10: Syncing service files to $REMOTE:$REMOTE_DIR"
+log_info "Step 4/11: Syncing service files to $REMOTE:$REMOTE_DIR"
 
 remote_ssh "echo '$SSH_PASS' | sudo -S mkdir -p $REMOTE_DIR && echo '$SSH_PASS' | sudo -S chown $REMOTE_USER:$REMOTE_USER $REMOTE_DIR"
 
@@ -178,7 +179,7 @@ remote_rsync -avz --delete \
 log_info "  Files synced"
 
 # ─── Step 5: Deploy credentials separately ───────────────────────────────────
-log_info "Step 5/10: Deploying credentials"
+log_info "Step 5/11: Deploying credentials"
 
 GCP_KEY="$ORCHESTRATOR_HOME/config/credentials/gcp-service-account.json"
 if [[ -f "$GCP_KEY" ]]; then
@@ -191,7 +192,7 @@ else
 fi
 
 # ─── Step 6: Copy Telegram bot token ────────────────────────────────────────
-log_info "Step 6/10: Deploying Telegram bot token"
+log_info "Step 6/11: Deploying Telegram bot token"
 
 LOCAL_TOKEN="$HOME/.secrets/telegram-bot-token"
 if [[ -f "$LOCAL_TOKEN" ]]; then
@@ -204,14 +205,14 @@ else
 fi
 
 # ─── Step 7: npm install on remote ──────────────────────────────────────────
-log_info "Step 7/10: Installing npm dependencies"
+log_info "Step 7/11: Installing npm dependencies"
 
 remote_ssh "source ~/.nvm/nvm.sh && cd $REMOTE_DIR && npm install --production" 2>&1 | while IFS= read -r line; do
     echo "  [remote] $line"
 done
 
 # ─── Step 8: Set up cron ────────────────────────────────────────────────────
-log_info "Step 8/10: Setting up cron job"
+log_info "Step 8/11: Setting up cron job"
 
 # Cron needs nvm sourced to find node/claude
 CRON_ENTRY="*/5 * * * * source /home/strokmatic/.nvm/nvm.sh && $REMOTE_DIR/run.sh >> $REMOTE_DIR/logs/cron.log 2>&1"
@@ -226,7 +227,7 @@ else
 fi
 
 # ─── Step 9: Set file permissions ────────────────────────────────────────────
-log_info "Step 9/10: Setting file permissions"
+log_info "Step 9/11: Setting file permissions"
 
 remote_ssh "
     chmod +x $REMOTE_DIR/run.sh
@@ -235,12 +236,59 @@ remote_ssh "
     chmod +x $REMOTE_DIR/model-selector.sh
     chmod +x $REMOTE_DIR/clean-review.sh
     chmod +x $REMOTE_DIR/notify.sh
-    mkdir -p $REMOTE_DIR/{data,reviews,reports,logs}
+    chmod +x $REMOTE_DIR/post-review.sh 2>/dev/null || true
+    chmod +x $REMOTE_DIR/label-prs.sh 2>/dev/null || true
+    chmod +x $REMOTE_DIR/build-check.sh 2>/dev/null || true
+    chmod +x $REMOTE_DIR/scripts/backfill-metadata.sh 2>/dev/null || true
+    mkdir -p $REMOTE_DIR/{data,reviews,reviews/archive,reports,logs}
 "
 
-# ─── Step 10: Smoke test ────────────────────────────────────────────────────
-log_info "Step 10/10: Running smoke test (fetch only)"
+# ─── Step 10: Deploy dashboard ──────────────────────────────────────────────
+DASHBOARD_SRC="$ORCHESTRATOR_HOME/tools/pr-review-dashboard"
+DASHBOARD_REMOTE_DIR="/opt/jarvis-pr-review-dashboard"
 
+if [[ -d "$DASHBOARD_SRC" ]]; then
+    log_info "Step 10/11: Deploying PR review dashboard"
+
+    remote_ssh "echo '$SSH_PASS' | sudo -S mkdir -p $DASHBOARD_REMOTE_DIR && echo '$SSH_PASS' | sudo -S chown $REMOTE_USER:$REMOTE_USER $DASHBOARD_REMOTE_DIR"
+
+    remote_rsync -avz --delete \
+        --exclude 'node_modules/' \
+        --exclude 'frontend/node_modules/' \
+        --exclude 'frontend/dist/' \
+        --exclude '__pycache__/' \
+        --exclude '.venv/' \
+        --exclude 'static/' \
+        "$DASHBOARD_SRC/" "$REMOTE:$DASHBOARD_REMOTE_DIR/"
+
+    log_info "  Dashboard files synced"
+
+    # Build and start container
+    if remote_ssh "command -v docker-compose &>/dev/null || command -v docker &>/dev/null"; then
+        log_info "  Building and starting dashboard container"
+        remote_ssh "
+            cd $DASHBOARD_REMOTE_DIR
+            if command -v docker-compose &>/dev/null; then
+                docker-compose up -d --build 2>&1 | tail -5
+            else
+                docker compose up -d --build 2>&1 | tail -5
+            fi
+        " 2>&1 | while IFS= read -r line; do
+            echo "  [remote] $line"
+        done
+        log_info "  Dashboard container deployed"
+    else
+        log_warn "  Docker not found on remote — dashboard container not started"
+    fi
+else
+    log_info "Step 10/11: Skipping dashboard (source not found at $DASHBOARD_SRC)"
+fi
+
+# ─── Step 11: Smoke test ────────────────────────────────────────────────────
+log_info "Step 11/11: Running smoke tests"
+
+# Test 1: Fetch open PRs
+log_info "  Smoke test 1: PR fetch"
 SMOKE_RESULT=$(remote_ssh "
     source ~/.nvm/nvm.sh
     export SERVICE_DIR=$REMOTE_DIR
@@ -253,18 +301,30 @@ echo "$SMOKE_RESULT" | while IFS= read -r line; do
 done
 
 if echo "$SMOKE_RESULT" | grep -q "Done\.\|open PR"; then
-    log_info "Smoke test PASSED"
+    log_info "  PR fetch smoke test PASSED"
 else
-    log_warn "Smoke test may have failed — check output above"
+    log_warn "  PR fetch smoke test may have failed — check output above"
+fi
+
+# Test 2: Dashboard health
+if [[ -d "$DASHBOARD_SRC" ]]; then
+    log_info "  Smoke test 2: Dashboard"
+    DASHBOARD_RESULT=$(remote_ssh "curl -sf http://localhost:8091/api/pipeline/status 2>&1 | head -1" 2>/dev/null || echo "FAILED")
+    if echo "$DASHBOARD_RESULT" | grep -q '{'; then
+        log_info "  Dashboard smoke test PASSED (API responding)"
+    else
+        log_warn "  Dashboard smoke test FAILED — API not responding yet (may need a moment to start)"
+    fi
 fi
 
 # ─── Done ────────────────────────────────────────────────────────────────────
 log_info ""
 log_info "Deployment complete!"
-log_info "  Remote: $REMOTE:$REMOTE_DIR"
+log_info "  Service: $REMOTE:$REMOTE_DIR"
+log_info "  Dashboard: $REMOTE:$DASHBOARD_REMOTE_DIR (http://$REMOTE_HOST:8091)"
 log_info "  Cron: every 5 minutes"
 log_info ""
 log_info "Next steps:"
 log_info "  1. Verify: ssh $REMOTE '$REMOTE_DIR/run.sh --force'"
 log_info "  2. Monitor: ssh $REMOTE 'tail -f $REMOTE_DIR/logs/run-\$(date +%Y-%m-%d).log'"
-log_info "  3. Add chat.messages scope to GCP domain-wide delegation"
+log_info "  3. Dashboard: http://$REMOTE_HOST:8091"
