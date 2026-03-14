@@ -35,6 +35,7 @@ class InboxPR(BaseModel):
     verdict: str | None = None
     review_version: int | None = None
     review_date: str | None = None
+    google_doc_url: str | None = None
 
 
 class InboxResponse(BaseModel):
@@ -94,6 +95,7 @@ class ReviewResponse(BaseModel):
     summary: str | None = None
     complexity: str | None = None
     findings: ReviewFindings
+    google_doc_url: str | None = None
 
 
 class ReviewHistoryEntry(BaseModel):
@@ -184,6 +186,12 @@ class ActionResponse(BaseModel):
 
 class MergeRequest(BaseModel):
     """Request body for merge action."""
+
+    confirm: bool = False
+
+
+class CloseRequest(BaseModel):
+    """Request body for close action."""
 
     confirm: bool = False
 

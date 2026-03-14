@@ -1,4 +1,4 @@
-"""POST /api/actions/* — Action endpoints for posting, merging, labeling PRs."""
+"""POST /api/actions/* — Action endpoints for posting, merging, labeling, closing PRs."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ import os
 from fastapi import APIRouter, HTTPException
 
 from ..config import settings
-from ..schemas import ActionResponse, LabelRequest, MergeRequest
+from ..schemas import ActionResponse, CloseRequest, LabelRequest, MergeRequest
 
 router = APIRouter(tags=["actions"])
 logger = logging.getLogger(__name__)
@@ -233,3 +233,99 @@ async def force_pipeline_run():
             success=False,
             message=f"Failed to start pipeline: {exc}",
         )
+
+
+# ── Re-review PR ──────────────────────────────────────────────────────────
+
+
+@router.post(
+    "/actions/reviews/{repo}/{number}/re-review",
+    response_model=ActionResponse,
+)
+async def re_review(repo: str, number: int):
+    """Trigger a re-review of a PR.
+
+    Runs review-pr.sh then upload-to-drive.mjs asynchronously.
+    Returns immediately; the review runs in the background.
+    """
+    review_script = os.path.join(settings.scripts_dir, "review-pr.sh")
+    upload_script = os.path.join(settings.scripts_dir, "upload-to-drive.mjs")
+
+    if not os.path.isfile(review_script):
+        return ActionResponse(
+            success=False,
+            message=f"Review script not found: {review_script}",
+        )
+
+    async def _run_re_review():
+        """Run review script then upload script sequentially."""
+        env = {**os.environ, "SERVICE_DIR": settings.service_data_dir}
+        proc = await asyncio.create_subprocess_exec(
+            "bash", review_script, "--repo", repo, "--pr", str(number),
+            stdout=asyncio.subprocess.DEVNULL,
+            stderr=asyncio.subprocess.DEVNULL,
+            env=env,
+        )
+        await proc.wait()
+        if os.path.isfile(upload_script):
+            await asyncio.create_subprocess_exec(
+                "node", upload_script,
+                stdout=asyncio.subprocess.DEVNULL,
+                stderr=asyncio.subprocess.DEVNULL,
+                env=env,
+            )
+
+    try:
+        # Fire-and-forget: start the async task
+        asyncio.create_task(_run_re_review())
+        return ActionResponse(
+            success=True,
+            message=f"Re-review started for {repo}#{number}. Check logs for progress.",
+        )
+    except (OSError, FileNotFoundError) as exc:
+        return ActionResponse(
+            success=False,
+            message=f"Failed to start re-review: {exc}",
+        )
+
+
+# ── Close PR ──────────────────────────────────────────────────────────────
+
+
+@router.post(
+    "/actions/prs/{repo}/{number}/close",
+    response_model=ActionResponse,
+)
+async def close_pr(repo: str, number: int, request: CloseRequest):
+    """Close a PR without merging.
+
+    Requires {"confirm": true} in the request body as a safety guard.
+    """
+    if not request.confirm:
+        raise HTTPException(
+            status_code=400,
+            detail='Close requires {"confirm": true} in request body',
+        )
+
+    returncode, stdout, stderr = await _run_command(
+        [
+            "gh",
+            "pr",
+            "close",
+            str(number),
+            "--repo",
+            f"{ORG}/{repo}",
+        ],
+        timeout=30,
+    )
+
+    if returncode != 0:
+        return ActionResponse(
+            success=False,
+            message=f"Close failed: {stderr.strip()}",
+        )
+
+    return ActionResponse(
+        success=True,
+        message=f"Successfully closed {repo}#{number}",
+    )

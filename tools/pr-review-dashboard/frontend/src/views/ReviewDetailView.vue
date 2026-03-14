@@ -76,10 +76,25 @@
           />
         </div>
 
+        <!-- Google Docs link -->
+        <div class="info-card" v-if="review.google_doc_url">
+          <a
+            :href="review.google_doc_url"
+            target="_blank"
+            rel="noopener"
+            class="action-btn action-btn-docs"
+          >
+            <i class="pi pi-file"></i> Open in Google Docs
+          </a>
+        </div>
+
         <!-- Actions -->
         <div class="info-card">
           <h3>Actions</h3>
           <div class="action-buttons">
+            <button class="action-btn action-btn-secondary" @click="doReReview" :disabled="actionLoading">
+              <i class="pi pi-refresh"></i> Re-review
+            </button>
             <button class="action-btn action-btn-primary" @click="confirmPost" :disabled="actionLoading">
               <i class="pi pi-send"></i> Post to GitHub
             </button>
@@ -88,6 +103,9 @@
             </button>
             <button class="action-btn action-btn-danger" @click="confirmMerge" :disabled="actionLoading">
               <i class="pi pi-check-circle"></i> Merge (Squash)
+            </button>
+            <button class="action-btn action-btn-danger-outline" @click="confirmClose" :disabled="actionLoading">
+              <i class="pi pi-times"></i> Close PR
             </button>
           </div>
           <div v-if="actionMessage" class="action-message" :class="{ success: actionSuccess, failure: !actionSuccess }">
@@ -120,6 +138,16 @@
       @confirm="doMerge"
       @cancel="showMergeConfirm = false"
     />
+
+    <ConfirmDialog
+      :visible="showCloseConfirm"
+      title="Close Pull Request"
+      :message="`Are you sure you want to close ${repo}#${number} without merging?`"
+      confirm-label="Close"
+      severity="danger"
+      @confirm="doClose"
+      @cancel="showCloseConfirm = false"
+    />
   </div>
 </template>
 
@@ -148,6 +176,7 @@ const actionMessage = ref('');
 const actionSuccess = ref(false);
 const showPostConfirm = ref(false);
 const showMergeConfirm = ref(false);
+const showCloseConfirm = ref(false);
 
 const marked = new Marked({
   renderer: {
@@ -210,6 +239,10 @@ function confirmMerge() {
   showMergeConfirm.value = true;
 }
 
+function confirmClose() {
+  showCloseConfirm.value = true;
+}
+
 async function doPost() {
   showPostConfirm.value = false;
   actionLoading.value = true;
@@ -233,6 +266,37 @@ async function doMerge() {
   try {
     const res = await api.post(`/actions/prs/${props.repo}/${props.number}/merge`, { confirm: true });
     actionMessage.value = res.data.message || 'Merged successfully';
+    actionSuccess.value = res.data.success;
+  } catch (e) {
+    actionMessage.value = e.response?.data?.detail || e.message;
+    actionSuccess.value = false;
+  } finally {
+    actionLoading.value = false;
+  }
+}
+
+async function doReReview() {
+  actionLoading.value = true;
+  actionMessage.value = '';
+  try {
+    const res = await api.post(`/actions/reviews/${props.repo}/${props.number}/re-review`);
+    actionMessage.value = res.data.message || 'Re-review started';
+    actionSuccess.value = res.data.success;
+  } catch (e) {
+    actionMessage.value = e.response?.data?.detail || e.message;
+    actionSuccess.value = false;
+  } finally {
+    actionLoading.value = false;
+  }
+}
+
+async function doClose() {
+  showCloseConfirm.value = false;
+  actionLoading.value = true;
+  actionMessage.value = '';
+  try {
+    const res = await api.post(`/actions/prs/${props.repo}/${props.number}/close`, { confirm: true });
+    actionMessage.value = res.data.message || 'PR closed';
     actionSuccess.value = res.data.success;
   } catch (e) {
     actionMessage.value = e.response?.data?.detail || e.message;
@@ -312,12 +376,44 @@ onMounted(fetchReview);
   background-color: rgba(96, 165, 250, 0.1);
 }
 
+.action-btn-docs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.55rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid #4285f4;
+  font-size: 0.83rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  background-color: rgba(66, 133, 244, 0.1);
+  color: #4285f4;
+  text-decoration: none;
+  justify-content: center;
+}
+
+.action-btn-docs:hover {
+  background-color: rgba(66, 133, 244, 0.2);
+}
+
 .action-btn-danger {
   border-color: var(--red-500);
   color: var(--red-500);
 }
 
 .action-btn-danger:hover:not(:disabled) {
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+.action-btn-danger-outline {
+  border-color: #888;
+  color: #888;
+}
+
+.action-btn-danger-outline:hover:not(:disabled) {
+  border-color: var(--red-500);
+  color: var(--red-500);
   background-color: rgba(239, 68, 68, 0.1);
 }
 

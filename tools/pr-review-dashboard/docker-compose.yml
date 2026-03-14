@@ -1,17 +1,21 @@
 version: '3.8'
 
 services:
-  pr-review-dashboard:
+  dashboard:
     build: .
     container_name: jarvis-pr-review-dashboard
     ports:
-      - "8091:8091"
+      - "127.0.0.1:8091:8091"
     volumes:
-      # Mount the PR review service data directory (read-only)
-      - /opt/jarvis-pr-review:/data/service:ro
+      # Mount the PR review service data directory
+      # Writable for actions (re-review writes reviews, pipeline writes state/logs)
+      - /opt/jarvis-pr-review:/data/service
       # Mount gh CLI auth for GitHub API calls (actions endpoints)
       - /home/strokmatic/.config/gh:/root/.config/gh:ro
+      # Mount GCP credentials for Google Drive access
+      - /opt/jarvis-pr-review/credentials:/data/credentials:ro
     environment:
       - SERVICE_DATA_DIR=/data/service
       - PORT=8091
+      - GCP_CREDENTIALS_PATH=/data/credentials/gcp-service-account.json
     restart: unless-stopped

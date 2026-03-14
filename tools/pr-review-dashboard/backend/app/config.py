@@ -8,6 +8,12 @@ class Settings(BaseSettings):
     port: int = 8091
     gh_org: str = "strokmatic"
 
+    # Google Drive settings
+    gcp_credentials_path: str = "/data/credentials/gcp-service-account.json"
+    drive_shared_drive_id: str = "0AC4RjZu6DAzcUk9PVA"
+    drive_folder_name: str = "PR Reviews"
+    impersonate_email: str = "pedro@lumesolutions.com"
+
     @property
     def data_dir(self) -> str:
         return f"{self.service_data_dir}/data"
