@@ -13,7 +13,6 @@ const TEAM_MEMBERS_FILE = join(SERVICE_DIR, 'config', 'team-members.json');
 const INBOX_FILE = join(SERVICE_DIR, 'data', 'pr-inbox.json');
 const REVIEWS_DIR = join(SERVICE_DIR, 'reviews');
 const UPLOADED_REVIEWS_FILE = join(SERVICE_DIR, 'data', 'last-uploaded-reviews.json');
-const UPLOAD_STATE_FILE = join(SERVICE_DIR, 'data', 'upload-state.json');
 
 // ─── Auth ────────────────────────────────────────────────────────────────────
 
@@ -81,7 +80,9 @@ async function findOrCreateDmSpace(chat, userEmail) {
     try {
         const res = await chat.spaces.setup({
             requestBody: {
-                spaceType: 'DIRECT_MESSAGE',
+                space: {
+                    spaceType: 'DIRECT_MESSAGE',
+                },
                 memberships: [
                     { member: { name: `users/${userEmail}`, type: 'HUMAN' } },
                 ],
@@ -118,6 +119,8 @@ async function main() {
 
     const uploaded = JSON.parse(readFileSync(UPLOADED_REVIEWS_FILE, 'utf-8'));
     const reviewFileNames = uploaded.reviews || [];
+    const docIds = uploaded.doc_ids || {};
+    const fileIds = uploaded.file_ids || {};
 
     if (reviewFileNames.length === 0) {
         console.log('No new reviews to notify about.');
@@ -136,14 +139,10 @@ async function main() {
         prMap.set(`${pr.repo}-${pr.number}.md`, pr);
     }
 
-    // Load upload state for Drive link
-    let folderUrl = '';
-    if (existsSync(UPLOAD_STATE_FILE)) {
-        const uploadState = JSON.parse(readFileSync(UPLOAD_STATE_FILE, 'utf-8'));
-        if (uploadState.folder_id) {
-            folderUrl = `https://drive.google.com/drive/folders/${uploadState.folder_id}`;
-        }
-    }
+    // Build folder URL as fallback
+    const folderUrl = uploaded.folder_id
+        ? `https://drive.google.com/drive/folders/${uploaded.folder_id}`
+        : '';
 
     const ghToEmail = getGitHubToEmailMap();
 
@@ -189,13 +188,24 @@ async function main() {
         let message = `*PR Review: ${pr.repo}#${pr.number}*\n`;
         message += `*Verdict: ${verdict}*\n\n`;
         if (blocking) {
-            message += `Blocking: ${blocking}\n\n`;
+            message += `\u26a0\ufe0f Blocking: ${blocking}\n\n`;
         }
         if (summary) {
             message += `${summary}\n\n`;
         }
-        if (folderUrl) {
-            message += `Full review: ${folderUrl}`;
+        // PR link on GitHub
+        if (pr.url) {
+            message += `PR: ${pr.url}\n`;
+        }
+        // Direct link to the Google Doc review (fall back to raw file, then folder)
+        const docId = docIds[fileName];
+        const fileId = fileIds[fileName];
+        if (docId) {
+            message += `Review: https://docs.google.com/document/d/${docId}/edit`;
+        } else if (fileId) {
+            message += `Review: https://drive.google.com/file/d/${fileId}/view`;
+        } else if (folderUrl) {
+            message += `Review: ${folderUrl}`;
         }
 
         // Send DM

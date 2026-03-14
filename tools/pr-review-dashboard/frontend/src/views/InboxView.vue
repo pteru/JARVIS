@@ -57,7 +57,7 @@
             <th style="width: 100px;">Age</th>
             <th style="width: 70px;">Size</th>
             <th style="width: 180px;">Verdict</th>
-            <th style="width: 100px;">Actions</th>
+            <th style="width: 120px;">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -85,7 +85,7 @@
             <td>
               <VerdictBadge :verdict="pr.verdict" />
             </td>
-            <td>
+            <td class="actions-cell">
               <a
                 :href="pr.url"
                 target="_blank"
@@ -94,13 +94,24 @@
                 title="Open on GitHub"
                 @click.stop
               >
-                <i class="pi pi-external-link"></i>
+                <i class="pi pi-github"></i>
+              </a>
+              <a
+                v-if="pr.google_doc_url"
+                :href="pr.google_doc_url"
+                target="_blank"
+                rel="noopener"
+                class="action-link doc-link"
+                title="Open in Google Docs"
+                @click.stop
+              >
+                <i class="pi pi-file"></i>
               </a>
             </td>
           </tr>
           <tr v-if="filteredPRs.length === 0">
             <td colspan="8" style="text-align: center; padding: 2rem; color: var(--text-color-secondary);">
-              No pull requests match the current filters.
+              No pull requests match the current filters
             </td>
           </tr>
         </tbody>
@@ -302,6 +313,12 @@ onUnmounted(() => {
   font-size: 0.83rem;
 }
 
+.actions-cell {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
 .action-link {
   color: var(--text-color-secondary);
   padding: 0.25rem;
@@ -310,5 +327,9 @@ onUnmounted(() => {
 
 .action-link:hover {
   color: var(--primary-color);
+}
+
+.doc-link:hover {
+  color: #4285f4;
 }
 </style>

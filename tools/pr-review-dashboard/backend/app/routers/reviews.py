@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 
 from fastapi import APIRouter, HTTPException
 
 from ..config import settings
+from ..drive_client import find_google_doc_for_review, read_review_markdown
 from ..parsers import parse_complexity, parse_findings, parse_summary, parse_verdict
 from ..schemas import (
     PostedToGitHub,
@@ -20,10 +22,23 @@ from ..schemas import (
 )
 
 router = APIRouter(tags=["reviews"])
+logger = logging.getLogger(__name__)
 
 
 def _load_review_content(repo: str, number: int) -> str:
-    """Load the review markdown file content."""
+    """Load the review markdown file content.
+
+    Tries Google Drive first, falls back to local filesystem.
+    """
+    # Try Drive
+    try:
+        content = read_review_markdown(repo, number)
+        if content:
+            return content
+    except Exception:
+        logger.warning("Drive read failed for %s-%d, trying local", repo, number)
+
+    # Fall back to local
     review_file = os.path.join(settings.reviews_dir, f"{repo}-{number}.md")
     if not os.path.isfile(review_file):
         raise HTTPException(
@@ -34,7 +49,7 @@ def _load_review_content(repo: str, number: int) -> str:
 
 
 def _load_review_metadata(repo: str, number: int) -> ReviewMetadata | None:
-    """Load the review .meta.json sidecar file."""
+    """Load the review .meta.json sidecar file (always local)."""
     meta_file = os.path.join(settings.reviews_dir, f"{repo}-{number}.meta.json")
     if not os.path.isfile(meta_file):
         return None
@@ -77,7 +92,7 @@ def _load_review_metadata(repo: str, number: int) -> ReviewMetadata | None:
 async def get_review(repo: str, number: int):
     """Return the review content, parsed verdict/summary/findings, and metadata.
 
-    Reads the .md review file and .meta.json sidecar.
+    Reads the .md review file from Drive (with local fallback) and .meta.json locally.
     """
     content = _load_review_content(repo, number)
     metadata = _load_review_metadata(repo, number)
@@ -86,6 +101,13 @@ async def get_review(repo: str, number: int):
     summary = parse_summary(content)
     complexity = parse_complexity(content)
     findings_dict = parse_findings(content)
+
+    # Find Google Doc URL
+    google_doc_url = None
+    try:
+        google_doc_url = find_google_doc_for_review(repo, number)
+    except Exception:
+        pass
 
     return ReviewResponse(
         repo=repo,
@@ -96,6 +118,7 @@ async def get_review(repo: str, number: int):
         summary=summary,
         complexity=complexity,
         findings=ReviewFindings(**findings_dict),
+        google_doc_url=google_doc_url,
     )
 
 
@@ -139,15 +162,12 @@ async def get_review_history(repo: str, number: int):
             )
         )
 
-    # Add the current version (from the main review file)
+    # Add the current version (from Drive or local)
     current_content = None
-    review_file = os.path.join(settings.reviews_dir, f"{repo}-{number}.md")
-    if os.path.isfile(review_file):
-        try:
-            with open(review_file, "r", encoding="utf-8") as f:
-                current_content = f.read()
-        except (OSError, UnicodeDecodeError):
-            pass
+    try:
+        current_content = _load_review_content(repo, number)
+    except HTTPException:
+        pass
 
     entries.append(
         ReviewHistoryEntry(

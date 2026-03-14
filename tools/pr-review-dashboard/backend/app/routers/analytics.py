@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 from collections import Counter
 
 from fastapi import APIRouter
 
 from ..config import settings
+from ..drive_client import list_review_files, read_file_content, read_inbox_json
 from ..parsers import parse_complexity, parse_verdict
 from ..schemas import (
     AnalyticsResponse,
@@ -19,6 +21,7 @@ from ..schemas import (
 )
 
 router = APIRouter(tags=["analytics"])
+logger = logging.getLogger(__name__)
 
 # Product mapping: repo name prefix -> product name
 _PRODUCT_MAP = {
@@ -38,7 +41,22 @@ def _repo_to_product(repo: str) -> str:
 
 
 def _load_inbox_authors() -> dict[str, str]:
-    """Load author mapping from inbox: {repo-number: author}."""
+    """Load author mapping from inbox: {repo-number: author}.
+
+    Tries Drive first, falls back to local.
+    """
+    # Try Drive
+    try:
+        inbox = read_inbox_json()
+        if inbox:
+            return {
+                f"{pr['repo']}-{pr['number']}": pr.get("author", "unknown")
+                for pr in inbox.get("pull_requests", [])
+            }
+    except Exception:
+        pass
+
+    # Fall back to local
     inbox_file = os.path.join(settings.data_dir, "pr-inbox.json")
     if not os.path.isfile(inbox_file):
         return {}
@@ -53,32 +71,28 @@ def _load_inbox_authors() -> dict[str, str]:
         return {}
 
 
-def _scan_reviews() -> list[dict]:
-    """Scan reviews directory and collect structured data from each review.
+def _scan_reviews_from_drive() -> list[dict] | None:
+    """Scan reviews from Google Drive.
 
-    Returns a list of dicts with keys:
-      repo, number, verdict, complexity, reviewed_at, author
+    Returns list of dicts with keys: repo, number, verdict, complexity, reviewed_at, author
+    or None if Drive is unavailable.
     """
-    reviews_dir = settings.reviews_dir
-    if not os.path.isdir(reviews_dir):
-        return []
+    try:
+        drive_files = list_review_files()
+        if not drive_files:
+            return None
+    except Exception:
+        return None
 
-    # Pre-load author mapping to avoid re-reading inbox per review
     author_map = _load_inbox_authors()
-
     results = []
 
-    for filename in os.listdir(reviews_dir):
+    for file_info in drive_files:
+        filename = file_info["name"]
         if not filename.endswith(".md"):
             continue
-        # Skip archive directory entries
-        filepath = os.path.join(reviews_dir, filename)
-        if not os.path.isfile(filepath):
-            continue
 
-        # Parse repo and number from filename: "repo-name-123.md"
-        stem = filename[:-3]  # remove .md
-        # The number is the last segment after the last hyphen
+        stem = filename[:-3]
         parts = stem.rsplit("-", 1)
         if len(parts) != 2:
             continue
@@ -88,28 +102,14 @@ def _scan_reviews() -> list[dict]:
         except ValueError:
             continue
 
-        # Read review content
         try:
-            with open(filepath, "r", encoding="utf-8") as f:
-                content = f.read()
-        except (OSError, UnicodeDecodeError):
+            content = read_file_content(file_info["id"])
+        except Exception:
             continue
 
         verdict = parse_verdict(content)
         complexity = parse_complexity(content)
-
-        # Read metadata for date
-        meta_file = os.path.join(reviews_dir, f"{stem}.meta.json")
-        reviewed_at = None
-        if os.path.isfile(meta_file):
-            try:
-                with open(meta_file, "r", encoding="utf-8") as mf:
-                    meta = json.load(mf)
-                reviewed_at = meta.get("current_reviewed_at", "")
-            except (OSError, json.JSONDecodeError):
-                pass
-
-        # Look up author from pre-loaded inbox data
+        reviewed_at = file_info.get("modifiedTime", "")
         author = author_map.get(f"{repo_name}-{pr_number}", "unknown")
 
         results.append(
@@ -126,11 +126,80 @@ def _scan_reviews() -> list[dict]:
     return results
 
 
+def _scan_reviews_local() -> list[dict]:
+    """Scan reviews from local filesystem."""
+    reviews_dir = settings.reviews_dir
+    if not os.path.isdir(reviews_dir):
+        return []
+
+    author_map = _load_inbox_authors()
+    results = []
+
+    for filename in os.listdir(reviews_dir):
+        if not filename.endswith(".md"):
+            continue
+        filepath = os.path.join(reviews_dir, filename)
+        if not os.path.isfile(filepath):
+            continue
+
+        stem = filename[:-3]
+        parts = stem.rsplit("-", 1)
+        if len(parts) != 2:
+            continue
+        repo_name = parts[0]
+        try:
+            pr_number = int(parts[1])
+        except ValueError:
+            continue
+
+        try:
+            with open(filepath, "r", encoding="utf-8") as f:
+                content = f.read()
+        except (OSError, UnicodeDecodeError):
+            continue
+
+        verdict = parse_verdict(content)
+        complexity = parse_complexity(content)
+
+        meta_file = os.path.join(reviews_dir, f"{stem}.meta.json")
+        reviewed_at = None
+        if os.path.isfile(meta_file):
+            try:
+                with open(meta_file, "r", encoding="utf-8") as mf:
+                    meta = json.load(mf)
+                reviewed_at = meta.get("current_reviewed_at", "")
+            except (OSError, json.JSONDecodeError):
+                pass
+
+        author = author_map.get(f"{repo_name}-{pr_number}", "unknown")
+
+        results.append(
+            {
+                "repo": repo_name,
+                "number": pr_number,
+                "verdict": verdict,
+                "complexity": complexity,
+                "reviewed_at": reviewed_at,
+                "author": author,
+            }
+        )
+
+    return results
+
+
+def _scan_reviews() -> list[dict]:
+    """Scan reviews from Drive first, fall back to local."""
+    drive_reviews = _scan_reviews_from_drive()
+    if drive_reviews is not None:
+        return drive_reviews
+    return _scan_reviews_local()
+
+
 @router.get("/analytics", response_model=AnalyticsResponse)
 async def get_analytics():
     """Compute aggregate analytics across all reviews.
 
-    Scans the reviews directory and metadata to compute:
+    Scans reviews from Google Drive (with local fallback) to compute:
     - Verdict distribution
     - Reviews per day
     - Size/complexity distribution
