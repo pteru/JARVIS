@@ -1,0 +1,24 @@
+[
+  {
+    "eventType": "task_completed",
+    "workspace": "strokmatic",
+    "message": "📋 *Checklist de Visita — Eixo Linear IGUS ZLW-20200*\n_Projeto 03008 — Inspeção Sealer_\n\n*1. Capacidade de Carga e Dinâmica*\n☐ Carga no carro (payload) — somar câmera (~5kg) + housing + tampa + LED + suportes\n☐ Momento fletor — CG deslocado do eixo do trilho?\n☐ Aceleração e velocidade máxima — perfil de movimento, torque NEMA 34 (5,9 Nm)\n☐ Força de avanço — F = m×a + F_atrito vs correia/motor\n\n*2. Precisão e Repetibilidade*\n☐ Repetibilidade posicionamento — ±0,1-0,2mm suficiente?\n☐ Folga correia (backlash) — 0,1-0,3mm; varredura uni ou bidirecional?\n☐ Deflexão trilho (flecha) — 2.500mm curso, carga central, admissível <0,3mm\n\n*3. Compatibilidade Mecânica*\n☐ Fixação na estrutura — furação trilho vs perfis Pertec 120x60mm\n☐ Orientação montagem — horizontal? Capacidades variam com orientação\n☐ Acoplamento motor — COU-AR-K-140-140-42-40-B, eixos 42/40mm\n☐ Flange motor — dimensões interface ZLW-20200 ↔ NEMA 34 para fabricação CNC\n\n*4. Vida Útil e Manutenção*\n☐ Vida útil patins drylin — ciclos/dia (900 carros × N mov.), estimar meses\n☐ Desgaste correia — tensão operacional, proteção sanfonadas\n☐ Peças de reposição — patins, correia, kit manutenção, prazo IGUS\n☐ Proteção ambiental — paint shop: partículas, solventes, umidade\n\n*5. Elétrica e Controle*\n☐ Sensores fim de curso — 2× Sick M8 IME08, PNP NO, IP67, flag aço no carro\n☐ Encoder motor — RS422, 500 pulsos/rev, resolução 0,288mm/pulso\n☐ Driver D1 ↔ CLP — Profinet/PROFIdrive, GSD file TIA Portal\n☐ Cabo motor 20m — IGUS DLE904161278-20 (R$ 1.475)\n☐ Fonte 48V — Mean Well NDR-480-48, 10A cont., margem 1,57×\n\n*6. Validação Antes da Compra*\n☐ Datasheet ZLW-20200 — curvas carga vs velocidade\n☐ Cálculo vida útil IGUS — parâmetros reais\n☐ Curso 2.500mm suficiente com margem para home/overtravel\n✅ ~~Flange local~~ — caldeiraria/CNC ~R$ 300, ~7 dias\n☐ Config D1 no TIA Portal — GSD, Profinet, teste posicionamento",
+    "domain": "inbound",
+    "category": "standard",
+    "backendsNotified": [
+      "telegram"
+    ],
+    "timestamp": "2026-03-17T13:49:59.468Z"
+  },
+  {
+    "eventType": "task_completed",
+    "workspace": "strokmatic",
+    "message": "📋 *Checklist — Visita Hyundai Piracicaba 17/03/2026*\n_Projeto 03008 — Estação de Inspeção de Sealer_\n\n*Equipamentos para levar*\n☐ Trena (5m+)\n☐ Trena laser (se disponível)\n☐ Celular carregado (fotos + vídeos)\n☐ Caderno / tablet para anotações\n☐ EPI (óculos, protetor auricular, sapato de segurança)\n\n*Medições*\n☐ Distância entre fixação dos robôs (eixo longitudinal)\n☐ Distância entre fixação dos robôs (eixo transversal)\n☐ Altura dos pontos de fixação em relação à chapa do piso\n☐ Espessura da chapa do piso\n☐ Distância do ponto de instalação até posição do painel\n☐ Distância do painel até canaleta mais próxima do robô\n☐ Distância do painel até o porão (rota cabos alternativa)\n☐ Distância do painel até switch/ponto de rede (Smart TV)\n\n*Documentos a obter*\n☐ Desenho estrutural das vigas do piso — exigir documento formal. Sem ele, proposta S4 não pode ser projetada\n☐ Planta baixa da região (robôs, canaletas, energia/rede)\n\n*Avaliação visual e fotos*\n☐ Pontos de fixação dos robôs (close-up c/ escala)\n☐ Chapa do piso (superfície, fixação, estado)\n☐ Vigas inferiores (porão — perfil, dimensões, espaçamento)\n☐ Canaletas existentes (localização, direção, ocupação)\n☐ Trajeto alternativo de cabos por cima\n☐ Posição definida do painel\n☐ Local previsto para TV de visualização\n☐ Ponto de conexão com PLC da linha (S7-300)\n☐ Panorâmica geral da área\n\n*Perguntas para a manutenção*\n☐ Existe desenho estrutural / projeto original das vigas?\n☐ A chapa suporta carga adicional? Espessura e material?\n☐ Topologia de rede na área? Conveyor, câmera e PLC na mesma rede?\n☐ Ponto de rede mais próximo para Smart TV?\n☐ Onde conectar botoeira no PLC (S7-300)?\n☐ Restrições de instalação (peso, vibrações, proximidade)?\n\n*Ao voltar — ações imediatas*\n☐ Transferir fotos e medições para pmo/03008/reference/\n☐ Atualizar minuta com resultados da visita\n☐ Se obteve desenho das vigas → iniciar proposta S4\n☐ Se não obteve → registrar compromisso e prazo",
+    "domain": "inbound",
+    "category": "standard",
+    "backendsNotified": [
+      "telegram"
+    ],
+    "timestamp": "2026-03-17T13:51:17.249Z"
+  }
+]

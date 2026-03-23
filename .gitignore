@@ -1,6 +1,9 @@
 # Credentials (secrets — never track)
 config/credentials/
 
+# Claude Code session artifacts
+Session ID *.txt
+
 # Logs
 logs/*.log
 !logs/.gitkeep
@@ -31,9 +34,13 @@ tools/pmo-dashboard/frontend/node_modules/
 __pycache__/
 *.pyc
 *.pyo
+*.egg-info/
 
 # Environment files
 .env
+
+# Git worktrees
+.worktrees/
 
 # OS files
 .DS_Store
@@ -43,6 +50,9 @@ Thumbs.db
 # Editor files
 .vscode/
 .idea/
+
+# Playwright MCP logs
+.playwright-mcp/
 
 # Backup files
 *.backup

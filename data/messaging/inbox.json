@@ -1,0 +1,394 @@
+[
+  {
+    "id": "inbox_1773699913526_179",
+    "telegram_message_id": 179,
+    "timestamp": "2026-03-16T21:43:05.000Z",
+    "text": "[Voice message - transcription failed: Missing env var DEEPGRAM_API_KEY]",
+    "original_type": "voice",
+    "status": "pending"
+  },
+  {
+    "id": "inbox_1773699913526_180",
+    "telegram_message_id": 180,
+    "timestamp": "2026-03-16T21:43:15.000Z",
+    "text": "[Voice message - transcription failed: Missing env var DEEPGRAM_API_KEY]",
+    "original_type": "voice",
+    "status": "pending"
+  },
+  {
+    "id": "inbox_1773699913526_181",
+    "telegram_message_id": 181,
+    "timestamp": "2026-03-16T21:43:26.000Z",
+    "text": "[Voice message - transcription failed: Missing env var DEEPGRAM_API_KEY]",
+    "original_type": "voice",
+    "status": "pending"
+  },
+  {
+    "id": "inbox_1773699913526_182",
+    "telegram_message_id": 182,
+    "timestamp": "2026-03-16T21:43:36.000Z",
+    "text": "[Voice message - transcription failed: Missing env var DEEPGRAM_API_KEY]",
+    "original_type": "voice",
+    "status": "pending"
+  },
+  {
+    "id": "inbox_1773699913526_183",
+    "telegram_message_id": 183,
+    "timestamp": "2026-03-16T21:43:46.000Z",
+    "text": "[Voice message - transcription failed: Missing env var DEEPGRAM_API_KEY]",
+    "original_type": "voice",
+    "status": "pending"
+  },
+  {
+    "id": "inbox_1773699913526_184",
+    "telegram_message_id": 184,
+    "timestamp": "2026-03-16T21:43:58.000Z",
+    "text": "[Voice message - transcription failed: Missing env var DEEPGRAM_API_KEY]",
+    "original_type": "voice",
+    "status": "pending"
+  },
+  {
+    "id": "inbox_1773699913526_185",
+    "telegram_message_id": 185,
+    "timestamp": "2026-03-16T21:58:59.000Z",
+    "text": "[Voice message - transcription failed: Missing env var DEEPGRAM_API_KEY]",
+    "original_type": "voice",
+    "status": "pending"
+  },
+  {
+    "id": "inbox_1773699913526_186",
+    "telegram_message_id": 186,
+    "timestamp": "2026-03-16T21:59:09.000Z",
+    "text": "[Voice message - transcription failed: Missing env var DEEPGRAM_API_KEY]",
+    "original_type": "voice",
+    "status": "pending"
+  },
+  {
+    "id": "inbox_1773699913526_187",
+    "telegram_message_id": 187,
+    "timestamp": "2026-03-16T21:59:19.000Z",
+    "text": "[Voice message - transcription failed: Missing env var DEEPGRAM_API_KEY]",
+    "original_type": "voice",
+    "status": "pending"
+  },
+  {
+    "id": "inbox_1773699913526_188",
+    "telegram_message_id": 188,
+    "timestamp": "2026-03-16T22:22:07.000Z",
+    "text": "[Voice message - transcription failed: Missing env var DEEPGRAM_API_KEY]",
+    "original_type": "voice",
+    "status": "pending"
+  },
+  {
+    "id": "inbox_1773699913526_189",
+    "telegram_message_id": 189,
+    "timestamp": "2026-03-16T22:22:07.000Z",
+    "text": "[Voice message - transcription failed: Missing env var DEEPGRAM_API_KEY]",
+    "original_type": "voice",
+    "status": "pending"
+  },
+  {
+    "id": "inbox_1773699913526_190",
+    "telegram_message_id": 190,
+    "timestamp": "2026-03-16T22:22:07.000Z",
+    "text": "[Voice message - transcription failed: Missing env var DEEPGRAM_API_KEY]",
+    "original_type": "voice",
+    "status": "pending"
+  },
+  {
+    "id": "inbox_1773699913526_191",
+    "telegram_message_id": 191,
+    "timestamp": "2026-03-16T22:22:07.000Z",
+    "text": "[Voice message - transcription failed: Missing env var DEEPGRAM_API_KEY]",
+    "original_type": "voice",
+    "status": "pending"
+  },
+  {
+    "id": "inbox_1773699913526_192",
+    "telegram_message_id": 192,
+    "timestamp": "2026-03-16T22:22:07.000Z",
+    "text": "[Voice message - transcription failed: Missing env var DEEPGRAM_API_KEY]",
+    "original_type": "voice",
+    "status": "pending"
+  },
+  {
+    "id": "inbox_1773699913526_193",
+    "telegram_message_id": 193,
+    "timestamp": "2026-03-16T22:22:07.000Z",
+    "text": "[Voice message - transcription failed: Missing env var DEEPGRAM_API_KEY]",
+    "original_type": "voice",
+    "status": "pending"
+  },
+  {
+    "id": "inbox_1773699913526_194",
+    "telegram_message_id": 194,
+    "timestamp": "2026-03-16T22:22:07.000Z",
+    "text": "[Voice message - transcription failed: Missing env var DEEPGRAM_API_KEY]",
+    "original_type": "voice",
+    "status": "pending"
+  },
+  {
+    "id": "inbox_1773699913526_195",
+    "telegram_message_id": 195,
+    "timestamp": "2026-03-16T22:22:07.000Z",
+    "text": "[Voice message - transcription failed: Missing env var DEEPGRAM_API_KEY]",
+    "original_type": "voice",
+    "status": "pending"
+  },
+  {
+    "id": "inbox_1773700404507_197",
+    "telegram_message_id": 197,
+    "timestamp": "2026-03-16T22:33:05.000Z",
+    "text": "[Voice message - transcription failed: Missing env var GROQ_API_KEY]",
+    "original_type": "voice",
+    "status": "pending"
+  },
+  {
+    "id": "inbox_1773700404507_198",
+    "telegram_message_id": 198,
+    "timestamp": "2026-03-16T22:33:05.000Z",
+    "text": "[Voice message - transcription failed: Missing env var GROQ_API_KEY]",
+    "original_type": "voice",
+    "status": "pending"
+  },
+  {
+    "id": "inbox_1773700404507_199",
+    "telegram_message_id": 199,
+    "timestamp": "2026-03-16T22:33:05.000Z",
+    "text": "[Voice message - transcription failed: Missing env var GROQ_API_KEY]",
+    "original_type": "voice",
+    "status": "pending"
+  },
+  {
+    "id": "inbox_1773700404507_200",
+    "telegram_message_id": 200,
+    "timestamp": "2026-03-16T22:33:05.000Z",
+    "text": "[Voice message - transcription failed: Missing env var GROQ_API_KEY]",
+    "original_type": "voice",
+    "status": "pending"
+  },
+  {
+    "id": "inbox_1773700404507_201",
+    "telegram_message_id": 201,
+    "timestamp": "2026-03-16T22:33:05.000Z",
+    "text": "[Voice message - transcription failed: Missing env var GROQ_API_KEY]",
+    "original_type": "voice",
+    "status": "pending"
+  },
+  {
+    "id": "inbox_1773700404507_202",
+    "telegram_message_id": 202,
+    "timestamp": "2026-03-16T22:33:05.000Z",
+    "text": "[Voice message - transcription failed: Missing env var GROQ_API_KEY]",
+    "original_type": "voice",
+    "status": "pending"
+  },
+  {
+    "id": "inbox_1773700404507_203",
+    "telegram_message_id": 203,
+    "timestamp": "2026-03-16T22:33:05.000Z",
+    "text": "[Voice message - transcription failed: Missing env var GROQ_API_KEY]",
+    "original_type": "voice",
+    "status": "pending"
+  },
+  {
+    "id": "inbox_1773700404507_204",
+    "telegram_message_id": 204,
+    "timestamp": "2026-03-16T22:33:05.000Z",
+    "text": "[Voice message - transcription failed: Missing env var GROQ_API_KEY]",
+    "original_type": "voice",
+    "status": "pending"
+  },
+  {
+    "id": "inbox_1773700939962_206",
+    "telegram_message_id": 206,
+    "timestamp": "2026-03-16T22:40:30.000Z",
+    "text": "Que tienen un canaleta en el mismo lado aquí,",
+    "original_type": "voice",
+    "status": "pending"
+  },
+  {
+    "id": "inbox_1773700942613_207",
+    "telegram_message_id": 207,
+    "timestamp": "2026-03-16T22:40:30.000Z",
+    "text": "La otra cosa es que le mandó un audio diciendo que había sido combinado con Patek, que usted no sería todo comisionado, una stroke machica en severe, y su verdad es, aquí están que le falló es si aquí les podría enviar un macahucería, que no era tan simple, después no se había algo. La es problema que no había algo. Entonces, es preciso enderezar ese punto y fácil dar una respuesta para él.",
+    "original_type": "voice",
+    "status": "pending"
+  },
+  {
+    "id": "inbox_1773700944822_208",
+    "telegram_message_id": 208,
+    "timestamp": "2026-03-16T22:40:30.000Z",
+    "text": "[Voice message - transcription failed: undefined]",
+    "original_type": "voice",
+    "status": "pending"
+  },
+  {
+    "id": "inbox_1773700947074_209",
+    "telegram_message_id": 209,
+    "timestamp": "2026-03-16T22:40:30.000Z",
+    "text": "Preciso montar un cronograma detallado para compartir con ellos, más dado a a sus posibles ajustes mecánicos, la en esa visita a Georgia, y a pendiente dos calles.",
+    "original_type": "voice",
+    "status": "pending"
+  },
+  {
+    "id": "inbox_1773700949606_210",
+    "telegram_message_id": 210,
+    "timestamp": "2026-03-16T22:40:30.000Z",
+    "text": "[Voice message - transcription failed: undefined]",
+    "original_type": "voice",
+    "status": "pending"
+  },
+  {
+    "id": "inbox_1773700951791_211",
+    "telegram_message_id": 211,
+    "timestamp": "2026-03-16T22:40:30.000Z",
+    "text": "[Voice message - transcription failed: undefined]",
+    "original_type": "voice",
+    "status": "pending"
+  },
+  {
+    "id": "inbox_1773700954402_212",
+    "telegram_message_id": 212,
+    "timestamp": "2026-03-16T22:40:30.000Z",
+    "text": "[Voice message - transcription failed: undefined]",
+    "original_type": "voice",
+    "status": "pending"
+  },
+  {
+    "id": "inbox_1773700957434_213",
+    "telegram_message_id": 213,
+    "timestamp": "2026-03-16T22:40:30.000Z",
+    "text": "[Voice message - transcription failed: undefined]",
+    "original_type": "voice",
+    "status": "pending"
+  },
+  {
+    "id": "inbox_1773701113105_215",
+    "telegram_message_id": 215,
+    "timestamp": "2026-03-16T22:44:16.000Z",
+    "text": "Que tienen un canaleta en el mismo lado aquí,",
+    "original_type": "voice",
+    "status": "pending"
+  },
+  {
+    "id": "inbox_1773701115812_216",
+    "telegram_message_id": 216,
+    "timestamp": "2026-03-16T22:44:16.000Z",
+    "text": "La otra cosa es que le mandó un audio diciendo que había sido combinado con Patek, que usted no sería todo comisionado, una stroke machica en severe, y su verdad es, aquí están que le falló es si aquí les podría enviar un macahucería, que no era tan simple, después no se había algo. La es problema que no había algo. Entonces, es preciso enderezar ese punto y fácil dar una respuesta para él.",
+    "original_type": "voice",
+    "status": "pending"
+  },
+  {
+    "id": "inbox_1773701116869_217",
+    "telegram_message_id": 217,
+    "timestamp": "2026-03-16T22:44:16.000Z",
+    "text": "[Voice message - transcription failed: Unexpected Deepgram response: {\"metadata\":{\"transaction_key\":\"deprecated\",\"request_id\":\"04918541-7c74-4ee0-b420-7badda0aa18c\",\"sha256\":\"91afe92156d50a185c314cea45b878bfddfcf7aacfa43cec06ea756be980b188\",\"created\":\"2026-03-16T22:45:]",
+    "original_type": "voice",
+    "status": "pending"
+  },
+  {
+    "id": "inbox_1773701118032_218",
+    "telegram_message_id": 218,
+    "timestamp": "2026-03-16T22:44:16.000Z",
+    "text": "Preciso montar un cronograma detallado para compartir con ellos, más dado a a sus posibles ajustes mecánicos, la en esa visita a Georgia, y a pendiente dos calles.",
+    "original_type": "voice",
+    "status": "pending"
+  },
+  {
+    "id": "inbox_1773701119296_219",
+    "telegram_message_id": 219,
+    "timestamp": "2026-03-16T22:44:16.000Z",
+    "text": "[Voice message - transcription failed: Unexpected Deepgram response: {\"metadata\":{\"transaction_key\":\"deprecated\",\"request_id\":\"e21b6bc9-4a5a-485f-bd90-67fa1de84fa1\",\"sha256\":\"31dc4695e73c7b20ce2876f06df16cf61de454a83446ebb7309b6651945cc376\",\"created\":\"2026-03-16T22:45:]",
+    "original_type": "voice",
+    "status": "pending"
+  },
+  {
+    "id": "inbox_1773701121000_220",
+    "telegram_message_id": 220,
+    "timestamp": "2026-03-16T22:44:16.000Z",
+    "text": "[Voice message - transcription failed: Unexpected Deepgram response: {\"metadata\":{\"transaction_key\":\"deprecated\",\"request_id\":\"401e2834-9bc6-4e57-89d9-ef92bc18839e\",\"sha256\":\"c5e9f181da407abf7aeda5846545ef627c39dfe5c696c1dee93af426af5bea38\",\"created\":\"2026-03-16T22:45:]",
+    "original_type": "voice",
+    "status": "pending"
+  },
+  {
+    "id": "inbox_1773701123276_221",
+    "telegram_message_id": 221,
+    "timestamp": "2026-03-16T22:44:16.000Z",
+    "text": "[Voice message - transcription failed: Unexpected Deepgram response: {\"metadata\":{\"transaction_key\":\"deprecated\",\"request_id\":\"42af05fe-5b79-4d0f-a9b3-4ee578b9f35d\",\"sha256\":\"fa50e6a8871ed7f258a815dd1c82bf6834c4a45b2004432b7e4d341944cc513d\",\"created\":\"2026-03-16T22:45:]",
+    "original_type": "voice",
+    "status": "pending"
+  },
+  {
+    "id": "inbox_1773701126103_222",
+    "telegram_message_id": 222,
+    "timestamp": "2026-03-16T22:44:16.000Z",
+    "text": "[Voice message - transcription failed: Unexpected Deepgram response: {\"metadata\":{\"transaction_key\":\"deprecated\",\"request_id\":\"624f3021-e3c9-4114-824e-d809b71b93e7\",\"sha256\":\"930ffd792f2e2da17f6a3892134ef41c38605733e8e9af99e790a0abc7340cf1\",\"created\":\"2026-03-16T22:45:]",
+    "original_type": "voice",
+    "status": "pending"
+  },
+  {
+    "id": "inbox_1773701266892_224",
+    "telegram_message_id": 224,
+    "timestamp": "2026-03-16T22:47:28.000Z",
+    "text": "Avaliar estruturalmente a fixação no chão do do suporte do sistema, que ele precisa, tem que pegar as informações da da chapa que está ali no meio e verificar se é possível ficar nivelada e ficar firme né porque ali pode estar sujeito a vibração buscar informações sobre como é que é essa chapa né como é que ela está fixada qual a espessura dela dependendo até de fazer 1 segunda visita amanhã pra dar 1 olhada de novo tentar medir eu mesmo e também cobrar do pessoal da da manutenção, desenho estrutural ali da das vigas que tem embaixo, e avaliar a solução de fixar nessas vigas, com a chapa recortada, ou de fazer 1 travessa 1 pouco mais rígida de aço entre as os pontos de fixação do robô, e fixar o sistema nessa como se fosse nessa travessa né nesse berço que seria construído ali pra ficar mais rígido. Os pontos do robô eles são bem fixos né, dá pra ver nas fotos que que foram tiradas. Além disso precisa ser avaliado a rota de cabo da posição do painel, a posição do painel foi definida, fica no canto ali da da estrutura, e aí precisa avaliar dali como é que que vai levar os cabos até a até a o sistema né? A a ideia é usar as canaletas que tem no porão embaixo, só que não tem nenhuma canaleta no mesmo lado que corra longitudinalmente. Elas são todas do robô pra baixo. Então precisaria ir por cima até o robô e aí descer na canaleta do robô pra entrar no sistema por baixo. Se for colocada a travessa, nessa travessa pode talvez ser embutido 1 calha né, tendo essa ideia agora. Pra levar até até a estrutura ali e entrar na esteira porta cabos por baixo também. Isso seria interessante porque se economizaria cerca de 4 a 5 metros de cabo, porque não precisaria descer até lá no porão e subir novamente né? Então, isso é interessante por esse motivo.",
+    "original_type": "voice",
+    "status": "pending"
+  },
+  {
+    "id": "inbox_1773701275585_225",
+    "telegram_message_id": 225,
+    "timestamp": "2026-03-16T22:47:28.000Z",
+    "text": "O Tiago ficou de conseguir os CADs pra nós e ele perguntou sobre o cad sobre o novo modelo né se seria possível inserir então isso precisa ser avaliada a o contrato né o escopo contratado para ver se está incluído esse novo modelo ou não eu acho que sim mas eu não tenho certeza é bom avaliar porque se não tiver aí entra 1 questão comercial para negociar essa parte A outra coisa é que ele mandou 1 áudio dizendo que, havia sido combinado com o PATEC que o sistema seria todo comissionado na Strokmatic antes de vir. Isso é verdade mas, 00A questão que ele falou é se é que eles poderiam enviar 1 1 carroceria né acho que é isso que ele falou 1 carroceria, desde que a gente buscasse né? Mas isso, mesmo que a gente, tentei o custo de de de buscar e tenha a infraestrutura pra pendurar essa carroceria em algum lugar em cima do sistema, que não é tão simples pode não ser viável né aliás provavelmente não é viável. Então a gente precisa endereçar esse ponto e fazer dar alguma resposta pra ele.",
+    "original_type": "voice",
+    "status": "pending"
+  },
+  {
+    "id": "inbox_1773701280040_226",
+    "telegram_message_id": 226,
+    "timestamp": "2026-03-16T22:47:28.000Z",
+    "text": "O da manutenção ele mencionou que o conveio, a câmera que faz a correção E00 PLC da linha não necessariamente estão na mesma rede, ele acha que não estão inclusive. Então a gente já tem que prever que a arquitetura do sistema precisa ter múltiplas portas Ethernet cada 1 delas ligar em 1 dessas redes né? Se a gente for seguir com a boxer mesmo a gente já tem 3 portas disponíveis então não seria 1 problema, mas a gente precisa confirmar essa informação.",
+    "original_type": "voice",
+    "status": "pending"
+  },
+  {
+    "id": "inbox_1773701282637_227",
+    "telegram_message_id": 227,
+    "timestamp": "2026-03-16T22:47:28.000Z",
+    "text": "Preciso montar 1 cronograma detalhado pra compartilhar com eles, mas dado as os possíveis ajustes mecânicos da fixação né nessa visita de hoje e a pendência dos CADS, tem que analisar também pra nesse cronograma a gente colocar algum tipo de dependência, né, 1 data prevista pra receber essa informação e e se não receber, esse atraso impacta as demais atividades.",
+    "original_type": "voice",
+    "status": "pending"
+  },
+  {
+    "id": "inbox_1773701285395_228",
+    "telegram_message_id": 228,
+    "timestamp": "2026-03-16T22:47:28.000Z",
+    "text": "Foi alinhada a questão da botoeira, né? É, que ela vai, ser ativada pelo pelo PC, ela vai conectar no PLC diretamente da da linha, não no nosso, né? Então, isso isso foi alinhado com eles e eles estão cientes. Sobre qual dos lados precisa acionar, aí depende da definição das regras lado a lado feita por eles, né? Se vai ser por coordenada, como é que vai ser.",
+    "original_type": "voice",
+    "status": "pending"
+  },
+  {
+    "id": "inbox_1773701287755_229",
+    "telegram_message_id": 229,
+    "timestamp": "2026-03-16T22:47:28.000Z",
+    "text": "Eles manifestaram interesse em que o defeito seja mapeado ao robô que aplicou naquela região. Isso é tranquilo de fazer, desde que a gente faça 1 mapa e aí eu passei que eles precisam passar pra gente. Isso aí, Que tem que ter mapeado pra cada cordão, e aí tem 1 identificação de cada cordão, de cada trecho. Cada cordão ser atrelado a 1 robô. E aí dado 1 defeito, o defeito está no cordão e o cordão está no robô. Então fica fácil fazer esse esse esse mapeamento né? Mas é algo que é bem interessante para eles.",
+    "original_type": "voice",
+    "status": "pending"
+  },
+  {
+    "id": "inbox_1773701290427_230",
+    "telegram_message_id": 230,
+    "timestamp": "2026-03-16T22:47:28.000Z",
+    "text": "Sobre a parte de movimentação do robô e sincronização com a movimentação da câmera, é importante ser feita 1 simulação temporal dessa dessa interação. Acho que é bem possível de fazer, a gente pode usar como base os vídeos né, e a cronanálise que já foi feita e encaixar naquele intervalo as movimentações do da câmera e aí na hora de fazer o comissionamento e integração de automação a gente busca atingir esses tempos e isso é a validação se o sistema está ou não está dando conta né então a gente pode programar simular né os sinais de início e fim de ciclo de cada robô baseado na crononanálise e aí o sistema interage com esses sinais simulados pra pra encaixar os seus movimentos no meio e a gente consegue medir o o tempo de ciclo baseado nisso.",
+    "original_type": "voice",
+    "status": "pending"
+  },
+  {
+    "id": "inbox_1773701293846_231",
+    "telegram_message_id": 231,
+    "timestamp": "2026-03-16T22:47:28.000Z",
+    "text": "A conexão entre o cpu auxiliar e o painel, dependendo de onde fica o o switch, que eu acredito que é bem longe, parece ser melhor ser feito direto entre os 2, né? Então a gente pode prever 1 porta ethernet a mais ali no nosso painel para ligar 1 cabo ethernet comum até a CPU auxiliar ou até dependendo a gente levar diretamente 1 HDMI né? Então o HDMI do painel diretamente na TVzona e a TVzona funcionaria como 1 tela auxiliar com 1 quiosque mode. Aí a gente precisa olhar do lado do software, o que que é melhor, né? Ou então ainda 1 terceira ideia, a gente comprar 1 TV Smart, que tem a capacidade de de abrir 1 browser nela própria, e aí ligar a internet diretamente a TV no nosso painel. Seria até o a sua o cenário mais enxuto de todos.",
+    "original_type": "voice",
+    "status": "pending"
+  }
+]
