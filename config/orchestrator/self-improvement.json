@@ -1,0 +1,11 @@
+{
+  "auto_apply": false,
+  "report_on_analyze": true,
+  "min_dispatches_for_proposals": 5,
+  "analysis_schedule": "daily",
+  "proposal_types": ["rule_change", "model_upgrade", "complexity_guard"],
+  "health_thresholds": {
+    "healthy": 75,
+    "moderate": 50
+  }
+}

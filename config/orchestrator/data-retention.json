@@ -1,0 +1,24 @@
+{
+  "vk_health_snapshots": {
+    "retain_days": 30,
+    "compress_days": 90,
+    "purge_days": 180
+  },
+  "sf_health_snapshots": {
+    "retain_days": 30,
+    "compress_days": 90,
+    "purge_days": 180
+  },
+  "meeting_transcripts": {
+    "retain_days": 365
+  },
+  "cron_logs": {
+    "retain_days": 30,
+    "rotate": "daily"
+  },
+  "reports": {
+    "daily": { "retain_days": 90 },
+    "weekly": { "retain_days": 365 },
+    "analysis": { "retain_days": 30 }
+  }
+}
