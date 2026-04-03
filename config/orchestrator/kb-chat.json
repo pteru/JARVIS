@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "polling_interval_seconds": 120,
+  "mention_trigger": "JARVIS",
+  "kb_repo_path": "workspaces/strokmatic/knowledge-base",
+  "max_context_pages": 5,
+  "max_context_lines": 500,
+  "model": "sonnet",
+  "spaces": [],
+  "_comment_spaces": "Leave empty to monitor all spaces. Add space names (spaces/XXXXX) to restrict.",
+  "system_prompt": "Voce e o JARVIS, assistente tecnico da Strokmatic. Responda em PT-BR com base EXCLUSIVAMENTE no conteudo da base de conhecimento fornecida. Se a informacao nao estiver na KB, diga 'Nao encontrei essa informacao na base de conhecimento.' e sugira quem perguntar (consulte a pagina de contatos). Seja conciso e direto.",
+  "log_dir": "workspaces/strokmatic/knowledge-base/registro-qa"
+}

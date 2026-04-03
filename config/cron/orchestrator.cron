@@ -22,3 +22,9 @@
 # KB Auto-Update
 0 8 * * * cd $HOME/JARVIS && bash scripts/kb-update/feed-git-monitor.sh >> logs/cron-kb-update.log 2>&1
 0 22 * * 5 cd $HOME/JARVIS && bash scripts/kb-update/staleness-report.sh >> logs/cron-kb-update.log 2>&1
+
+# KB Chat Bot (Phase 3) — poll Google Chat for @JARVIS mentions every 2 minutes
+*/2 * * * * cd $HOME/JARVIS && node scripts/kb-chat/poll-and-reply.mjs >> logs/cron-kb-chat.log 2>&1
+
+# KB Q&A log commit — push accumulated Q&A logs to KB repo daily at midnight
+0 0 * * * cd $HOME/JARVIS && bash scripts/kb-chat/commit-qa-logs.sh >> logs/cron-kb-chat.log 2>&1
