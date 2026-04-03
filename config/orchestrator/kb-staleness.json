@@ -1,0 +1,12 @@
+{
+  "thresholds_days": {
+    "servicos": 14,
+    "arquitetura": 30,
+    "deploys": 60,
+    "operacoes": 30,
+    "pmo": 7,
+    "referencias": 90,
+    "decisoes": 9999,
+    "default": 30
+  }
+}

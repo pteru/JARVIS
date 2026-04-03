@@ -1,0 +1,28 @@
+{
+  "mappings": [
+    { "workspace": "strokmatic.visionking", "path_prefix": "services/inference", "kb_page": "produtos/visionking/servicos/inference.md" },
+    { "workspace": "strokmatic.visionking", "path_prefix": "services/camera-acquisition", "kb_page": "produtos/visionking/servicos/camera-acquisition.md" },
+    { "workspace": "strokmatic.visionking", "path_prefix": "services/image-saver", "kb_page": "produtos/visionking/servicos/image-saver.md" },
+    { "workspace": "strokmatic.visionking", "path_prefix": "services/database-writer", "kb_page": "produtos/visionking/servicos/database-writer.md" },
+    { "workspace": "strokmatic.visionking", "path_prefix": "services/plc-monitor", "kb_page": "produtos/visionking/servicos/plc-monitor.md" },
+    { "workspace": "strokmatic.visionking", "path_prefix": "services/pixel-to-object", "kb_page": "produtos/visionking/servicos/pixel-to-object.md" },
+    { "workspace": "strokmatic.visionking", "path_prefix": "services/defect-aggregator", "kb_page": "produtos/visionking/servicos/defect-aggregator.md" },
+    { "workspace": "strokmatic.visionking", "path_prefix": "services/result", "kb_page": "produtos/visionking/servicos/result.md" },
+    { "workspace": "strokmatic.visionking", "path_prefix": "services/backend", "kb_page": "produtos/visionking/servicos/backend.md" },
+    { "workspace": "strokmatic.visionking", "path_prefix": "services/frontend", "kb_page": "produtos/visionking/servicos/frontend.md" },
+    { "workspace": "strokmatic.visionking", "path_prefix": "topologies/", "kb_page": "produtos/visionking/arquitetura.md" },
+    { "workspace": "strokmatic.visionking", "path_prefix": "docker-compose", "kb_page": "produtos/visionking/arquitetura.md" },
+    { "workspace": "strokmatic.diemaster.services.backend", "path_prefix": "src/", "kb_page": "produtos/diemaster/servicos/backend.md" },
+    { "workspace": "strokmatic.diemaster", "path_prefix": "services/get-data", "kb_page": "produtos/diemaster/servicos/get-data.md" },
+    { "workspace": "strokmatic.diemaster", "path_prefix": "services/data-processing", "kb_page": "produtos/diemaster/servicos/data-processing.md" },
+    { "workspace": "strokmatic.diemaster", "path_prefix": "services/database-writer", "kb_page": "produtos/diemaster/servicos/database-writer.md" },
+    { "workspace": "strokmatic.diemaster", "path_prefix": "services/inference", "kb_page": "produtos/diemaster/servicos/inference.md" },
+    { "workspace": "strokmatic.diemaster", "path_prefix": "services/firmware", "kb_page": "produtos/diemaster/firmware/" },
+    { "workspace": "strokmatic.spotfusion", "path_prefix": "services/backend", "kb_page": "produtos/spotfusion/servicos/backend.md" },
+    { "workspace": "strokmatic.spotfusion", "path_prefix": "services/inference", "kb_page": "produtos/spotfusion/servicos/inference.md" },
+    { "workspace": "strokmatic.spotfusion", "path_prefix": "services/camera-acquisition", "kb_page": "produtos/spotfusion/servicos/camera-acquisition.md" },
+    { "workspace": "strokmatic.spotfusion", "path_prefix": "services/database-writer", "kb_page": "produtos/spotfusion/servicos/database-writer.md" },
+    { "workspace": "strokmatic.spotfusion", "path_prefix": "services/default-module", "kb_page": "produtos/spotfusion/servicos/default-module.md" }
+  ],
+  "_comment": "Add more mappings as KB grows. Unmapped paths trigger a generic staleness flag on the product arquitetura.md page."
+}

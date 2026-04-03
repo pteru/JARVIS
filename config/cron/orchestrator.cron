@@ -18,3 +18,7 @@
 
 # Weekly: Suggest weekly goals on Monday at 8:00 AM
 0 8 * * 1 ORCHESTRATOR_HOME={{ORCHESTRATOR_HOME}} {{ORCHESTRATOR_HOME}}/scripts/orchestrator.sh suggest-goals >> {{ORCHESTRATOR_HOME}}/logs/cron-goals.log 2>&1
+
+# KB Auto-Update
+0 8 * * * cd $HOME/JARVIS && bash scripts/kb-update/feed-git-monitor.sh >> logs/cron-kb-update.log 2>&1
+0 22 * * 5 cd $HOME/JARVIS && bash scripts/kb-update/staleness-report.sh >> logs/cron-kb-update.log 2>&1
