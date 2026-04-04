@@ -62,9 +62,8 @@ Before marking any task as complete:
 
 ## File Structure
 
-- `backlogs/products/` - Per-workspace product task backlogs (`strokmatic.<product>.md`)
-- `backlogs/plans/` - Detailed implementation plans per product (`strokmatic.<product>.md`)
-- `backlogs/orchestrator/` - Orchestrator self-improvement specs and index
+- `backlogs/strokmatic/` - Strokmatic product task backlogs + plans (bound for ClickUp/GitHub)
+- `backlogs/jarvis/` - JARVIS orchestrator specs, plans, and completed features (local SSOT)
 - `changelogs/` - Per-workspace changelogs (Keep a Changelog format)
 - `reports/` - Generated daily and weekly reports
 - `logs/` - Dispatch logs and cron output

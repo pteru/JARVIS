@@ -13,6 +13,31 @@ log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 log_section() { echo -e "\n${BLUE}═══ $1 ═══${NC}\n"; }
 
 ORCHESTRATOR_HOME="${ORCHESTRATOR_HOME:-$HOME/JARVIS}"
+
+# Resolve workspace key to backlog file path
+# "orchestrator" → backlogs/jarvis/backlog.md
+# "strokmatic.diemaster" → backlogs/strokmatic/diemaster.md
+resolve_backlog_path() {
+  local ws="$1"
+  if [[ "$ws" == "orchestrator" ]]; then
+    echo "$ORCHESTRATOR_HOME/backlogs/jarvis/backlog.md"
+  else
+    local domain="${ws%%.*}"        # "strokmatic"
+    local product="${ws#*.}"        # "diemaster" or "sdk" or "general"
+    local new_path="$ORCHESTRATOR_HOME/backlogs/$domain/$product.md"
+    if [[ -f "$new_path" ]]; then
+      echo "$new_path"
+    else
+      # Fallback to legacy path
+      local legacy="$ORCHESTRATOR_HOME/backlogs/products/${ws}.md"
+      if [[ -f "$legacy" ]]; then
+        echo "$legacy"
+      else
+        echo "$new_path"
+      fi
+    fi
+  fi
+}
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 MODE="${1:-process-backlogs}"
@@ -88,7 +113,7 @@ process_backlogs() {
 
         log_info "Priority: $WS_PRIORITY | Auto-review: $AUTO_REVIEW"
 
-        BACKLOG="$ORCHESTRATOR_HOME/backlogs/products/${ws}.md"
+        BACKLOG="$(resolve_backlog_path "$ws")"
         if [[ ! -f "$BACKLOG" ]]; then
             log_warn "No backlog for $ws — skipping"
             continue
@@ -209,7 +234,7 @@ generate_daily_report() {
         echo "| Product | Pending |"
         echo "|---------|---------|"
         for product in diemaster spotfusion visionking sdk; do
-            BACKLOG_FILE="$ORCHESTRATOR_HOME/backlogs/products/strokmatic.${product}.md"
+            BACKLOG_FILE="$(resolve_backlog_path "strokmatic.${product}")"
             if [[ -f "$BACKLOG_FILE" ]]; then
                 COUNT=$(grep -c '^\- \[ \]' "$BACKLOG_FILE" 2>/dev/null || echo 0)
                 echo "| $product | $COUNT |"
@@ -312,7 +337,7 @@ generate_weekly_report() {
         echo "| Product | Pending |"
         echo "|---------|---------|"
         for product in diemaster spotfusion visionking sdk; do
-            BACKLOG_FILE="$ORCHESTRATOR_HOME/backlogs/products/strokmatic.${product}.md"
+            BACKLOG_FILE="$(resolve_backlog_path "strokmatic.${product}")"
             if [[ -f "$BACKLOG_FILE" ]]; then
                 COUNT=$(grep -c '^\- \[ \]' "$BACKLOG_FILE" 2>/dev/null || echo 0)
                 echo "| $product | $COUNT |"
@@ -329,7 +354,7 @@ suggest_weekly_goals() {
     for ws in $WORKSPACES; do
         log_info "Workspace: $ws"
 
-        BACKLOG="$ORCHESTRATOR_HOME/backlogs/products/${ws}.md"
+        BACKLOG="$(resolve_backlog_path "$ws")"
         if [[ -f "$BACKLOG" ]]; then
             PENDING=$(grep -c '^\- \[ \]' "$BACKLOG" 2>/dev/null || echo 0)
             log_info "  Pending tasks: $PENDING"

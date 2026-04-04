@@ -18,12 +18,12 @@ Ideas for new features, skills, and integrations. Full specs live in this direct
 | Meeting Assistant | **Done** | [completed/meeting-assistant.md](completed/meeting-assistant.md) |
 | `/backlog-add` Skill | **Done** | — |
 | `/system-update` Skill | **Done** | — |
-| Sandbox Dev Environment | **In Progress** | [sandbox-dev-environment.md](sandbox-dev-environment.md) |
-| Google Drive ↔ PMO Integration | **Planned** | [gdrive-pmo-sync.md](gdrive-pmo-sync.md) |
-| Meeting Minutes Cron (GDrive) | **Planned** | [meeting-minutes-cron.md](meeting-minutes-cron.md) |
-| Multi-User Network Interface | **Planned** | [multi-user-interface.md](multi-user-interface.md) |
-| Telegram Command Intake Pipeline | **Planned** | [telegram-command-intake.md](telegram-command-intake.md) |
-| Android JARVIS App | **Planned** | [android-jarvis-app.md](android-jarvis-app.md) |
+| Sandbox Dev Environment | **In Progress** | [spec](specs/sandbox-dev-environment.md) |
+| Google Drive ↔ PMO Integration | **Planned** | [spec](specs/gdrive-pmo-sync.md) |
+| Meeting Minutes Cron (GDrive) | **Planned** | [spec](specs/meeting-minutes-cron.md) |
+| Multi-User Network Interface | **Planned** | [spec](specs/multi-user-interface.md) |
+| Telegram Command Intake Pipeline | **Planned** | [spec](specs/telegram-command-intake.md) |
+| Android JARVIS App | **Planned** | [spec](specs/android-jarvis-app.md) |
 
 ---
 
@@ -50,22 +50,43 @@ Ideas for new features, skills, and integrations. Full specs live in this direct
 | Meeting Assistant async spawn fix | **Done** | v0.3.1 | 2026-02-23 | — | Replace blocking `spawnSync` with async `spawn` in live-notes and minutes-generator.<br>Concurrency guard prevents overlapping cycles. Circuit breaker (3 failures) pauses engine.<br>Fixes VSCode freeze / MCP server unresponsiveness during meetings. |
 | Meeting Assistant audio capture + language | **Done** | v0.3.2 | 2026-02-26 | — | Fix PipeWire sink monitor capture via `stream.capture.sink=true` property.<br>Add per-meeting `language` parameter to `start_meeting` (e.g. `pt-br`, `en`).<br>Previously `pw-record --target=<sink>` was redirected to mic by WirePlumber. |
 | E2E Test Infrastructure (3 products) | **Done** | — | 2026-02-25 | [spec](completed/e2e-test-restructure-spec.md) | Unified layered test architecture for VK (PR #7), DM (PR #6+#7), SF (PR #7).<br>Contract, benchmark, service, pipeline layers. Docker Compose profiles. |
-| PMO Dashboard | **Planned** | — | — | [spec](pmo-dashboard.md) | Web UI for project tracking (design/procurement/quoting phases).<br>Supplier management, email timeline, live Gantt, RFQ automation,<br>quote comparison, deadline alerts. FastAPI + Vue 3 + SQLite.<br>LAN-accessible (IP:PORT, ~10 users). 4 phases, builds on email-organizer + PMO folders. |
+| PMO Dashboard | **Planned** | — | — | [spec](specs/pmo-dashboard.md) | Web UI for project tracking (design/procurement/quoting phases).<br>Supplier management, email timeline, live Gantt, RFQ automation,<br>quote comparison, deadline alerts. FastAPI + Vue 3 + SQLite.<br>LAN-accessible (IP:PORT, ~10 users). 4 phases, builds on email-organizer + PMO folders. |
 | JARVIS Voice Interface | **Planned** | — | — | [spec](voice-interface.md) | Voice-activated assistant with Paul Bettany JARVIS voice.<br>Wake word ("JARVIS") → Whisper STT → Claude → ElevenLabs TTS (voice clone).<br>Reactive visual identity: WebGL/Three.js energy orb that pulses with speech amplitude,<br>shifts color by state (listening=blue, thinking=amber, speaking=cyan).<br>Alt local pipeline: faster-whisper + XTTS v2 + RVC v2 (fully offline, GPU required). |
-| Google Drive ↔ PMO Integration | **Planned** | — | — | [spec](gdrive-pmo-sync.md) | Cloud-first Drive integration for PMO projects. Browse/read files in-place, organize in Drive.<br>6 new MCP tools: `list_folder`, `get_file_metadata`, `download_file`, `upload_file`, `move_file`, `create_folder`.<br>Drive index (metadata-only), AI-assisted organization, `/gdrive` + `/gdrive-setup` skills.<br>Download only when essential. 5 phases, ~7-10h estimated effort. |
+| Google Drive ↔ PMO Integration | **Planned** | — | — | [spec](specs/gdrive-pmo-sync.md) | Cloud-first Drive integration for PMO projects. Browse/read files in-place, organize in Drive.<br>6 new MCP tools: `list_folder`, `get_file_metadata`, `download_file`, `upload_file`, `move_file`, `create_folder`.<br>Drive index (metadata-only), AI-assisted organization, `/gdrive` + `/gdrive-setup` skills.<br>Download only when essential. 5 phases, ~7-10h estimated effort. |
 | Modified Third-Party Libs Repo | **Superseded** | — | — | — | ~~Standalone repo for forks.~~ Superseded by SDK Reorganization — third-party forks now a category within SDK. Spec removed. |
-| SDK Monorepo Reorganization | **Planned** | — | — | [spec](sdk-reorganization.md) | Full restructure of SDK into categorized subfolders (libs, tools, infra, third-party, ds, standards, experimental).<br>Consolidate 7 duplicate tool clusters, centralize 7 third-party forks (pylogix ×8, ultralytics ×3, GenICam-SKM, OpENer, lldpd, 3d-gltf, label-studio-ml-backend).<br>Product monorepos consume SDK tools as submodules via `toolkit/`. 5 phases, ~34-47h. |
-| Meeting Minutes Cron (GDrive) | **Planned** | — | — | [spec](meeting-minutes-cron.md) | Cron-based Google Calendar + Drive scanner for auto-organizing meeting minutes/recordings.<br>AI analysis of transcripts (action items, decisions, follow-ups). Routes to PMO project folders.<br>Builds on google-workspace MCP + meeting-assistant spec. 4 phases, ~10-14h. |
-| GWorkspace Tools Package | **Planned** | — | — | [spec](gworkspace-tools-package.md) | Package google-workspace MCP server + skills as distributable npm/Docker artifact.<br>Config-driven setup (no hardcoded service accounts). Template credentials, install wizard.<br>3 phases, ~8-12h. |
-| JARVIS Distribution — Strokmatic | **Planned** | — | — | [spec](jarvis-dist-strokmatic.md) | Non-personal Strokmatic JARVIS distribution for colleagues in `releases/JARVIS-strokmatic/`.<br>Strip personal data (teruel paths, personal emails). Keep product context, skills, MCP servers.<br>Build script with sanitization + config wizard. 4 phases, ~15-20h. |
-| JARVIS Distribution — Generic | **Planned** | — | — | [spec](jarvis-dist-generic.md) | Fully sanitized JARVIS distribution removing all Strokmatic-specific data.<br>Template-based: generic product examples, placeholder configs, onboarding guide.<br>Depends on Strokmatic distribution first. 3 phases, ~10-15h. |
-| Multi-User Network Interface | **Planned** | — | — | [spec](multi-user-interface.md) | Web-based multi-user Claude Code/JARVIS gateway accessible over LAN.<br>User auth (local accounts), session isolation, per-user history/storage, activity tracking.<br>Reverse proxy to `claude` CLI processes. Most complex item. 5 phases, ~40-60h. |
+| SDK Monorepo Reorganization | **Planned** | — | — | [spec](specs/sdk-reorganization.md) | Full restructure of SDK into categorized subfolders (libs, tools, infra, third-party, ds, standards, experimental).<br>Consolidate 7 duplicate tool clusters, centralize 7 third-party forks (pylogix ×8, ultralytics ×3, GenICam-SKM, OpENer, lldpd, 3d-gltf, label-studio-ml-backend).<br>Product monorepos consume SDK tools as submodules via `toolkit/`. 5 phases, ~34-47h. |
+| Meeting Minutes Cron (GDrive) | **Planned** | — | — | [spec](specs/meeting-minutes-cron.md) | Cron-based Google Calendar + Drive scanner for auto-organizing meeting minutes/recordings.<br>AI analysis of transcripts (action items, decisions, follow-ups). Routes to PMO project folders.<br>Builds on google-workspace MCP + meeting-assistant spec. 4 phases, ~10-14h. |
+| GWorkspace Tools Package | **Planned** | — | — | [spec](specs/gworkspace-tools-package.md) | Package google-workspace MCP server + skills as distributable npm/Docker artifact.<br>Config-driven setup (no hardcoded service accounts). Template credentials, install wizard.<br>3 phases, ~8-12h. |
+| JARVIS Distribution — Strokmatic | **Planned** | — | — | [spec](specs/jarvis-dist-strokmatic.md) | Non-personal Strokmatic JARVIS distribution for colleagues in `releases/JARVIS-strokmatic/`.<br>Strip personal data (teruel paths, personal emails). Keep product context, skills, MCP servers.<br>Build script with sanitization + config wizard. 4 phases, ~15-20h. |
+| JARVIS Distribution — Generic | **Planned** | — | — | [spec](specs/jarvis-dist-generic.md) | Fully sanitized JARVIS distribution removing all Strokmatic-specific data.<br>Template-based: generic product examples, placeholder configs, onboarding guide.<br>Depends on Strokmatic distribution first. 3 phases, ~10-15h. |
+| Multi-User Network Interface | **Planned** | — | — | [spec](specs/multi-user-interface.md) | Web-based multi-user Claude Code/JARVIS gateway accessible over LAN.<br>User auth (local accounts), session isolation, per-user history/storage, activity tracking.<br>Reverse proxy to `claude` CLI processes. Most complex item. 5 phases, ~40-60h. |
 | `/cleanup` Skill | **Planned** | — | — | [spec](cleanup-skill.md) | Post-task cleanup skill: check worktree + branches, stage/commit changes,<br>update context files + changelog, rerun checks. Standardized end-of-task ritual. ~4-6h. |
-| Gmail API Migration | **Planned** | — | — | [spec](gmail-api-migration.md) | Add Gmail tools to Google Workspace MCP server, migrate email fetch from IMAP to Gmail API.<br>5 new tools (list, read, search, labels, download attachment). Deprecates Python IMAP tool. ~10h. |
-| Sandbox Dev Environment | **In Progress** | — | — | [spec](sandbox-dev-environment.md) | Docker-based sandbox for autonomous Claude Code task execution.<br>Pre-built base image + disposable per-task containers + git patch review.<br>`--dangerouslySkipPermissions` safe inside container. ~4-6h. |
-| Dashboard Modular Sidenav | **Planned** | — | — | [spec](dashboard-modules.md) | Restructure orchestrator dashboard into modular sidenav layout.<br>General overview tab + per-tool tabs (PR Review, Health Check, Dispatches, Backlogs, Changelog).<br>Alert badges on tab icons for pending/new actions. 4 phases, ~12-18h. |
+| Gmail API Migration | **Planned** | — | — | [spec](specs/gmail-api-migration.md) | Add Gmail tools to Google Workspace MCP server, migrate email fetch from IMAP to Gmail API.<br>5 new tools (list, read, search, labels, download attachment). Deprecates Python IMAP tool. ~10h. |
+| Sandbox Dev Environment | **In Progress** | — | — | [spec](specs/sandbox-dev-environment.md) | Docker-based sandbox for autonomous Claude Code task execution.<br>Pre-built base image + disposable per-task containers + git patch review.<br>`--dangerouslySkipPermissions` safe inside container. ~4-6h. |
+| Dashboard Modular Sidenav | **Planned** | — | — | [spec](specs/dashboard-modules.md) | Restructure orchestrator dashboard into modular sidenav layout.<br>General overview tab + per-tool tabs (PR Review, Health Check, Dispatches, Backlogs, Changelog).<br>Alert badges on tab icons for pending/new actions. 4 phases, ~12-18h. |
 | Voice Interface — Session Tracker | **Planned** | — | — | [spec](voice-interface.md) | Extension to JARVIS Voice Interface: real-time tracking of active Claude sessions/projects,<br>running status, loaded skills, resource usage. Overlay panel in visual identity. ~6-8h addendum. |
-| Telegram Command Intake Pipeline | **Planned** | — | — | [spec](telegram-command-intake.md) | Telegram bot → NLP intent classifier → action pipeline router.<br>Bilingual EN/PT-BR. First pipeline: `/backlog-add`. Builds on existing Telegram integration. 5 phases, ~28h. |
-| Android JARVIS App | **Planned** | — | — | [spec](android-jarvis-app.md) | Android app with "Jarvis" wake word (Porcupine) → on-device STT → JARVIS intake API.<br>Bilingual, dark theme, offline queue. Shares pipeline with Telegram intake. 5 phases, ~44h. |
-| Telegram Bot Manager | **Done** | v1.3.0 | 2026-02-22 | [spec](telegram-bot-manager.md) | Multi-bot notification routing. Separate bots per domain (alerts, ops, assistant, reports).<br>Config-driven registry, shared router library, backward compatible toggle. 4 phases, ~14h. |
+| Telegram Command Intake Pipeline | **Planned** | — | — | [spec](specs/telegram-command-intake.md) | Telegram bot → NLP intent classifier → action pipeline router.<br>Bilingual EN/PT-BR. First pipeline: `/backlog-add`. Builds on existing Telegram integration. 5 phases, ~28h. |
+| Android JARVIS App | **Planned** | — | — | [spec](specs/android-jarvis-app.md) | Android app with "Jarvis" wake word (Porcupine) → on-device STT → JARVIS intake API.<br>Bilingual, dark theme, offline queue. Shares pipeline with Telegram intake. 5 phases, ~44h. |
+| Telegram Bot Manager | **Done** | v1.3.0 | 2026-02-22 | [spec](specs/telegram-bot-manager.md) | Multi-bot notification routing. Separate bots per domain (alerts, ops, assistant, reports).<br>Config-driven registry, shared router library, backward compatible toggle. 4 phases, ~14h. |
 | `/backlog-add` Skill | **Done** | — | 2026-02-22 | — | Unified backlog item creator: classifies orchestrator vs product, duplicate detection,<br>spec generation, task code assignment, index updates. Prompt-only skill in `.claude/skills/backlog-add/`. |
+| Knowledge Base (Phase 1) | **Done** | — | 2026-04-03 | [spec](specs/knowledge-base-design.md) | 128-page PT-BR knowledge base. Repo: `teruelskm/knowledge-base`. |
+| KB Auto-Update (Phase 2) | **Done** | — | 2026-04-03 | [plan](plans/kb-auto-update.md) | Git monitor + dispatch hook + staleness report. Cron-based. |
+| KB Chat Bot (Phase 3) | **Done** | — | 2026-04-03 | [plan](plans/kb-chat-bot.md) | Google Chat @JARVIS polling bot with RAG over KB. |
+| PR Review Service v2 | **Planned** | — | — | [plan](plans/pr-review-v2.md) | Smart re-review, auto-post, labels, dashboard, build checks. |
+| JARVIS Restructuring | **Planned** | — | — | [plan](plans/jarvis-restructuring.md) | Marketplace + shared libs cleanup. |
+| Document Templates Plugin | **Planned** | — | — | [plan](plans/document-templates-plugin.md) | Strokmatic plugin for report/proposal/presentation templates. |
+
+---
+
+## Implementation Plans
+
+| Plan | Spec | Status |
+|------|------|--------|
+| [kb-auto-update.md](plans/kb-auto-update.md) | [knowledge-base-design.md](specs/knowledge-base-design.md) | Done |
+| [kb-chat-bot.md](plans/kb-chat-bot.md) | [knowledge-base-design.md](specs/knowledge-base-design.md) | Done |
+| [voice-pipeline.md](plans/voice-pipeline.md) | [voice-pipeline-design.md](specs/voice-pipeline-design.md) | Planned |
+| [git-graph-viewer.md](plans/git-graph-viewer.md) | [git-graph-viewer-design.md](specs/git-graph-viewer-design.md) | Planned |
+| [pr-review-v2.md](plans/pr-review-v2.md) | — | Planned |
+| [jarvis-restructuring.md](plans/jarvis-restructuring.md) | — | Planned |
+| [document-templates-plugin.md](plans/document-templates-plugin.md) | — | Planned |
+| [document-templates-plugin-impl.md](plans/document-templates-plugin-impl.md) | — | Planned |

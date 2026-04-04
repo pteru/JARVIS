@@ -9,6 +9,40 @@ import fs from "fs/promises";
 import path from "path";
 import { ORCHESTRATOR_HOME } from "../lib/config-loader.js";
 
+/**
+ * Resolve a workspace key to its backlog file path.
+ * - "orchestrator" → backlogs/jarvis/backlog.md
+ * - "strokmatic.diemaster" → backlogs/strokmatic/diemaster.md
+ * - "strokmatic.sdk" → backlogs/strokmatic/sdk.md
+ * Falls back to legacy path backlogs/products/<workspace>.md if new path doesn't exist.
+ */
+async function resolveBacklogPath(workspace) {
+  let newPath;
+  if (workspace === "orchestrator") {
+    newPath = path.join(ORCHESTRATOR_HOME, "backlogs", "jarvis", "backlog.md");
+  } else {
+    // "strokmatic.diemaster" → "strokmatic" + "diemaster"
+    const parts = workspace.split(".");
+    const domain = parts[0]; // "strokmatic"
+    const product = parts.slice(1).join("."); // "diemaster", "sdk", "general"
+    newPath = path.join(ORCHESTRATOR_HOME, "backlogs", domain, `${product}.md`);
+  }
+
+  // Fall back to legacy path if new path doesn't exist
+  try {
+    await fs.access(newPath);
+    return newPath;
+  } catch {
+    const legacyPath = path.join(ORCHESTRATOR_HOME, "backlogs", "products", `${workspace}.md`);
+    try {
+      await fs.access(legacyPath);
+      return legacyPath;
+    } catch {
+      return newPath; // Return new path even if missing (let caller handle the error)
+    }
+  }
+}
+
 class BacklogManagerServer {
   constructor() {
     this.server = new Server(
@@ -436,12 +470,7 @@ class BacklogManagerServer {
   }
 
   async listBacklogTasks(workspace, priority = "all") {
-    const backlogPath = path.join(
-      ORCHESTRATOR_HOME,
-      "backlogs",
-      "products",
-      `${workspace}.md`,
-    );
+    const backlogPath = await resolveBacklogPath(workspace);
 
     const content = await fs.readFile(backlogPath, "utf-8");
     const lines = content.split("\n");
@@ -478,12 +507,7 @@ class BacklogManagerServer {
   }
 
   async addBacklogTask(workspace, task, priority, complexity = "medium") {
-    const backlogPath = path.join(
-      ORCHESTRATOR_HOME,
-      "backlogs",
-      "products",
-      `${workspace}.md`,
-    );
+    const backlogPath = await resolveBacklogPath(workspace);
 
     let content = await fs.readFile(backlogPath, "utf-8");
     const priorityHeader = `## ${priority.charAt(0).toUpperCase() + priority.slice(1)} Priority`;
@@ -520,12 +544,7 @@ class BacklogManagerServer {
   }
 
   async completeBacklogTask(workspace, taskPattern) {
-    const backlogPath = path.join(
-      ORCHESTRATOR_HOME,
-      "backlogs",
-      "products",
-      `${workspace}.md`,
-    );
+    const backlogPath = await resolveBacklogPath(workspace);
 
     let content = await fs.readFile(backlogPath, "utf-8");
     const today = new Date().toISOString().split("T")[0];

@@ -77,13 +77,13 @@ scripts/health-monitor/
 
 ### 1.2 PR Review Service Deduplication (saves ~500 LOC)
 
-Three exact duplicates between `scripts/` and `services/pr-review/`:
+Three exact duplicates between `scripts/` and `workspaces/strokmatic/infra/services/pr-review/`:
 
-| Canonical (scripts/) | Duplicate (services/pr-review/) |
+| Canonical (scripts/) | Duplicate (workspaces/strokmatic/infra/services/pr-review/) |
 |---|---|
-| `scripts/fetch-open-prs.sh` | `services/pr-review/fetch-open-prs.sh` |
-| `scripts/review-pr.sh` | `services/pr-review/review-pr.sh` |
-| `scripts/helpers/build-pr-inbox.mjs` | `services/pr-review/build-inbox.mjs` |
+| `scripts/fetch-open-prs.sh` | `workspaces/strokmatic/infra/services/pr-review/fetch-open-prs.sh` |
+| `scripts/review-pr.sh` | `workspaces/strokmatic/infra/services/pr-review/review-pr.sh` |
+| `scripts/helpers/build-pr-inbox.mjs` | `workspaces/strokmatic/infra/services/pr-review/build-inbox.mjs` |
 
 Service scripts source the canonical versions via `$ORCHESTRATOR_HOME/scripts/`.
 
