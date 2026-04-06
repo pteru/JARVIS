@@ -2,7 +2,7 @@
   "workspaces": {
     "strokmatic.diemaster": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/diemaster",
-      "type": "unknown",
+      "type": "python",
       "category": "monorepo",
       "product": "diemaster",
       "priority": "medium",
@@ -13,7 +13,7 @@
     },
     "strokmatic.diemaster.ds.pamstamp-io": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/diemaster/ds/pamstamp-io",
-      "type": "unknown",
+      "type": "python",
       "category": "data-science",
       "product": "diemaster",
       "priority": "medium",
@@ -24,7 +24,7 @@
     },
     "strokmatic.diemaster.firmware.firmware-hub": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/diemaster/firmware/firmware-hub",
-      "type": "unknown",
+      "type": "native",
       "category": "firmware",
       "product": "diemaster",
       "priority": "high",
@@ -35,35 +35,13 @@
     },
     "strokmatic.diemaster.firmware.firmware-switch": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/diemaster/firmware/firmware-switch",
-      "type": "unknown",
+      "type": "native",
       "category": "firmware",
       "product": "diemaster",
       "priority": "high",
       "auto_review": true,
       "remotes": {
         "origin": "git@github.com:strokmatic/diemaster-firmware-switch.git"
-      }
-    },
-    "strokmatic.diemaster.legacy.sim-generator": {
-      "path": "/home/teruel/JARVIS/workspaces/strokmatic/diemaster/legacy/sim-generator",
-      "type": "unknown",
-      "category": "legacy",
-      "product": "diemaster",
-      "priority": "low",
-      "auto_review": false,
-      "remotes": {
-        "origin": "https://source.developers.google.com/p/smart-die/r/sim-generator"
-      }
-    },
-    "strokmatic.diemaster.legacy.smart-die": {
-      "path": "/home/teruel/JARVIS/workspaces/strokmatic/diemaster/legacy/smart-die",
-      "type": "unknown",
-      "category": "legacy",
-      "product": "diemaster",
-      "priority": "low",
-      "auto_review": false,
-      "remotes": {
-        "origin": "https://source.developers.google.com/p/smartdie-software/r/smart-die"
       }
     },
     "strokmatic.diemaster.services.backend": {
@@ -79,7 +57,7 @@
     },
     "strokmatic.diemaster.services.connect": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/diemaster/services/connect",
-      "type": "unknown",
+      "type": "python",
       "category": "service",
       "product": "diemaster",
       "priority": "high",
@@ -90,7 +68,7 @@
     },
     "strokmatic.diemaster.services.data-processing": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/diemaster/services/data-processing",
-      "type": "unknown",
+      "type": "python",
       "category": "service",
       "product": "diemaster",
       "priority": "high",
@@ -101,7 +79,7 @@
     },
     "strokmatic.diemaster.services.database-writer": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/diemaster/services/database-writer",
-      "type": "unknown",
+      "type": "python",
       "category": "service",
       "product": "diemaster",
       "priority": "high",
@@ -123,7 +101,7 @@
     },
     "strokmatic.diemaster.services.get-data": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/diemaster/services/get-data",
-      "type": "unknown",
+      "type": "python",
       "category": "service",
       "product": "diemaster",
       "priority": "high",
@@ -145,7 +123,7 @@
     },
     "strokmatic.diemaster.services.loader": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/diemaster/services/loader",
-      "type": "unknown",
+      "type": "python",
       "category": "service",
       "product": "diemaster",
       "priority": "high",
@@ -156,7 +134,7 @@
     },
     "strokmatic.diemaster.services.plc-monitor": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/diemaster/services/plc-monitor",
-      "type": "unknown",
+      "type": "python",
       "category": "service",
       "product": "diemaster",
       "priority": "high",
@@ -167,7 +145,7 @@
     },
     "strokmatic.diemaster.services.setting": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/diemaster/services/setting",
-      "type": "unknown",
+      "type": "python",
       "category": "service",
       "product": "diemaster",
       "priority": "high",
@@ -178,7 +156,7 @@
     },
     "strokmatic.diemaster.services.status": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/diemaster/services/status",
-      "type": "unknown",
+      "type": "python",
       "category": "service",
       "product": "diemaster",
       "priority": "high",
@@ -189,13 +167,35 @@
     },
     "strokmatic.diemaster.services.trigger": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/diemaster/services/trigger",
-      "type": "unknown",
+      "type": "python",
       "category": "service",
       "product": "diemaster",
       "priority": "high",
       "auto_review": true,
       "remotes": {
         "origin": "git@github.com:strokmatic/diemaster-trigger.git"
+      }
+    },
+    "strokmatic.infra": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/infra",
+      "type": "mixed",
+      "category": "infrastructure",
+      "product": "strokmatic",
+      "priority": "high",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/infra.git"
+      }
+    },
+    "strokmatic.pmo": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/pmo",
+      "type": "markdown",
+      "category": "documentation",
+      "product": "general",
+      "priority": "low",
+      "auto_review": false,
+      "remotes": {
+        "origin": "git@github.com:teruelskm/pmo.git"
       }
     },
     "strokmatic.sdk.3d-model-convert-to-gltf": {
@@ -220,7 +220,7 @@
     },
     "strokmatic.sdk.sdk-agent-standards": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/sdk/sdk-agent-standards",
-      "type": "unknown",
+      "type": "nodejs",
       "category": "sdk",
       "product": "sdk",
       "priority": "medium",
@@ -240,6 +240,17 @@
         "github": "git@github.com:strokmatic/sdk-bos6000-toolkit.git"
       }
     },
+    "strokmatic.sdk.sdk-connector-bosch": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/sdk/sdk-connector-bosch",
+      "type": "python",
+      "category": "sdk",
+      "product": "spotfusion",
+      "priority": "medium",
+      "auto_review": false,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/sdk-connector-bosch.git"
+      }
+    },
     "strokmatic.sdk.sdk-defect-visualizer": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/sdk/sdk-defect-visualizer",
       "type": "python",
@@ -251,15 +262,37 @@
         "github": "git@github.com:strokmatic/sdk-defect-visualizer.git"
       }
     },
-    "strokmatic.sdk.sdk-image-extractor": {
-      "path": "/home/teruel/JARVIS/workspaces/strokmatic/sdk/sdk-image-extractor",
-      "type": "docker/infra",
+    "strokmatic.sdk.sdk-ds-dashboard": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/sdk/sdk-ds-dashboard",
+      "type": "python",
       "category": "sdk",
-      "product": "sdk",
-      "priority": "medium",
+      "product": "general",
+      "priority": "low",
       "auto_review": false,
       "remotes": {
-        "github": "git@github.com:strokmatic/sdk-image-exporter.git"
+        "origin": "git@github.com:strokmatic/sdk-ds-dashboard.git"
+      }
+    },
+    "strokmatic.sdk.sdk-image-exporter": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/sdk/sdk-image-exporter",
+      "type": "python",
+      "category": "sdk",
+      "product": "general",
+      "priority": "low",
+      "auto_review": false,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/sdk-image-exporter.git"
+      }
+    },
+    "strokmatic.sdk.sdk-inspection-grouping-optimizer": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/sdk/sdk-inspection-grouping-optimizer",
+      "type": "python",
+      "category": "sdk",
+      "product": "general",
+      "priority": "low",
+      "auto_review": false,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/sdk-inspection-grouping-optimizer.git"
       }
     },
     "strokmatic.sdk.sdk-label-studio-toolkit": {
@@ -271,6 +304,17 @@
       "auto_review": false,
       "remotes": {
         "github": "git@github.com:strokmatic/sdk-label-studio-toolkit.git"
+      }
+    },
+    "strokmatic.sdk.sdk-labeling-tool": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/sdk/sdk-labeling-tool",
+      "type": "python",
+      "category": "sdk",
+      "product": "general",
+      "priority": "low",
+      "auto_review": false,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/sdk-labeling-tool.git"
       }
     },
     "strokmatic.sdk.sdk-lib-rabbit-client": {
@@ -328,6 +372,17 @@
         "origin": "git@github.com:strokmatic/sdk-repository-reader.git"
       }
     },
+    "strokmatic.sdk.sdk-ui-components": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/sdk/sdk-ui-components",
+      "type": "nodejs",
+      "category": "sdk",
+      "product": "general",
+      "priority": "medium",
+      "auto_review": false,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/sdk-ui-components.git"
+      }
+    },
     "strokmatic.sdk.sdk-video-cronoanalysis": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/sdk/sdk-video-cronoanalysis",
       "type": "python",
@@ -339,9 +394,42 @@
         "github": "git@github.com:strokmatic/sdk-video-cronoanalysis.git"
       }
     },
+    "strokmatic.sdk.sprint-report": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/sdk/sprint-report",
+      "type": "python",
+      "category": "sdk",
+      "product": "general",
+      "priority": "low",
+      "auto_review": false,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/sprint-report.git"
+      }
+    },
+    "strokmatic.sdk.template-helm": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/sdk/template-helm",
+      "type": "unknown",
+      "category": "sdk",
+      "product": "general",
+      "priority": "low",
+      "auto_review": false,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/template-helm.git"
+      }
+    },
+    "strokmatic.sdk.template-python-repository": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/sdk/template-python-repository",
+      "type": "python",
+      "category": "sdk",
+      "product": "general",
+      "priority": "low",
+      "auto_review": false,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/template-python-repository.git"
+      }
+    },
     "strokmatic.spotfusion": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion",
-      "type": "unknown",
+      "type": "python",
       "category": "monorepo",
       "product": "spotfusion",
       "priority": "medium",
@@ -352,7 +440,7 @@
     },
     "strokmatic.spotfusion.ds.dataset-toolkit": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/ds/dataset-toolkit",
-      "type": "unknown",
+      "type": "python",
       "category": "data-science",
       "product": "spotfusion",
       "priority": "medium",
@@ -364,7 +452,7 @@
     },
     "strokmatic.spotfusion.ds.spotfusion-ds-training": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/ds/spotfusion-ds-training",
-      "type": "unknown",
+      "type": "python",
       "category": "data-science",
       "product": "spotfusion",
       "priority": "medium",
@@ -373,8 +461,8 @@
         "origin": "git@github.com:strokmatic/spotfusion-ds-training.git"
       }
     },
-    "strokmatic.spotfusion.ds.new_sparkeyes_modeling": {
-      "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/ds/new_sparkeyes_modeling",
+    "strokmatic.spotfusion.legacy.new-sparkeyes-modeling": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/legacy/new_sparkeyes_modeling",
       "type": "python",
       "category": "data-science",
       "product": "spotfusion",
@@ -382,6 +470,17 @@
       "auto_review": false,
       "remotes": {
         "origin": "https://source.developers.google.com/p/sparkeyes-data-science/r/new_sparkeyes_modeling"
+      }
+    },
+    "strokmatic.spotfusion.legacy.tests": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/tests/legacy",
+      "type": "python",
+      "category": "legacy",
+      "product": "spotfusion",
+      "priority": "low",
+      "auto_review": false,
+      "remotes": {
+        "origin": "https://source.developers.google.com/p/spark-eyes/r/tests"
       }
     },
     "strokmatic.spotfusion.libs.lldpd": {
@@ -397,7 +496,7 @@
     },
     "strokmatic.spotfusion.libs.opener": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/libs/opener",
-      "type": "unknown",
+      "type": "python",
       "category": "library",
       "product": "spotfusion",
       "priority": "medium",
@@ -430,7 +529,7 @@
     },
     "strokmatic.spotfusion.services.camera-acquisition": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/services/camera-acquisition",
-      "type": "unknown",
+      "type": "python",
       "category": "service",
       "product": "spotfusion",
       "priority": "high",
@@ -441,7 +540,7 @@
     },
     "strokmatic.spotfusion.services.data-enrichment": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/services/data-enrichment",
-      "type": "unknown",
+      "type": "python",
       "category": "service",
       "product": "spotfusion",
       "priority": "high",
@@ -452,7 +551,7 @@
     },
     "strokmatic.spotfusion.services.data-processing": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/services/data-processing",
-      "type": "unknown",
+      "type": "python",
       "category": "service",
       "product": "spotfusion",
       "priority": "high",
@@ -463,7 +562,7 @@
     },
     "strokmatic.spotfusion.services.database-cleanup": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/services/database-cleanup",
-      "type": "unknown",
+      "type": "shell",
       "category": "service",
       "product": "spotfusion",
       "priority": "high",
@@ -474,7 +573,7 @@
     },
     "strokmatic.spotfusion.services.database-writer": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/services/database-writer",
-      "type": "unknown",
+      "type": "python",
       "category": "service",
       "product": "spotfusion",
       "priority": "high",
@@ -485,7 +584,7 @@
     },
     "strokmatic.spotfusion.services.default-module": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/services/default-module",
-      "type": "unknown",
+      "type": "python",
       "category": "service",
       "product": "spotfusion",
       "priority": "high",
@@ -496,7 +595,7 @@
     },
     "strokmatic.spotfusion.services.device-controller": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/services/device-controller",
-      "type": "unknown",
+      "type": "python",
       "category": "service",
       "product": "spotfusion",
       "priority": "high",
@@ -540,7 +639,7 @@
     },
     "strokmatic.spotfusion.services.get-image": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/services/get-image",
-      "type": "unknown",
+      "type": "python",
       "category": "service",
       "product": "spotfusion",
       "priority": "high",
@@ -551,7 +650,7 @@
     },
     "strokmatic.spotfusion.services.get-result": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/services/get-result",
-      "type": "unknown",
+      "type": "python",
       "category": "service",
       "product": "spotfusion",
       "priority": "high",
@@ -562,7 +661,7 @@
     },
     "strokmatic.spotfusion.services.image-processing": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/services/image-processing",
-      "type": "unknown",
+      "type": "python",
       "category": "service",
       "product": "spotfusion",
       "priority": "high",
@@ -584,7 +683,7 @@
     },
     "strokmatic.spotfusion.services.module-a": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/services/module-a",
-      "type": "unknown",
+      "type": "python",
       "category": "service",
       "product": "spotfusion",
       "priority": "high",
@@ -595,7 +694,7 @@
     },
     "strokmatic.spotfusion.services.plc-monitor": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/services/plc-monitor",
-      "type": "unknown",
+      "type": "python",
       "category": "service",
       "product": "spotfusion",
       "priority": "high",
@@ -606,7 +705,7 @@
     },
     "strokmatic.spotfusion.services.plc-monitor-camera": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/services/plc-monitor-camera",
-      "type": "unknown",
+      "type": "python",
       "category": "service",
       "product": "spotfusion",
       "priority": "high",
@@ -617,7 +716,7 @@
     },
     "strokmatic.spotfusion.services.plc-monitor-camera-opener": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/services/plc-monitor-camera-opener",
-      "type": "unknown",
+      "type": "python",
       "category": "service",
       "product": "spotfusion",
       "priority": "high",
@@ -628,7 +727,7 @@
     },
     "strokmatic.spotfusion.services.plc-result": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/services/plc-result",
-      "type": "unknown",
+      "type": "python",
       "category": "service",
       "product": "spotfusion",
       "priority": "high",
@@ -650,7 +749,7 @@
     },
     "strokmatic.spotfusion.services.tag-monitor": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/services/tag-monitor",
-      "type": "unknown",
+      "type": "python",
       "category": "service",
       "product": "spotfusion",
       "priority": "high",
@@ -661,7 +760,7 @@
     },
     "strokmatic.spotfusion.services.tag-monitor-profinet": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/services/tag-monitor-profinet",
-      "type": "unknown",
+      "type": "native",
       "category": "service",
       "product": "spotfusion",
       "priority": "high",
@@ -672,7 +771,7 @@
     },
     "strokmatic.spotfusion.services.tag-monitor-siemens": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/services/tag-monitor-siemens",
-      "type": "unknown",
+      "type": "native",
       "category": "service",
       "product": "spotfusion",
       "priority": "high",
@@ -683,7 +782,7 @@
     },
     "strokmatic.spotfusion.toolkit.data-scraping": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/toolkit/data-scraping",
-      "type": "unknown",
+      "type": "python",
       "category": "toolkit",
       "product": "spotfusion",
       "priority": "medium",
@@ -692,9 +791,20 @@
         "origin": "git@github.com:strokmatic/spotfusion-data-scraping.git"
       }
     },
+    "strokmatic.spotfusion.toolkit.deploy-toolkit": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/toolkit/deploy-toolkit",
+      "type": "python",
+      "category": "toolkit",
+      "product": "spotfusion",
+      "priority": "medium",
+      "auto_review": false,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/spotfusion-deploy-toolkit.git"
+      }
+    },
     "strokmatic.spotfusion.toolkit.server-installer": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/toolkit/server-installer",
-      "type": "unknown",
+      "type": "shell",
       "category": "toolkit",
       "product": "spotfusion",
       "priority": "medium",
@@ -703,19 +813,8 @@
         "origin": "git@github.com:strokmatic/spotfusion-server-installer.git"
       }
     },
-    "strokmatic.spotfusion.toolkit.spotfusion-deploy-toolkit": {
-      "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/toolkit/spotfusion-deploy-toolkit",
-      "type": "unknown",
-      "category": "toolkit",
-      "product": "spotfusion",
-      "priority": "medium",
-      "auto_review": false,
-      "remotes": {
-        "github": "git@github.com:strokmatic/spotfusion-deploy-toolkit.git"
-      }
-    },
-    "strokmatic.spotfusion.toolkit.spotfusion-smartcam-toolkit": {
-      "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/toolkit/spotfusion-smartcam-toolkit",
+    "strokmatic.spotfusion.toolkit.smartcam-toolkit": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/toolkit/smartcam-toolkit",
       "type": "python",
       "category": "toolkit",
       "product": "spotfusion",
@@ -738,7 +837,7 @@
     },
     "strokmatic.spotfusion.toolkit.vision-installer": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion/toolkit/vision-installer",
-      "type": "unknown",
+      "type": "shell",
       "category": "toolkit",
       "product": "spotfusion",
       "priority": "medium",
@@ -760,7 +859,7 @@
     },
     "strokmatic.visionking.ds.label-predictor": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/visionking/ds/label-predictor",
-      "type": "unknown",
+      "type": "python",
       "category": "data-science",
       "product": "visionking",
       "priority": "medium",
@@ -802,6 +901,17 @@
         "origin": "https://github.com/ultralytics/ultralytics.git"
       }
     },
+    "strokmatic.visionking.legacy.application": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/visionking/legacy/visionking-application",
+      "type": "python",
+      "category": "legacy",
+      "product": "visionking",
+      "priority": "low",
+      "auto_review": false,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/visionking-application.git"
+      }
+    },
     "strokmatic.visionking.legacy.cloud-pipeline": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/visionking/legacy/cloud-pipeline",
       "type": "python",
@@ -815,7 +925,7 @@
     },
     "strokmatic.visionking.legacy.cloud-pipeline-draft": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/visionking/legacy/cloud-pipeline-draft",
-      "type": "unknown",
+      "type": "python",
       "category": "legacy",
       "product": "visionking",
       "priority": "low",
@@ -837,7 +947,7 @@
     },
     "strokmatic.visionking.legacy.underbody": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/visionking/legacy/underbody",
-      "type": "unknown",
+      "type": "python",
       "category": "legacy",
       "product": "visionking",
       "priority": "low",
@@ -892,7 +1002,7 @@
     },
     "strokmatic.visionking.services.controller": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/visionking/services/controller",
-      "type": "unknown",
+      "type": "native",
       "category": "service",
       "product": "visionking",
       "priority": "high",
@@ -936,7 +1046,7 @@
     },
     "strokmatic.visionking.services.image-saver": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/visionking/services/image-saver",
-      "type": "unknown",
+      "type": "python",
       "category": "service",
       "product": "visionking",
       "priority": "high",
@@ -947,7 +1057,7 @@
     },
     "strokmatic.visionking.services.inference": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/visionking/services/inference",
-      "type": "unknown",
+      "type": "python",
       "category": "service",
       "product": "visionking",
       "priority": "high",
@@ -980,7 +1090,7 @@
     },
     "strokmatic.visionking.services.plc-monitor": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/visionking/services/plc-monitor",
-      "type": "unknown",
+      "type": "native",
       "category": "service",
       "product": "visionking",
       "priority": "high",
@@ -1013,7 +1123,7 @@
     },
     "strokmatic.visionking.services.setup": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/visionking/services/setup",
-      "type": "unknown",
+      "type": "shell",
       "category": "service",
       "product": "visionking",
       "priority": "high",
@@ -1022,9 +1132,20 @@
         "origin": "git@github.com:strokmatic/visionking-setup.git"
       }
     },
+    "strokmatic.visionking.services.spark-test-controller": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/visionking/services/spark-test-controller",
+      "type": "python",
+      "category": "service",
+      "product": "visionking",
+      "priority": "medium",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/visionking-spark-test-controller.git"
+      }
+    },
     "strokmatic.visionking.services.storage-monitor": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/visionking/services/storage-monitor",
-      "type": "unknown",
+      "type": "shell",
       "category": "service",
       "product": "visionking",
       "priority": "high",
@@ -1035,7 +1156,7 @@
     },
     "strokmatic.visionking.services.visualizer": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/visionking/services/visualizer",
-      "type": "unknown",
+      "type": "python",
       "category": "service",
       "product": "visionking",
       "priority": "high",
@@ -1044,9 +1165,20 @@
         "origin": "git@github.com:strokmatic/visionking-visualizer.git"
       }
     },
+    "strokmatic.visionking.services.wifi-camera-acquisition": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/visionking/services/wifi-camera-acquisition",
+      "type": "python",
+      "category": "service",
+      "product": "visionking",
+      "priority": "medium",
+      "auto_review": true,
+      "remotes": {
+        "origin": "git@github.com:strokmatic/visionking-wifi-camera-acquisition.git"
+      }
+    },
     "strokmatic.visionking.toolkit.data-manager": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/visionking/toolkit/data-manager",
-      "type": "unknown",
+      "type": "python",
       "category": "toolkit",
       "product": "visionking",
       "priority": "medium",
@@ -1057,7 +1189,7 @@
     },
     "strokmatic.visionking.toolkit.defect-report-toolkit": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/visionking/toolkit/defect-report-toolkit",
-      "type": "unknown",
+      "type": "python",
       "category": "toolkit",
       "product": "visionking",
       "priority": "medium",
@@ -1068,13 +1200,24 @@
     },
     "strokmatic.visionking.toolkit.toolkit": {
       "path": "/home/teruel/JARVIS/workspaces/strokmatic/visionking/toolkit/toolkit",
-      "type": "unknown",
+      "type": "python",
       "category": "toolkit",
       "product": "visionking",
       "priority": "medium",
       "auto_review": false,
       "remotes": {
         "origin": "git@github.com:strokmatic/visionking-toolkit.git"
+      }
+    },
+    "strokmatic.knowledge-base": {
+      "path": "/home/teruel/JARVIS/workspaces/strokmatic/knowledge-base",
+      "type": "markdown",
+      "category": "documentation",
+      "product": "general",
+      "priority": "medium",
+      "auto_review": false,
+      "remotes": {
+        "origin": "git@github.com:teruelskm/knowledge-base.git"
       }
     }
   }
