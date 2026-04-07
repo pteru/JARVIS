@@ -326,6 +326,11 @@ class AuthManager {
         "https://www.googleapis.com/auth/spreadsheets",
         "https://www.googleapis.com/auth/presentations",
         "https://www.googleapis.com/auth/drive",
+        "https://www.googleapis.com/auth/gmail.readonly",
+        "https://www.googleapis.com/auth/chat.spaces.readonly",
+        "https://www.googleapis.com/auth/chat.messages.readonly",
+        "https://www.googleapis.com/auth/chat.memberships.readonly",
+        "https://www.googleapis.com/auth/chat.messages",
       ],
       clientOptions: {
         subject: "pedro@lumesolutions.com",
@@ -377,6 +382,11 @@ class AuthManager {
               "https://www.googleapis.com/auth/spreadsheets",
               "https://www.googleapis.com/auth/presentations",
               "https://www.googleapis.com/auth/drive",
+              "https://www.googleapis.com/auth/gmail.readonly",
+              "https://www.googleapis.com/auth/chat.spaces.readonly",
+              "https://www.googleapis.com/auth/chat.messages.readonly",
+              "https://www.googleapis.com/auth/chat.messages",
+        "https://www.googleapis.com/auth/chat.memberships.readonly",
             ],
           }),
       );
@@ -405,6 +415,11 @@ class AuthManager {
             "https://www.googleapis.com/auth/spreadsheets",
             "https://www.googleapis.com/auth/presentations",
             "https://www.googleapis.com/auth/drive",
+            "https://www.googleapis.com/auth/gmail.readonly",
+            "https://www.googleapis.com/auth/chat.spaces.readonly",
+            "https://www.googleapis.com/auth/chat.messages.readonly",
+            "https://www.googleapis.com/auth/chat.messages",
+        "https://www.googleapis.com/auth/chat.memberships.readonly",
           ],
         });
       });
@@ -466,6 +481,30 @@ function extractFileId(input) {
   if (urlMatch) return urlMatch[1];
   // If it looks like a raw ID already
   return input.trim();
+}
+
+// ---------------------------------------------------------------------------
+// Helper: extract text/html body from Gmail MIME payload (recursive)
+// ---------------------------------------------------------------------------
+
+function extractEmailBody(payload) {
+  let text = "", html = "";
+  function walk(part) {
+    if (part.mimeType === "text/plain" && part.body?.data) {
+      text += Buffer.from(part.body.data, "base64url").toString("utf-8");
+    } else if (part.mimeType === "text/html" && part.body?.data) {
+      html += Buffer.from(part.body.data, "base64url").toString("utf-8");
+    }
+    if (part.parts) part.parts.forEach(walk);
+  }
+  walk(payload);
+  // Handle single-part messages (no parts array)
+  if (!text && !html && payload.body?.data) {
+    const decoded = Buffer.from(payload.body.data, "base64url").toString("utf-8");
+    if (payload.mimeType === "text/html") html = decoded;
+    else text = decoded;
+  }
+  return { text, html };
 }
 
 // ---------------------------------------------------------------------------
@@ -541,13 +580,17 @@ class GoogleWorkspaceServer {
       },
       {
         name: "read_doc",
-        description: "Read a Google Doc and return its content as markdown",
+        description: "Read a Google Doc and return its content as markdown. Supports multi-tab documents — returns all tabs by default, or a specific tab by name.",
         inputSchema: {
           type: "object",
           properties: {
             doc_id: {
               type: "string",
               description: "Document ID or URL",
+            },
+            tab: {
+              type: "string",
+              description: "Tab title to read (case-insensitive). If omitted, returns all tabs.",
             },
             auth_mode: authModeParam,
           },
@@ -856,6 +899,167 @@ class GoogleWorkspaceServer {
           required: ["code"],
         },
       },
+      // --- Gmail tools ---
+      {
+        name: "list_emails",
+        description: "List Gmail messages with optional query filter. Returns metadata.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            query: { type: "string", description: "Gmail search query (e.g. 'from:user@example.com after:2026/01/01')" },
+            max_results: { type: "number", description: "Max messages to return (default 20, max 100)" },
+            page_token: { type: "string", description: "Pagination token from previous response" },
+            auth_mode: authModeParam,
+          },
+        },
+      },
+      {
+        name: "read_email",
+        description: "Read a full Gmail message by ID. Returns headers, body text, and attachment metadata.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            message_id: { type: "string", description: "Gmail message ID" },
+            auth_mode: authModeParam,
+          },
+          required: ["message_id"],
+        },
+      },
+      {
+        name: "search_emails",
+        description: "Search Gmail using full query syntax. Returns matching message list with metadata.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            query: { type: "string", description: "Gmail search query" },
+            max_results: { type: "number", description: "Max results (default 20, max 100)" },
+            page_token: { type: "string", description: "Pagination token" },
+            auth_mode: authModeParam,
+          },
+          required: ["query"],
+        },
+      },
+      {
+        name: "get_labels",
+        description: "List all Gmail labels (system and custom)",
+        inputSchema: {
+          type: "object",
+          properties: {
+            auth_mode: authModeParam,
+          },
+        },
+      },
+      {
+        name: "download_attachment",
+        description: "Download a Gmail attachment by message ID and attachment ID to a local path",
+        inputSchema: {
+          type: "object",
+          properties: {
+            message_id: { type: "string", description: "Gmail message ID" },
+            attachment_id: { type: "string", description: "Attachment ID" },
+            filename: { type: "string", description: "Original filename" },
+            local_path: { type: "string", description: "Absolute local path to save the file" },
+            auth_mode: authModeParam,
+          },
+          required: ["message_id", "attachment_id", "local_path"],
+        },
+      },
+
+      // --- Google Chat tools ---
+      {
+        name: "list_chat_spaces",
+        description: "List all Google Chat spaces/rooms/DMs the user belongs to",
+        inputSchema: {
+          type: "object",
+          properties: {
+            filter: { type: "string", description: 'Filter expression (e.g. "spaceType = \\"SPACE\\"" or "spaceType = \\"GROUP_CHAT\\"")' },
+            page_size: { type: "number", description: "Max results per page (default 100, max 1000)" },
+            page_token: { type: "string", description: "Pagination token from previous response" },
+            auth_mode: authModeParam,
+          },
+        },
+      },
+      {
+        name: "get_chat_space",
+        description: "Get details of a specific Google Chat space (name, type, member count)",
+        inputSchema: {
+          type: "object",
+          properties: {
+            space_name: { type: "string", description: 'Space resource name (format: spaces/{space})' },
+            auth_mode: authModeParam,
+          },
+          required: ["space_name"],
+        },
+      },
+      {
+        name: "list_chat_members",
+        description: "List members of a Google Chat space",
+        inputSchema: {
+          type: "object",
+          properties: {
+            space_name: { type: "string", description: 'Space resource name (format: spaces/{space})' },
+            page_size: { type: "number", description: "Max results per page (default 100)" },
+            page_token: { type: "string", description: "Pagination token from previous response" },
+            auth_mode: authModeParam,
+          },
+          required: ["space_name"],
+        },
+      },
+      {
+        name: "list_chat_messages",
+        description: "List messages in a Google Chat space with optional date filters",
+        inputSchema: {
+          type: "object",
+          properties: {
+            space_name: { type: "string", description: 'Space resource name (format: spaces/{space})' },
+            filter: { type: "string", description: 'Filter expression (e.g. "createTime > \\"2026-01-01T00:00:00Z\\"")' },
+            page_size: { type: "number", description: "Max results per page (default 100, max 1000)" },
+            page_token: { type: "string", description: "Pagination token from previous response" },
+            order_by: { type: "string", description: 'Sort order (e.g. "createTime ASC" or "createTime DESC")' },
+            auth_mode: authModeParam,
+          },
+          required: ["space_name"],
+        },
+      },
+      {
+        name: "read_chat_message",
+        description: "Get a single Google Chat message with full content",
+        inputSchema: {
+          type: "object",
+          properties: {
+            message_name: { type: "string", description: 'Message resource name (format: spaces/{space}/messages/{message})' },
+            auth_mode: authModeParam,
+          },
+          required: ["message_name"],
+        },
+      },
+      {
+        name: "send_chat_message",
+        description: "Send a text message to a Google Chat space or DM",
+        inputSchema: {
+          type: "object",
+          properties: {
+            space_name: { type: "string", description: 'Space resource name (format: spaces/{space})' },
+            text: { type: "string", description: "Message text to send" },
+            thread_name: { type: "string", description: 'Optional thread name to reply to (format: spaces/{space}/threads/{thread})' },
+            auth_mode: authModeParam,
+          },
+          required: ["space_name", "text"],
+        },
+      },
+      {
+        name: "download_chat_attachment",
+        description: "Download an attachment from a Google Chat message to a local path",
+        inputSchema: {
+          type: "object",
+          properties: {
+            attachment_name: { type: "string", description: 'Attachment resource name (format: spaces/{space}/messages/{message}/attachments/{attachment})' },
+            local_path: { type: "string", description: "Absolute local path to save the file" },
+            auth_mode: authModeParam,
+          },
+          required: ["attachment_name", "local_path"],
+        },
+      },
     ];
   }
 
@@ -877,13 +1081,14 @@ class GoogleWorkspaceServer {
     // Move to folder if specified
     if (args.folder_id) {
       await withRetry(async () => {
-        const file = await drive.files.get({ fileId: docId, fields: "parents" });
+        const file = await drive.files.get({ fileId: docId, fields: "parents", supportsAllDrives: true });
         const previousParents = (file.data.parents || []).join(",");
         await drive.files.update({
           fileId: docId,
           addParents: args.folder_id,
           removeParents: previousParents,
           fields: "id, parents",
+          supportsAllDrives: true,
         });
       });
     }
@@ -919,9 +1124,41 @@ class GoogleWorkspaceServer {
     const docs = google.docs({ version: "v1", auth });
     const docId = extractFileId(args.doc_id);
 
-    const res = await withRetry(() => docs.documents.get({ documentId: docId }));
-    const markdown = this.docsToMd.convert(res.data);
+    const res = await withRetry(() =>
+      docs.documents.get({ documentId: docId, includeTabsContent: true }),
+    );
 
+    const tabs = res.data.tabs;
+    if (tabs && tabs.length > 0) {
+      // Multi-tab support
+      const requestedTab = args.tab?.toLowerCase();
+      const sections = [];
+
+      for (const tab of tabs) {
+        const title = tab.tabProperties?.title || "Untitled";
+        if (requestedTab && title.toLowerCase() !== requestedTab) continue;
+
+        // Build a pseudo-document object the converter expects
+        const tabDoc = {
+          body: tab.documentTab?.body,
+          lists: tab.documentTab?.lists,
+        };
+        const md = this.docsToMd.convert(tabDoc);
+        if (md.trim()) {
+          sections.push(tabs.length > 1 ? `# Tab: ${title}\n\n${md}` : md);
+        }
+      }
+
+      if (requestedTab && sections.length === 0) {
+        const available = tabs.map((t) => t.tabProperties?.title).join(", ");
+        return this.textResult(`Tab "${args.tab}" not found. Available tabs: ${available}`);
+      }
+
+      return this.textResult(sections.join("\n\n---\n\n"));
+    }
+
+    // Fallback for documents without tabs
+    const markdown = this.docsToMd.convert(res.data);
     return this.textResult(markdown);
   }
 
@@ -1095,6 +1332,7 @@ class GoogleWorkspaceServer {
         const file = await drive.files.get({
           fileId: spreadsheetId,
           fields: "parents",
+          supportsAllDrives: true,
         });
         const previousParents = (file.data.parents || []).join(",");
         await drive.files.update({
@@ -1102,6 +1340,7 @@ class GoogleWorkspaceServer {
           addParents: args.folder_id,
           removeParents: previousParents,
           fields: "id, parents",
+          supportsAllDrives: true,
         });
       });
     }
@@ -1240,6 +1479,7 @@ class GoogleWorkspaceServer {
         drive.files.copy({
           fileId: templateId,
           requestBody: { name: args.title },
+          supportsAllDrives: true,
         }),
       );
       presentationId = copyRes.data.id;
@@ -1600,7 +1840,7 @@ class GoogleWorkspaceServer {
 
     // Get file metadata to determine type
     const meta = await withRetry(() =>
-      drive.files.get({ fileId, fields: "mimeType, name, size, md5Checksum" }),
+      drive.files.get({ fileId, fields: "mimeType, name, size, md5Checksum", supportsAllDrives: true }),
     );
 
     const mimeType = meta.data.mimeType;
@@ -1636,7 +1876,7 @@ class GoogleWorkspaceServer {
       } else {
         const exportMime = EXPORT_MIMES[exportFormat] || EXPORT_MIMES.pdf;
         const res = await withRetry(() =>
-          drive.files.export({ fileId, mimeType: exportMime }, { responseType: "arraybuffer" }),
+          drive.files.export({ fileId, mimeType: exportMime, supportsAllDrives: true }, { responseType: "arraybuffer" }),
         );
         await fs.writeFile(localPath, Buffer.from(res.data));
         writtenSize = res.data.byteLength;
@@ -1644,7 +1884,7 @@ class GoogleWorkspaceServer {
     } else {
       // Binary file: direct download
       const res = await withRetry(() =>
-        drive.files.get({ fileId, alt: "media" }, { responseType: "arraybuffer" }),
+        drive.files.get({ fileId, alt: "media", supportsAllDrives: true }, { responseType: "arraybuffer" }),
       );
       await fs.writeFile(localPath, Buffer.from(res.data));
       writtenSize = res.data.byteLength;
@@ -1713,6 +1953,7 @@ class GoogleWorkspaceServer {
         requestBody,
         media: { mimeType: detectedMime, body: stream },
         fields: "id, name, mimeType, size, webViewLink",
+        supportsAllDrives: true,
       }),
     );
 
@@ -1733,7 +1974,7 @@ class GoogleWorkspaceServer {
 
     // Get current parents
     const current = await withRetry(() =>
-      drive.files.get({ fileId, fields: "parents, name" }),
+      drive.files.get({ fileId, fields: "parents, name", supportsAllDrives: true }),
     );
     const previousParents = (current.data.parents || []).join(",");
 
@@ -1742,6 +1983,7 @@ class GoogleWorkspaceServer {
       addParents: targetFolderId,
       removeParents: previousParents,
       fields: "id, name, parents, webViewLink",
+      supportsAllDrives: true,
     };
     if (args.new_name) {
       updateParams.requestBody = { name: args.new_name };
@@ -1773,6 +2015,7 @@ class GoogleWorkspaceServer {
       drive.files.create({
         requestBody,
         fields: "id, name, webViewLink",
+        supportsAllDrives: true,
       }),
     );
 
@@ -1780,6 +2023,408 @@ class GoogleWorkspaceServer {
       folderId: res.data.id,
       name: res.data.name,
       url: res.data.webViewLink,
+    }, null, 2));
+  }
+
+  // ---------------------------------------------------------------------------
+  // Gmail tools
+  // ---------------------------------------------------------------------------
+
+  async _fetchEmailList(query, maxResults, pageToken, auth) {
+    const gmail = google.gmail({ version: "v1", auth });
+    const max = Math.min(maxResults || 20, 100);
+
+    const listRes = await withRetry(() =>
+      gmail.users.messages.list({
+        userId: "me",
+        q: query || undefined,
+        maxResults: max,
+        pageToken: pageToken || undefined,
+      }),
+    );
+
+    const messageIds = listRes.data.messages || [];
+    if (messageIds.length === 0) {
+      return {
+        messages: [],
+        nextPageToken: listRes.data.nextPageToken || null,
+        resultSizeEstimate: listRes.data.resultSizeEstimate || 0,
+      };
+    }
+
+    // Batch-fetch metadata for each message
+    const messages = await Promise.all(
+      messageIds.map(async (msg) => {
+        const res = await withRetry(() =>
+          gmail.users.messages.get({
+            userId: "me",
+            id: msg.id,
+            format: "metadata",
+            metadataHeaders: ["From", "To", "Subject", "Date"],
+          }),
+        );
+        const headers = {};
+        for (const h of res.data.payload?.headers || []) {
+          headers[h.name.toLowerCase()] = h.value;
+        }
+        return {
+          id: res.data.id,
+          threadId: res.data.threadId,
+          subject: headers.subject || "",
+          from: headers.from || "",
+          to: headers.to || "",
+          date: headers.date || "",
+          snippet: res.data.snippet || "",
+          labelIds: res.data.labelIds || [],
+        };
+      }),
+    );
+
+    return {
+      messages,
+      nextPageToken: listRes.data.nextPageToken || null,
+      resultSizeEstimate: listRes.data.resultSizeEstimate || 0,
+    };
+  }
+
+  async listEmails(args) {
+    const auth = await this.authManager.getAuth(args.auth_mode);
+    const result = await this._fetchEmailList(args.query, args.max_results, args.page_token, auth);
+    return this.textResult(JSON.stringify(result, null, 2));
+  }
+
+  async readEmail(args) {
+    const auth = await this.authManager.getAuth(args.auth_mode);
+    const gmail = google.gmail({ version: "v1", auth });
+
+    const res = await withRetry(() =>
+      gmail.users.messages.get({
+        userId: "me",
+        id: args.message_id,
+        format: "full",
+      }),
+    );
+
+    const payload = res.data.payload;
+    const headers = {};
+    for (const h of payload?.headers || []) {
+      const key = h.name.toLowerCase();
+      if (["from", "to", "cc", "subject", "date", "message-id"].includes(key)) {
+        headers[h.name] = h.value;
+      }
+    }
+
+    const body = extractEmailBody(payload);
+
+    // Extract attachment metadata
+    const attachments = [];
+    function walkAttachments(part) {
+      if (part.body?.attachmentId) {
+        attachments.push({
+          attachmentId: part.body.attachmentId,
+          filename: part.filename || "unknown",
+          mimeType: part.mimeType,
+          size: part.body.size || 0,
+        });
+      }
+      if (part.parts) part.parts.forEach(walkAttachments);
+    }
+    walkAttachments(payload);
+
+    return this.textResult(JSON.stringify({
+      id: res.data.id,
+      threadId: res.data.threadId,
+      headers,
+      body,
+      attachments,
+      labelIds: res.data.labelIds || [],
+      snippet: res.data.snippet || "",
+    }, null, 2));
+  }
+
+  async searchEmails(args) {
+    const auth = await this.authManager.getAuth(args.auth_mode);
+    const result = await this._fetchEmailList(args.query, args.max_results, args.page_token, auth);
+    return this.textResult(JSON.stringify(result, null, 2));
+  }
+
+  async getLabels(args) {
+    const auth = await this.authManager.getAuth(args.auth_mode);
+    const gmail = google.gmail({ version: "v1", auth });
+
+    const res = await withRetry(() =>
+      gmail.users.labels.list({ userId: "me" }),
+    );
+
+    const labels = (res.data.labels || [])
+      .map((l) => ({
+        id: l.id,
+        name: l.name,
+        type: l.type,
+        messagesTotal: l.messagesTotal,
+        messagesUnread: l.messagesUnread,
+      }))
+      .sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+
+    return this.textResult(JSON.stringify(labels, null, 2));
+  }
+
+  async downloadAttachment(args) {
+    const auth = await this.authManager.getAuth(args.auth_mode);
+    const gmail = google.gmail({ version: "v1", auth });
+
+    const res = await withRetry(() =>
+      gmail.users.messages.attachments.get({
+        userId: "me",
+        messageId: args.message_id,
+        id: args.attachment_id,
+      }),
+    );
+
+    const buffer = Buffer.from(res.data.data, "base64url");
+    await fs.mkdir(path.dirname(args.local_path), { recursive: true });
+    await fs.writeFile(args.local_path, buffer);
+
+    return this.textResult(JSON.stringify({
+      path: args.local_path,
+      filename: args.filename || path.basename(args.local_path),
+      size: buffer.length,
+    }, null, 2));
+  }
+
+  // ---------------------------------------------------------------------------
+  // Google Chat read tools
+  // ---------------------------------------------------------------------------
+
+  async listChatSpaces(args) {
+    const auth = await this.authManager.getAuth(args.auth_mode);
+    const chat = google.chat({ version: "v1", auth });
+
+    const res = await withRetry(() =>
+      chat.spaces.list({
+        filter: args.filter || undefined,
+        pageSize: Math.min(args.page_size || 100, 1000),
+        pageToken: args.page_token || undefined,
+      }),
+    );
+
+    const spaces = (res.data.spaces || []).map((s) => ({
+      name: s.name,
+      displayName: s.displayName || "",
+      type: s.type,
+      spaceType: s.spaceType,
+      singleUserBotDm: s.singleUserBotDm || false,
+      threaded: s.spaceThreadingState === "THREADED_MESSAGES",
+      membershipCount: s.membershipCount,
+    }));
+
+    return this.textResult(JSON.stringify({
+      spaces,
+      nextPageToken: res.data.nextPageToken || null,
+    }, null, 2));
+  }
+
+  async getChatSpace(args) {
+    const auth = await this.authManager.getAuth(args.auth_mode);
+    const chat = google.chat({ version: "v1", auth });
+
+    const res = await withRetry(() =>
+      chat.spaces.get({ name: args.space_name }),
+    );
+
+    return this.textResult(JSON.stringify({
+      name: res.data.name,
+      displayName: res.data.displayName || "",
+      type: res.data.type,
+      spaceType: res.data.spaceType,
+      singleUserBotDm: res.data.singleUserBotDm || false,
+      threaded: res.data.spaceThreadingState === "THREADED_MESSAGES",
+      membershipCount: res.data.membershipCount,
+      spaceDetails: res.data.spaceDetails || null,
+      createTime: res.data.createTime,
+    }, null, 2));
+  }
+
+  async listChatMembers(args) {
+    const auth = await this.authManager.getAuth(args.auth_mode);
+    const chat = google.chat({ version: "v1", auth });
+
+    const res = await withRetry(() =>
+      chat.spaces.members.list({
+        parent: args.space_name,
+        pageSize: args.page_size || 100,
+        pageToken: args.page_token || undefined,
+      }),
+    );
+
+    const members = (res.data.memberships || []).map((m) => ({
+      name: m.name,
+      state: m.state,
+      role: m.role,
+      member: m.member ? {
+        name: m.member.name,
+        displayName: m.member.displayName,
+        type: m.member.type,
+        domainId: m.member.domainId,
+      } : null,
+      createTime: m.createTime,
+    }));
+
+    return this.textResult(JSON.stringify({
+      members,
+      nextPageToken: res.data.nextPageToken || null,
+    }, null, 2));
+  }
+
+  async listChatMessages(args) {
+    const auth = await this.authManager.getAuth(args.auth_mode);
+    const chat = google.chat({ version: "v1", auth });
+
+    const res = await withRetry(() =>
+      chat.spaces.messages.list({
+        parent: args.space_name,
+        filter: args.filter || undefined,
+        pageSize: Math.min(args.page_size || 100, 1000),
+        pageToken: args.page_token || undefined,
+        orderBy: args.order_by || undefined,
+      }),
+    );
+
+    const messages = (res.data.messages || []).map((m) => ({
+      name: m.name,
+      sender: m.sender ? {
+        name: m.sender.name,
+        displayName: m.sender.displayName,
+        type: m.sender.type,
+      } : null,
+      text: m.text || "",
+      formattedText: m.formattedText || "",
+      createTime: m.createTime,
+      lastUpdateTime: m.lastUpdateTime,
+      thread: m.thread ? { name: m.thread.name } : null,
+      space: m.space ? { name: m.space.name } : null,
+      argumentText: m.argumentText || undefined,
+      attachmentCount: (m.attachment || []).length,
+    }));
+
+    return this.textResult(JSON.stringify({
+      messages,
+      nextPageToken: res.data.nextPageToken || null,
+    }, null, 2));
+  }
+
+  async readChatMessage(args) {
+    const auth = await this.authManager.getAuth(args.auth_mode);
+    const chat = google.chat({ version: "v1", auth });
+
+    const res = await withRetry(() =>
+      chat.spaces.messages.get({ name: args.message_name }),
+    );
+
+    const m = res.data;
+    return this.textResult(JSON.stringify({
+      name: m.name,
+      sender: m.sender ? {
+        name: m.sender.name,
+        displayName: m.sender.displayName,
+        type: m.sender.type,
+      } : null,
+      text: m.text || "",
+      formattedText: m.formattedText || "",
+      createTime: m.createTime,
+      lastUpdateTime: m.lastUpdateTime,
+      thread: m.thread ? { name: m.thread.name, threadKey: m.thread.threadKey } : null,
+      space: m.space ? { name: m.space.name } : null,
+      annotations: m.annotations || [],
+      attachment: (m.attachment || []).map((a) => ({
+        name: a.name,
+        contentName: a.contentName,
+        contentType: a.contentType,
+        driveDataRef: a.driveDataRef || null,
+        thumbnailUri: a.thumbnailUri || null,
+      })),
+      emojiReactionSummaries: m.emojiReactionSummaries || [],
+    }, null, 2));
+  }
+
+  async sendChatMessage(args) {
+    const auth = await this.authManager.getAuth(args.auth_mode);
+    const chat = google.chat({ version: "v1", auth });
+
+    const requestBody = { text: args.text };
+    if (args.thread_name) {
+      requestBody.thread = { name: args.thread_name };
+    }
+
+    const params = {
+      parent: args.space_name,
+      requestBody,
+    };
+    if (args.thread_name) {
+      params.messageReplyOption = "REPLY_MESSAGE_FALLBACK_TO_NEW_THREAD";
+    }
+
+    const res = await withRetry(() => chat.spaces.messages.create(params));
+    const m = res.data;
+
+    return this.textResult(JSON.stringify({
+      name: m.name,
+      text: m.text || "",
+      createTime: m.createTime,
+      thread: m.thread ? { name: m.thread.name } : null,
+      space: m.space ? { name: m.space.name } : null,
+    }, null, 2));
+  }
+
+  async downloadChatAttachment(args) {
+    const auth = await this.authManager.getAuth(args.auth_mode);
+    const chat = google.chat({ version: "v1", auth });
+
+    // Step 1: get attachment metadata to obtain the attachmentDataRef
+    const attRes = await withRetry(() =>
+      chat.spaces.messages.attachments.get({
+        name: args.attachment_name,
+      }),
+    );
+
+    const att = attRes.data;
+    const resourceName = att.attachmentDataRef && att.attachmentDataRef.resourceName;
+    if (!resourceName) {
+      // If no data ref, the attachment may be a Drive file
+      if (att.driveDataRef) {
+        return this.textResult(JSON.stringify({
+          error: "Attachment is a Drive file, use download_file instead",
+          driveFileId: att.driveDataRef.driveFileId,
+        }, null, 2));
+      }
+      throw new Error("Attachment has no downloadable data reference");
+    }
+
+    // Step 2: download via direct HTTP with auth token (media.download can
+    // fail with Insufficient Permission for user-uploaded attachments when
+    // using domain-wide delegation; the REST endpoint works)
+    const client = await auth.getClient();
+    const tokenRes = await client.getAccessToken();
+    const accessToken = tokenRes.token || tokenRes;
+    const url = `https://chat.googleapis.com/v1/media/${encodeURIComponent(resourceName)}?alt=media`;
+
+    const fetchRes = await fetch(url, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+
+    if (!fetchRes.ok) {
+      const errText = await fetchRes.text();
+      throw new Error(`Download failed (${fetchRes.status}): ${errText}`);
+    }
+
+    const buffer = Buffer.from(await fetchRes.arrayBuffer());
+    await fs.mkdir(path.dirname(args.local_path), { recursive: true });
+    await fs.writeFile(args.local_path, buffer);
+
+    return this.textResult(JSON.stringify({
+      path: args.local_path,
+      filename: path.basename(args.local_path),
+      size: buffer.length,
     }, null, 2));
   }
 
@@ -1857,6 +2502,30 @@ class GoogleWorkspaceServer {
             return await this.createFolder(args);
           case "google_oauth_callback":
             return await this.oauthCallback(args);
+          case "list_emails":
+            return await this.listEmails(args);
+          case "read_email":
+            return await this.readEmail(args);
+          case "search_emails":
+            return await this.searchEmails(args);
+          case "get_labels":
+            return await this.getLabels(args);
+          case "download_attachment":
+            return await this.downloadAttachment(args);
+          case "list_chat_spaces":
+            return await this.listChatSpaces(args);
+          case "get_chat_space":
+            return await this.getChatSpace(args);
+          case "list_chat_members":
+            return await this.listChatMembers(args);
+          case "list_chat_messages":
+            return await this.listChatMessages(args);
+          case "read_chat_message":
+            return await this.readChatMessage(args);
+          case "send_chat_message":
+            return await this.sendChatMessage(args);
+          case "download_chat_attachment":
+            return await this.downloadChatAttachment(args);
           default:
             throw new Error(`Unknown tool: ${name}`);
         }

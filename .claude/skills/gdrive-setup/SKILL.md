@@ -11,7 +11,7 @@ Interactive wizard to link Google Drive shared folders to a PMO project.
 ## Workflow
 
 1. **Validate project code:**
-   - Read `config/project-codes.json`
+   - Read `workspaces/strokmatic/pmo/config/project-codes.json`
    - Verify the project code exists
    - Show the project name and current Drive config (if any)
 
@@ -31,7 +31,7 @@ Interactive wizard to link Google Drive shared folders to a PMO project.
    - If yes, collect the push folder URL and verify access
 
 5. **Save configuration:**
-   - Update `config/project-codes.json` with the new `drive` section:
+   - Update `workspaces/strokmatic/pmo/config/project-codes.json` with the new `drive` section:
      ```json
      "drive": {
        "folders": [
@@ -44,7 +44,7 @@ Interactive wizard to link Google Drive shared folders to a PMO project.
        ],
        "push_folder_id": "<optional-push-folder-id>",
        "organize_template": {
-         "subfolders": ["01-Drawings", "02-Specs", "03-Quotes", "04-Correspondence", "05-Reports", "06-Admin", "07-Photos"]
+         "subfolders": ["01-Desenhos", "02-Especificacoes", "03-Orcamentos", "04-Comunicacao", "05-Relatorios", "06-Administrativo", "07-Referencia"]
        }
      }
      ```
@@ -52,10 +52,22 @@ Interactive wizard to link Google Drive shared folders to a PMO project.
 
 6. **Run initial index:**
    - Call `list_folder` with `recursive: true` for each folder
-   - Build and save `drive-index.json` at `workspaces/strokmatic/pmo/{code}/drive-index.json`
+   - Build and save `drive-index.json` at `workspaces/strokmatic/pmo/projects/{code}/drive-index.json`
    - Display summary: file count, total size, file type breakdown
 
-7. **Confirm:**
+7. **Scaffold local project skeleton:**
+   - Create the standard local directory structure under `workspaces/strokmatic/pmo/projects/{code}/` (if it doesn't already exist):
+     ```
+     emails/
+     meetings/
+     reports/md/
+     reports/pdf/
+     reference/
+     cache/
+     ```
+   - Confirm which directories were created (skip existing ones silently)
+
+8. **Confirm:**
    - Show the full configuration that was saved
    - Remind the user they can now use `/gdrive <code>` to browse and organize
 

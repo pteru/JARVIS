@@ -10,45 +10,45 @@ Load a Strokmatic PMO project into context. The argument is a 5-digit project co
 
 ## Steps
 
-1. Look up the project code in `/home/teruel/JARVIS/config/project-codes.json` to get the project name and language.
+1. Look up the project code in `/home/teruel/JARVIS/workspaces/strokmatic/pmo/config/project-codes.json` to get the project name and language.
 
 2. Read the project context file:
    ```
-   /home/teruel/JARVIS/workspaces/strokmatic/pmo/{code}/.claude/context.md
+   /home/teruel/JARVIS/workspaces/strokmatic/pmo/projects/{code}/.claude/context.md
    ```
 
 3. Read the email index (if it exists):
    ```
-   /home/teruel/JARVIS/workspaces/strokmatic/pmo/{code}/emails/index.json
+   /home/teruel/JARVIS/workspaces/strokmatic/pmo/projects/{code}/emails/index.json
    ```
    Summarize: total emails, breakdown by category, date range, top senders.
 
 4. Read the technical report (if it exists):
    ```
-   /home/teruel/JARVIS/workspaces/strokmatic/pmo/{code}/technical_report.md
+   /home/teruel/JARVIS/workspaces/strokmatic/pmo/projects/{code}/technical_report.md
    ```
 
 5. Read the timeline (if it exists):
    ```
-   /home/teruel/JARVIS/workspaces/strokmatic/pmo/{code}/timeline.json
+   /home/teruel/JARVIS/workspaces/strokmatic/pmo/projects/{code}/timeline.json
    ```
    Summarize: total events, date range, key milestones.
 
 6. List other key files in the project folder:
    ```
-   /home/teruel/JARVIS/workspaces/strokmatic/pmo/{code}/
+   /home/teruel/JARVIS/workspaces/strokmatic/pmo/projects/{code}/
    ```
    Show: meetings/, reports/md/, reference/, and any top-level files.
 
 7. If the project has a `drive` section in `config/project-codes.json`, load Google Drive context:
-   a. Check if `drive-index.json` exists at `workspaces/strokmatic/pmo/{code}/drive-index.json`
-   b. If it exists and is less than 24h old, read it and summarize:
+   a. Check if `drive-index.json` exists at `workspaces/strokmatic/pmo/projects/{code}/drive-index.json`
+   b. If it exists, read it and summarize:
       - Number of linked Drive folders and their roles
       - Total files and total size
       - File types breakdown
       - Most recently modified file and date
-   c. If it exists but is stale (>24h), note it's outdated and suggest running `/gdrive {code} index`
-   d. If no index exists, note that Drive folders are configured but not yet indexed — suggest `/gdrive {code} index`
+      - If the index is older than 24h, note: "drive-index.json is X days old — consider running `/gdrive {code} index` to refresh" (but always use the existing data regardless)
+   c. If no index exists, note that Drive folders are configured but not yet indexed — suggest `/gdrive {code} index`
    e. Show the configured folder names and roles from `project-codes.json`
 
 ## After Loading

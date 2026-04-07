@@ -138,3 +138,4 @@ linkStyle default stroke:#666,stroke-width:1px;
 - These colors are optimized for dark backgrounds (GitHub dark mode, Mermaid Live dark, etc.)
 - For light-background rendering, invert text colors and lighten fills as needed
 - The palette is derived from the SpotFusion deploy toolkit production charts
+- **Line breaks in flowchart nodes:** Use `<br/>`, not `\n`. Mermaid flowcharts do not render `\n` as line breaks inside quoted labels. Example: `NODE["Line one<br/>Line two"]`

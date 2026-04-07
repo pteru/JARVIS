@@ -10,7 +10,7 @@ Cloud-first interaction with Google Drive folders linked to PMO projects. Files 
 
 ## Setup
 
-1. Read `config/project-codes.json` and find the project by its 5-digit code
+1. Read `workspaces/strokmatic/pmo/config/project-codes.json` and find the project by its 5-digit code
 2. Check if the project has a `drive` section configured
 3. If no `drive` config exists, tell the user to run `/gdrive-setup <code>` first
 
@@ -69,19 +69,28 @@ AI-assisted organization of Drive folders. Follow this workflow:
 ### `upload <local-path>`
 
 1. Read the file at the local path
-2. Upload to the project's `push_folder_id` via `upload_file`
-3. If the push folder has organized subfolders, suggest the right one
-4. Confirm the upload URL to the user
+2. If the file is a `.md` file, auto-run md-to-pdf first (see md-to-pdf skill), then upload both the `.md` and the generated `.pdf` to the same Drive folder
+3. Upload to the project's `push_folder_id` via `upload_file`
+4. If the push folder has organized subfolders, suggest the right one
+5. Confirm the upload URL(s) to the user
 
 ### `index`
 
-Build or refresh the Drive index (`pmo/{code}/drive-index.json`):
+Build or refresh the Drive index (`pmo/projects/{code}/drive-index.json`):
 
 1. Call `list_folder` with `recursive: true` for each configured folder
 2. Build a tree structure with metadata (no content)
 3. Compute stats: total files, total size, file types breakdown, newest/oldest
-4. Save to `workspaces/strokmatic/pmo/{code}/drive-index.json`
+4. Save to `workspaces/strokmatic/pmo/projects/{code}/drive-index.json`
 5. Display the summary
+
+### `download <file-id-or-name>`
+
+When a download is explicitly requested or required for local processing:
+
+1. Download the file via `download_file`
+2. Save to `projects/{code}/cache/<Drive-path>/filename` (mirroring the Drive folder structure under the project cache)
+3. Confirm the local path to the user
 
 ### `read <file-id-or-name>`
 
