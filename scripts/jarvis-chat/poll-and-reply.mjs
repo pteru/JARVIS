@@ -63,7 +63,12 @@ async function main() {
       continue;
     }
 
+    const sentIds = new Set(state.spaces_state?.[spaceId]?.sent_ids || []);
     for (const raw of messages) {
+      // The google-workspace MCP impersonates the operator user, so bot replies
+      // appear with sender.type === 'HUMAN' and the operator's user id. The only
+      // reliable bot-detection signal is the message id we recorded when sending.
+      const isOurOwnReply = sentIds.has(raw.name);
       const message = {
         ts: raw.createTime,
         space_id: spaceId,
@@ -71,7 +76,7 @@ async function main() {
         message_id: raw.name,
         sender: { id: raw.sender?.name, name: raw.sender?.displayName || raw.sender?.name },
         text: raw.text || '',
-        is_bot: raw.sender?.type === 'BOT' || raw.sender?.name === config.bot_user_id,
+        is_bot: raw.sender?.type === 'BOT' || raw.sender?.name === config.bot_user_id || isOurOwnReply,
         annotations: raw.annotations || [],
       };
 
@@ -114,7 +119,8 @@ async function main() {
           model: config.model,
         });
 
-        await sendReply(spaceId, answer, message.thread_id);
+        const sentMeta = await sendReply(spaceId, answer, message.thread_id);
+        if (sentMeta?.name) sentIds.add(sentMeta.name);
 
         if (mapping.memory_enabled !== false) {
           appendMessage(TRANSCRIPTS_ROOT, {
@@ -155,7 +161,19 @@ async function main() {
     if (messages.length > 0) {
       const latest = messages[messages.length - 1];
       if (!state.spaces_state) state.spaces_state = {};
-      state.spaces_state[spaceId] = { last_message_ts: latest.createTime };
+      // Keep only the most recent 100 sent ids to bound state growth.
+      const trimmedSent = [...sentIds].slice(-100);
+      state.spaces_state[spaceId] = {
+        last_message_ts: latest.createTime,
+        sent_ids: trimmedSent,
+      };
+    } else if (sentIds.size > 0) {
+      if (!state.spaces_state) state.spaces_state = {};
+      const existing = state.spaces_state[spaceId] || {};
+      state.spaces_state[spaceId] = {
+        ...existing,
+        sent_ids: [...sentIds].slice(-100),
+      };
     }
   }
 

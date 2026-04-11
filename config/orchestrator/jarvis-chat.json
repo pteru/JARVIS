@@ -1,5 +1,5 @@
 {
-  "enabled": false,
+  "enabled": true,
   "poll_interval_minutes": 1,
   "distill_interval_minutes": 60,
   "thread_window_minutes": 5,
