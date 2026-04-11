@@ -4,7 +4,7 @@ import { join } from 'path';
 import { searchKB } from './lib/kb-search.mjs';
 import { generateAnswer } from './lib/answer-generator.mjs';
 import { logQA } from './lib/qa-logger.mjs';
-import { listRecentMessages, sendReply, listSpaces } from './lib/chat-client.mjs';
+import { listRecentMessages, sendReply, listSpaces } from '../helpers/chat-client.mjs';
 
 const ORCHESTRATOR_HOME = process.env.ORCHESTRATOR_HOME || `${process.env.HOME}/JARVIS`;
 const CONFIG_PATH = join(ORCHESTRATOR_HOME, 'config/orchestrator/kb-chat.json');

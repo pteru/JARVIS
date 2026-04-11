@@ -1,0 +1,13 @@
+{
+  "enabled": false,
+  "poll_interval_minutes": 1,
+  "distill_interval_minutes": 60,
+  "thread_window_minutes": 5,
+  "max_follow_ups_per_window": 3,
+  "question_shape_required": true,
+  "max_context_pages": 5,
+  "max_facts_per_answer": 10,
+  "model": "claude-sonnet-4-6",
+  "language": "pt-br",
+  "bot_user_id": "users/REPLACE_WITH_BOT_ID"
+}

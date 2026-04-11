@@ -74,5 +74,8 @@ workspaces/strokmatic/visionking/*
 # VK Health Monitor data (snapshots)
 data/vk-health/
 
+# JARVIS chat presence — transcripts, facts, threads, qa-log (operational state)
+data/jarvis-chat/
+
 # References (external archives — URL pointers in references/README.md)
 references/Personal_AI_Infrastructure/
