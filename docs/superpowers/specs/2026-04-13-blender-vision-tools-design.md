@@ -38,6 +38,7 @@ A Blender add-on package — **Strokmatic Vision Tools** — installed as a fold
 | Target objects | "Selected Objects" / "All Visible" radio toggle | Simple, no collection management overhead |
 | Visualization | Vertex colors | STL meshes have good density; no UV dependency; instant viewport feedback |
 | Color mode | Continuous gradient + threshold bands (toggle) | Continuous for exploration, threshold for pass/fail validation |
+| Resolution unit | User choice: px/mm or mm/px | px/mm is intuitive for "how many pixels cover 1mm"; mm/px is intuitive for "what's the smallest feature I can see" — both conventions are used in machine vision |
 | Multi-camera | Single active camera per run | Fits NLA workflow; switch frame → switch camera → re-run |
 | Occlusion check | Optional checkbox | ray_cast is expensive; skip for simple scenes |
 | Platform | Windows + Linux (Blender 3.6 LTS / 4.x) | Colleague runs Windows; no external dependencies beyond bundled numpy |
@@ -126,9 +127,10 @@ Panel class: `SKM_PT_VisionTools`, located in `VIEW_3D` space, `UI` region, `SKM
 ```
 skm_vision_camera        : PointerProperty(type=bpy.types.Object, poll=camera_poll)
 skm_vision_scope         : EnumProperty(items=[("SELECTED", ...), ("VISIBLE", ...)])
+skm_resolution_unit      : EnumProperty(items=[("PX_MM", "px/mm", ...), ("MM_PX", "mm/px", ...)])
 skm_resolution_mode      : EnumProperty(items=[("CONTINUOUS", ...), ("THRESHOLD", ...)])
-skm_resolution_threshold : FloatProperty(default=5.0, min=0.1, description="Minimum px/mm")
-skm_resolution_margin    : FloatProperty(default=1.0, min=0.0, description="Margin band width")
+skm_resolution_threshold : FloatProperty(default=5.0, min=0.1, description="Threshold in selected unit")
+skm_resolution_margin    : FloatProperty(default=1.0, min=0.0, description="Margin band width in selected unit")
 skm_angle_mode           : EnumProperty(items=[("CONTINUOUS", ...), ("THRESHOLD", ...)])
 skm_angle_threshold      : FloatProperty(default=60.0, min=1.0, max=89.0, description="Max angle °")
 skm_angle_margin         : FloatProperty(default=10.0, min=0.0, description="Margin band °")
@@ -138,7 +140,7 @@ skm_check_occlusion      : BoolProperty(default=False, description="Ray-cast occ
 **Layout** (three collapsible boxes):
 
 1. **Camera Setup** — camera selector dropdown, "Import Calibration" button (file browser), read-only info (resolution, FOV, focal length)
-2. **Resolution Heatmap** — scope toggle, mode toggle, threshold/margin inputs (shown when mode=THRESHOLD), "Compute" and "Clear" buttons
+2. **Resolution Heatmap** — unit toggle (px/mm or mm/px), scope toggle, mode toggle, threshold/margin inputs (shown when mode=THRESHOLD), "Compute" and "Clear" buttons
 3. **Viewing Angle Heatmap** — same layout pattern as resolution, with angle-specific inputs
 4. **Footer** — "Export Screenshot" button
 
@@ -185,7 +187,8 @@ Operator: `SKM_OT_ComputeResolution` (`skm_vision.compute_resolution`)
       - If skm_check_occlusion and not visible: color = GRAY; continue
       - tangent_u, tangent_v = get_vertex_tangents(mesh, loop.vertex_index)
       - px_mm = pixel_per_mm_at_point(scene, camera, vertex_world, tangent_u, tangent_v)
-      - color = value_to_color_{mode}(px_mm, ...)
+      - value = px_mm if unit=="PX_MM" else 1.0/px_mm  (mm/px is the reciprocal)
+      - color = value_to_color_{mode}(value, ...)
    g. Bulk-write colors via numpy foreach_set
    h. object.data.update()
 7. Set viewport shading to show vertex colors (SOLID mode, color=VERTEX)
@@ -216,7 +219,10 @@ Operator: `SKM_OT_ComputeAngle` (`skm_vision.compute_angle`)
 4. Legend overlay (0° = head-on/best, 90° = grazing/worst)
 ```
 
-**Color direction note:** For angle maps, the gradient is inverted compared to resolution — low angle (0°) is good (green in threshold mode), high angle (90°) is bad (red). The continuous gradient runs green→yellow→red for 0°→90°.
+**Color direction notes:**
+- **Resolution (px/mm):** Higher is better — more pixels per mm means finer detail. Continuous gradient: blue (low/bad) → red (high/good). Threshold: green ≥ threshold.
+- **Resolution (mm/px):** Lower is better — smaller ground sampling distance. Continuous gradient is inverted: blue (high/bad) → red (low/good). Threshold: green ≤ threshold.
+- **Angle:** Low angle (0°) is good (head-on), high angle (90°) is bad (grazing). Continuous gradient: green (0°) → yellow → red (90°). Threshold: green ≤ threshold.
 
 ## Performance
 
