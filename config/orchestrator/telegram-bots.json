@@ -20,13 +20,19 @@
       "description": "Morning reports, daily summaries, inbound commands",
       "bot_token_file": "~/.secrets/telegram-bot-tokens/jarvis-daily",
       "default_chat_id": "8051645832"
+    },
+    "jarvis-channel": {
+      "description": "Claude Code channel plugin — interactive session bridge",
+      "bot_token_file": "~/.secrets/telegram-bot-tokens/jarvis-channel",
+      "default_chat_id": "8051645832"
     }
   },
   "domains": {
     "vk-health":      { "bot": "jarvis-alerts", "description": "VK health monitoring alerts" },
+    "infra-health":   { "bot": "jarvis-alerts", "description": "Infra service health monitoring (health-monitor)" },
     "task-dispatch":   { "bot": "jarvis-ops", "description": "Task completion/failure notifications" },
     "pr-review":       { "bot": "jarvis-ops", "description": "PR review notifications" },
     "morning-report":  { "bot": "jarvis-daily", "description": "Daily morning briefing" },
-    "inbound":         { "bot": "jarvis-daily", "description": "Inbound command polling and replies" }
+    "inbound":         { "bot": "jarvis-main", "description": "Inbound command polling and replies" }
   }
 }
