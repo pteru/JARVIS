@@ -9,7 +9,7 @@
 
 Formaliza o indexador de pastas Drive que hoje existe como script ad-hoc no JARVIS host (`scripts/gdrive-index.sh`), transformando-o num service padrão do infra. O service roda diariamente em `192.168.15.2`, consulta as pastas Drive de cada projeto registrado em `pmo/config/project-codes.json`, gera `drive-index.json` por projeto, e committa/pushba o resultado no repo PMO (transport via git).
 
-**Pain que resolve:** o indexador existente é manual, não monitorado, usa auth GCP direta (chave replicada), e produz inconsistências porque roda só quando alguém lembra. Formalizar traz: cadência confiável, observabilidade via health-monitor, consistência arquitetural (MCP como outros services), e eliminação de chave replicada.
+**Pain que resolve:** o indexador existente é manual, não monitorado, e produz inconsistências porque roda só quando alguém lembra. Formalizar traz: cadência confiável, observabilidade via health-monitor, consistência arquitetural (mesmo padrão de auth e transport dos outros indexers — meeting-index, email-index), e shared auth lib.
 
 **Escopo v1:** indexação diária de todos os projetos com `drive.folders[]` configurado em `project-codes.json`. Schema de output **mantido** — consumidores atuais (`/pmo` skill, engenheiros) não quebram.
 
@@ -20,7 +20,7 @@ Formaliza o indexador de pastas Drive que hoje existe como script ad-hoc no JARV
 - Rodar diariamente às 22:00 UTC em `/opt/jarvis-gdrive-index/` no infra server
 - Indexar todos os projetos do PMO que têm `drive.folders[]` populado
 - Produzir `pmo/projects/{code}/drive-index.json` com schema idêntico ao atual
-- Usar Google Workspace MCP via `claude --print` (consistência com `alert-sender`, `meeting-index`)
+- Usar service account direto (`googleapis` + shared lib `services/_shared/google-auth.mjs`) com domain-wide delegation impersonando `pedro@lumesolutions.com`
 - Transportar output via git: clone local do PMO repo + commit + push no cada ciclo
 - Change detection: zero rewrite quando nada mudou (git diff mínimo)
 - State.json canônico emitido para health-monitor
@@ -33,7 +33,7 @@ Formaliza o indexador de pastas Drive que hoje existe como script ad-hoc no JARV
 - **Indexação parcial por alteração detectada via Drive changes API** — scan completo é simples e previsível
 - **Re-ranking ou filtering de entries** (ex: ocultar arquivos customer-sensitive) — schema mantido cru
 - **Diff rico no commit message** (lista de arquivos added/removed) — apenas "N projects with changes"
-- **Caching entre runs** — cada run faz scan completo; MCP latency dominaria otimização premature
+- **Caching entre runs** — cada run faz scan completo; com service account + paginação concorrente, 25 projetos rodam em ≤20min, não vale a complexidade de cache/invalidação
 - **Paralelização entre projetos** — serial é suficiente (20min total aceitável)
 - **Execução interativa single-project** — `/gdrive index <code>` skill cobre esse caso
 
@@ -41,8 +41,8 @@ Formaliza o indexador de pastas Drive que hoje existe como script ad-hoc no JARV
 
 | # | Decisão | Por quê |
 |---|---|---|
-| Q1 | Rewrite via MCP (não lift-and-shift do script atual) | Consistência com alert-sender e meeting-index; elimina replicação de chave de serviço |
-| Q2 | Output transportado via git (clone local + commit + push no PMO repo) | PMO repo é o source of truth; consumidores via `git pull` normal; histórico auditável; padrão replicável para meeting-index |
+| Q1 | Rewrite usando service account direto (`googleapis`) + shared auth lib `services/_shared/google-auth.mjs` | Indexers são batch mecânicos sem LLM-in-loop; service account ganha em throughput (batch APIs, concorrência nativa), debugabilidade (stack trace direto) e rate limit explícito com headers. MCP fica reservado para serviços LLM-driven (jarvis-chat, kb-generator). Chave GCP compartilhada entre os 3 indexers → zero custo marginal de segredo. |
+| Q2 | Output transportado via git (clone local + commit + push no PMO repo) | PMO repo é o source of truth; consumidores via `git pull` normal; histórico auditável; padrão replicável para meeting-index e email-index |
 | — | Schema `drive-index.json` mantido | Compatibilidade com `/pmo` skill e outros consumidores |
 | — | Cadência diária 22:00 UTC (antes do meeting-index 23:00) | Per workflow doc; meeting-index pode consultar drive-index fresco |
 | — | Change detector → zero rewrite quando nada mudou | Git diff mínimo, histórico só mostra mudanças reais |
@@ -54,7 +54,7 @@ Formaliza o indexador de pastas Drive que hoje existe como script ad-hoc no JARV
 
 ### 4.1 Runtime
 
-Node.js ESM em `/opt/jarvis-gdrive-index/` no infra server `192.168.15.2`, cron `0 22 * * *` (daily 22:00 UTC). Zero dependências externas além de Node built-ins + `git` binary + Claude CLI (já instalado). Autenticação Drive via MCP; autenticação git via SSH key existente.
+Node.js ESM em `/opt/jarvis-gdrive-index/` no infra server `192.168.15.2`, cron `0 22 * * *` (daily 22:00 UTC). Depende do `googleapis` npm package e do shared lib `services/_shared/google-auth.mjs` (que carrega `~/.secrets/gcp-service-account.json` e impersona `pedro@lumesolutions.com`). Autenticação git via SSH key existente.
 
 ### 4.2 Estrutura de arquivos
 
@@ -62,13 +62,13 @@ Node.js ESM em `/opt/jarvis-gdrive-index/` no infra server `192.168.15.2`, cron 
 services/gdrive-index/
 ├── run.sh                        # cron entry; sources nvm
 ├── deploy.sh                     # rsync + install cron
-├── package.json                  # type: module
+├── package.json                  # type: module; dep: googleapis, ../_shared
 ├── index.mjs                     # orquestrador principal
 ├── config/
 │   └── service.json              # repo URL, branch, paths, retry config
 ├── lib/
 │   ├── config.mjs                # loader + validator
-│   ├── drive-client.mjs          # wrapper MCP: listFolder, getMetadata
+│   ├── drive-client.mjs          # wrapper googleapis Drive v3: listFolder, getMetadata
 │   ├── project-indexer.mjs       # build drive-index.json per project
 │   ├── change-detector.mjs       # PURE: diff old vs new
 │   └── pmo-git.mjs               # clone/pull/add/commit/push
@@ -81,6 +81,11 @@ services/gdrive-index/
 │   └── state.json                # heartbeat canônico
 └── logs/
     └── run-YYYY-MM-DD.log
+
+services/_shared/                  # shared entre gdrive-index, meeting-index, email-index
+├── google-auth.mjs                # factory: getDriveClient(), getGmailClient() — JWT + DWD
+├── package.json                   # type: module; dep: googleapis, google-auth-library
+└── state-writer.sh                # (já existe) bash helper canônico
 ```
 
 ### 4.3 Decomposição em módulos
@@ -89,10 +94,11 @@ services/gdrive-index/
 |---|---|---|
 | `project-indexer.mjs` | Build do `drive-index.json` dado project_code + lista de folders (chama drive-client recursivamente) | Lógica pura de agregação; I/O via injeção de drive-client |
 | `change-detector.mjs` | `diff(oldIndex, newIndex) → {changed, added[], removed[], modified[]}` | 100% pura |
-| `drive-client.mjs` | `listFolder(id, opts)`, `getMetadata(id)` via MCP com retry 2x backoff | I/O (subprocess) |
+| `drive-client.mjs` | `listFolder(id, opts)`, `getMetadata(id)` via `googleapis` Drive v3 (paginação automática via `pageToken`, `supportsAllDrives=true`, `includeItemsFromAllDrives=true`); retry 2x backoff exponencial em 429/5xx | I/O (HTTP) |
 | `pmo-git.mjs` | `cloneOrPull()`, `writeProject(code, data)`, `commitAll(msg)`, `push()` | I/O (git subprocess) |
 | `config.mjs` | Lê `service.json` + `project-codes.json` do clone | Quase pura |
-| `index.mjs` | Pipeline: pull → iterate → index → diff → commit changes → push → state.json | I/O composto |
+| `index.mjs` | Pipeline: `getDriveClient()` → pull → iterate → index → diff → commit changes → push → state.json | I/O composto |
+| `../_shared/google-auth.mjs` | Factory compartilhada: `getDriveClient()` retorna cliente `googleapis` autenticado com JWT (service account + DWD, subject `pedro@lumesolutions.com`, scopes `drive`) | I/O de carregamento único da chave; cliente reutilizável |
 
 Os 2 módulos puros críticos (`project-indexer` da lógica de build + `change-detector`) concentram a lógica de negócio. ~14 testes unitários cobrem seu comportamento sem I/O real.
 
@@ -117,7 +123,7 @@ flowchart TD
     PUSH --> STATE
     STATE --> DONE([exit 0])
 
-    INDEX -.->|MCP error 2x retry| SKIP[log + skip project]
+    INDEX -.->|Drive API 429/5xx 2x retry| SKIP[log + skip project]
     PUSH -.->|rejected| RETRY[pull-rebase + retry 1x]
     PULL -.->|fatal| FAIL([exit 1 failed])
 
@@ -199,7 +205,7 @@ Exatamente como o script atual produz. Consumidores existentes continuam funcion
 
 **Mudanças mínimas vs script atual:**
 - `generated`: timestamp ISO completo (era só date como `2026-04-03`) — permite dedup diário precisão por hora
-- `modifiedTime` por file: adicionado quando disponível via MCP — usado por change-detector
+- `modifiedTime` por file: adicionado quando disponível no response `files.list` — usado por change-detector
 - Determinismo: `entries[]` ordenado por `path` lexicográfico — garante git diff mínimo
 
 ### 5.3 `change-detector.mjs` — algoritmo
@@ -288,7 +294,8 @@ Sem mudanças: pipeline pula `git commit` + `git push` (no-op). state.json atual
 | `scripts/gdrive-index.sh` no JARVIS host | Depreciado na Fase 5; move para `scripts/deprecated/` |
 | `/pmo <code>` skill | Continua funcionando — schema mantido |
 | `/gdrive index <code>` skill | Continua útil para ad-hoc interativo |
-| `mcp__google-workspace__*` tools | Usados como no meeting-index e alert-sender |
+| `services/_shared/google-auth.mjs` | **Novo** — shared lib criado pelo gdrive-index (primeiro consumidor). Espelha `mcp-servers/lib/google-auth.mjs` do JARVIS (mesmo padrão de JWT + DWD). Reutilizado por meeting-index e email-index. |
+| `~/.secrets/gcp-service-account.json` | Replicado do JARVIS (`config/credentials/gcp-service-account.json`). Mode 0600, owner `strokmatic`. Compartilhado entre os 3 indexers. |
 
 ## 8. Testes
 
@@ -325,6 +332,9 @@ Total: ~14 testes. Rodam em <500ms. Zero I/O externo.
 1. Verificar SSH key do `strokmatic@192.168.15.2` tem push access ao PMO (reutiliza setup do github-clickup-sync)
 2. `ssh strokmatic@192.168.15.2 'git clone git@github.com:teruelskm/pmo.git /opt/jarvis-gdrive-index/data/pmo-clone'`
 3. Verificar `git push --dry-run` funciona do clone
+4. **Copiar GCP service account key** do JARVIS (`config/credentials/gcp-service-account.json`) para `/home/strokmatic/.secrets/gcp-service-account.json` no infra. Setup: `chmod 600`, owner `strokmatic`. Primeiro service do infra a usar GCP direto — esse arquivo passa a ser shared pelos demais indexers.
+5. **Criar shared lib `services/_shared/google-auth.mjs`** espelhando `mcp-servers/lib/google-auth.mjs` do JARVIS (mesma lógica JWT + DWD, subject `pedro@lumesolutions.com`, scopes parametrizáveis). Criar também `services/_shared/package.json` declarando deps `googleapis` + `google-auth-library`. Deploy via rsync do `services/_shared/` para `/opt/_shared/` no servidor.
+6. Smoke test da auth: `node -e "import('./services/_shared/google-auth.mjs').then(m => m.getDriveClient({scopes:['https://www.googleapis.com/auth/drive']}).then(c => c.files.list({pageSize:1})).then(r => console.log(r.data)))"` — deve listar 1 arquivo do Drive do Pedro.
 
 **Fase 1 — Implementation + tests (local):**
 
