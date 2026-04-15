@@ -1014,7 +1014,7 @@ Content of `services/gdrive-index/lib/project-indexer.mjs`:
 const FOLDER_MIME = 'application/vnd.google-apps.folder';
 
 async function walk({ client, folderId, parentPath, depth, maxDepth, skipFolders, skipMimeTypes, stats, entries }) {
-  if (depth > maxDepth) return;
+  if (depth >= maxDepth) return;
   let listing;
   try {
     listing = await client.listFolder(folderId);
