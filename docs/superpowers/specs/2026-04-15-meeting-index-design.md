@@ -72,7 +72,7 @@ services/meeting-index/
 │   ├── config.mjs                # loader + validador
 │   ├── drive-client.mjs          # wrapper googleapis Drive v3 (list/move/metadata, supportsAllDrives=true)
 │   ├── classifier.mjs            # PURE: (filename) → {product, type} | null
-│   ├── index-writer.mjs          # I/O: read/write pmo/products/{prod}/meetings/index.json atomic
+│   ├── index-writer.mjs          # I/O: atomic tmp+rename; escreve DENTRO do PMO clone
 │   └── dedup.mjs                 # PURE: (scanned, indexes) → new_files
 ├── test/
 │   ├── classifier.test.mjs       # ~20 testes
@@ -80,6 +80,7 @@ services/meeting-index/
 │   ├── config.test.mjs           # ~4 testes
 │   └── test-integration.mjs      # 1 smoke test end-to-end
 ├── data/
+│   ├── pmo-clone/                # clone local persistente do PMO repo
 │   └── state.json                # health-monitor heartbeat
 └── logs/
     └── run-YYYY-MM-DD.log
@@ -91,11 +92,12 @@ services/meeting-index/
 |---|---|---|
 | `classifier.mjs` | Regex permissivo sobre filename → `{product, meeting_type, matched_text}` ou `null` | 100% pura |
 | `dedup.mjs` | Compara scanned files com indexes existentes, retorna só novos | 100% pura |
-| `config.mjs` | Lê `products.json` + `patterns.json`, valida, retorna normalizado | Quase pura |
+| `config.mjs` | Lê `products.json` + `patterns.json`, valida, retorna normalizado. Lê também `project-codes.json` do PMO clone quando necessário | Quase pura |
 | `drive-client.mjs` | `listFolder(id)`, `moveFile(id, fromParent, toParent)` (com `supportsAllDrives=true`), `getMetadata(id)` via `googleapis` Drive v3; retry 2x backoff em 429/5xx | I/O (HTTP) |
-| `index-writer.mjs` | `readIndex()`, `writeIndex()` com atomic tmp+rename | I/O (filesystem) |
-| `index.mjs` | Pipeline: `getDriveClient()` → load → scan → classify → dedup → move + upsert → write state | I/O composto |
+| `index-writer.mjs` | `readIndex(relPath)`, `writeIndex(relPath, data)` com atomic tmp+rename. Caminhos relativos ao PMO clone que é gerido pelo `_shared/pmo-git.mjs`. | I/O (filesystem) |
+| `index.mjs` | Pipeline: `getDriveClient()` → `pmoGit.cloneOrPull()` → load → scan → classify → dedup → move + upsert → `pmoGit.commitAll + push` se mudou → write state | I/O composto |
 | `../_shared/google-auth.mjs` | Factory compartilhada (provisionada pelo gdrive-index): `getDriveClient({scopes:['drive']})` retorna cliente `googleapis` autenticado | I/O de carregamento único |
+| `../_shared/pmo-git.mjs` | Factory shared (provisionada pelo gdrive-index): `cloneOrPull()`, `writeProject(code, relPath, data)`, `commitAll(msg)`, `push()`. meeting-index grava em `products/{produto}/meetings/index.json`. | I/O (git subprocess) |
 
 Os 2 módulos puros (`classifier`, `dedup`) carregam toda a lógica de negócio. ~28 testes unitários cobrem seu comportamento sem I/O.
 
@@ -103,8 +105,10 @@ Os 2 módulos puros (`classifier`, `dedup`) carregam toda a lógica de negócio.
 
 ```mermaid
 flowchart TD
-    START([Cron 23:00 UTC]) --> LOAD[config.load]
-    LOAD --> READ_IDX[read 3 product indexes]
+    START([Cron 23:00 UTC]) --> AUTH[_shared/google-auth.getDriveClient]
+    AUTH --> PULL[_shared/pmo-git.cloneOrPull]
+    PULL --> LOAD[config.load]
+    LOAD --> READ_IDX[read 3 product indexes from clone]
     READ_IDX --> SCAN[drive-client.listFolder Meet Recordings]
     SCAN --> CLASSIFY[classifier.classify each file]
     CLASSIFY --> DEDUP[dedup.filterNew vs indexes]
@@ -113,24 +117,32 @@ flowchart TD
     META --> MOVE[drive-client.moveFile to product target]
     MOVE --> UPSERT[append to in-memory product index]
     UPSERT --> LOOP
-    LOOP -->|done| WRITE_IDX[index-writer.writeIndex atomic per product]
-    WRITE_IDX --> STATE[write_state to state.json]
+    LOOP -->|done| WRITE_IDX[index-writer.writeIndex atomic per product into clone]
+    WRITE_IDX --> HASCHG{any moved?}
+    HASCHG -->|yes| COMMIT[pmo-git.commitAll]
+    HASCHG -->|no| STATE[write state.json]
+    COMMIT --> PUSH[pmo-git.push]
+    PUSH --> STATE
     STATE --> DONE([exit 0 success or partial])
 
+    AUTH -.->|fatal| FAIL([exit 1 failed])
+    PULL -.->|fatal| FAIL
     META -.->|Drive API 429/5xx 2x retry| SKIP1[log + skip file]
     MOVE -.->|Drive API 429/5xx 2x retry| SKIP2[log + skip file]
     SKIP1 --> LOOP
     SKIP2 --> LOOP
-    SCAN -.->|fatal error| FAIL([exit 1 failed])
+    SCAN -.->|fatal error| FAIL
+    PUSH -.->|rejected| REBASE[pull-rebase + retry 1x]
+    REBASE -.->|still rejected| PARTIAL[commits ficam locais state=partial]
 
     classDef default fill:#1f1f1f,stroke:#fff,stroke-width:1px,color:#fff
     classDef pure fill:#1b3a1b,stroke:#00e676,stroke-width:2px,color:#fff
     classDef io fill:#4a2c0f,stroke:#ff9800,stroke-width:2px,color:#fff
     classDef start fill:#0d2b4e,stroke:#00d2ff,stroke-width:2px,color:#fff
 
-    class START,DONE,FAIL start
+    class START,DONE,FAIL,PARTIAL start
     class CLASSIFY,DEDUP pure
-    class LOAD,READ_IDX,SCAN,META,MOVE,UPSERT,WRITE_IDX,STATE io
+    class AUTH,PULL,LOAD,READ_IDX,SCAN,META,MOVE,UPSERT,WRITE_IDX,COMMIT,PUSH,REBASE,STATE io
 ```
 
 ## 5. Schemas
@@ -273,27 +285,33 @@ flowchart TD
 
 | Cenário | Retry? | Ação se falha persiste | state.json |
 |---|---|---|---|
+| `google-auth.getDriveClient` falha (chave corrompida, scope não autorizado) | N/A | Abort startup | `failed` |
+| `pmo-git.cloneOrPull` falha (rede, SSH auth, conflito) | 1x | Abort ciclo | `failed` |
 | `list_folder` do Meet Recordings | 2x backoff | Abort ciclo | `failed` |
 | `get_file_metadata` de 1 arquivo | 2x backoff | Skip arquivo, log, continua | `partial` se ≥1 skip |
 | `move_file` falha | 2x backoff | Skip arquivo (não adiciona ao index), próximo ciclo tenta de novo | `partial` |
 | Classifier encontra match mas `target_folder_id: null` | N/A | Log warning, deixa em Meet Recordings, não adiciona ao index | `success` |
-| `index-writer` falha | N/A | Abort (sem index, arquivos já movidos ficam órfãos — reconciliation futura) | `failed` |
+| `index-writer.writeIndex` falha (disk, permission) | N/A | Abort (sem index, arquivos já movidos ficam órfãos — reconciliation futura) | `failed` |
+| `pmo-git.commitAll` falha | N/A | Log, state=partial, próxima run tenta | `partial` |
+| `pmo-git.push` rejected | 1x: pull-rebase + retry | Se ainda falhar, commits locais ficam, próxima run tenta | `partial` |
 | Config `products.json` inválida ou ausente | N/A | Abort no startup | `failed` |
 | Arquivo em Meet Recordings sem conteúdo (size 0, corrupted) | N/A | Move normal (é apenas metadata que importa) | `success` |
 
-**Idempotência:** rodar o service 2x seguidas sem nada novo = zero operations destrutivas. Segunda execução: `list_folder` retorna só arquivos não-movidos (os anteriores já saíram), classifier roda, dedup filtra tudo, moves = 0, index rewritten identical.
+**Idempotência:** rodar o service 2x seguidas sem nada novo = zero operations destrutivas. Segunda execução: `list_folder` retorna só arquivos não-movidos (os anteriores já saíram), classifier roda, dedup filtra tudo, moves = 0, index rewritten identical, `commitAll` não gera commit (working tree clean), push é no-op.
 
 ## 7. Integração com infraestrutura existente
 
 | Componente | Mudança |
 |---|---|
 | `services/health-monitor/config/services.json` | Adicionar entry `meeting-index` com `added_at: null` inicialmente; flip após Fase 3 do rollout |
-| `pmo/products/{diemaster,spotfusion,visionking}/` | Diretórios CRIADOS pelo primeiro run do service (via `mkdir -p`). Arquivos committed manualmente por Pedro depois do primeiro index ser escrito (ou via cron separado se quiser). |
+| `pmo/products/{diemaster,spotfusion,visionking}/` | Diretórios criados pelo primeiro run via `_shared/pmo-git.writeProject` (mkdir + write + commit + push no mesmo ciclo). Sem intervenção manual do Pedro. |
 | Google Drive `Meu Drive / Meet Recordings` | Source. Service faz `files.list` + `files.update` (reparent) aqui. |
 | Google Drive `[0N] Produto / 00 - Anotações Reuniões` | Target. Um por produto. IDs hardcoded em config. Shared Drive — requer `supportsAllDrives=true` + `includeItemsFromAllDrives=true`. |
 | Google Drive `Meu Drive / Meet Recordings / Não classificado` | Novo subfolder, criado manualmente one-time. |
 | `services/_shared/google-auth.mjs` | Shared lib provisionado pelo gdrive-index (primeiro a implementar). Reusa o mesmo arquivo em `/opt/_shared/`. Scope: `drive`. |
+| `services/_shared/pmo-git.mjs` | Shared lib provisionado pelo gdrive-index. Reusa para transport automático do `meetings/index.json` por produto. Zero mudança se gdrive já rodou. |
 | `~/.secrets/gcp-service-account.json` | Já copiado pelo setup do gdrive-index. Zero mudança para meeting-index. |
+| PMO repo (`teruelskm/pmo`) | Commits do meeting-index aparecem via cron 23:00 UTC quando há reuniões novas classificadas. Zero-rewrite quando scan não detecta nada. |
 
 ## 8. Testes
 
@@ -330,20 +348,21 @@ Total: ~32 testes. Rodam em <500ms. Zero I/O externo, zero mocks complexos.
 
 **Fase 0 — Setup (manual, one-time):**
 
-1. **Pré-requisito:** `services/_shared/google-auth.mjs` + `~/.secrets/gcp-service-account.json` já devem estar setup no infra (provisionados pelo gdrive-index §9 Fase 0). Se meeting-index for implementado antes, replicar os passos 4-6 daquele spec.
+1. **Pré-requisitos:** `services/_shared/google-auth.mjs`, `services/_shared/pmo-git.mjs`, `~/.secrets/gcp-service-account.json` e clone PMO com push access já devem estar setup no infra (provisionados pelo gdrive-index §9 Fase 0). Se meeting-index for implementado antes do gdrive-index, replicar os passos 4-6 daquele spec E extrair/criar o `pmo-git.mjs` seguindo o mesmo padrão (clone bare, authored commits, push via SSH key existente).
 2. Resolver IDs:
    - Usar o próprio `drive-client` (smoke script) em cada product drive (`[01] SMART DIE`, `[02] SPOT FUSION`, `[03] VISION KING`) → encontrar folder `00 - Anotações Reuniões` → pegar IDs
    - Criar folder `Meu Drive / Meet Recordings / Não classificado` → pegar ID
 3. Popular `config/products.json` com os IDs
-4. `mkdir -p pmo/products/{diemaster,spotfusion,visionking}/meetings/` no PMO repo
+4. `mkdir -p pmo/products/{diemaster,spotfusion,visionking}/meetings/` já NÃO é necessário manualmente — `pmo-git.writeProject` cria os diretórios no primeiro write e committa junto
 
 **Fase 1 — Implementation + local tests:**
 
 1. Build modules (TDD: classifier.mjs + dedup.mjs primeiro, ~32 testes)
-2. Build I/O modules (drive-client, index-writer, config)
-3. Build orchestrator (index.mjs) + integration smoke
-4. Build run.sh + deploy.sh seguindo padrão health-monitor
-5. Tudo rodando localmente, suite green
+2. Build I/O modules (drive-client, index-writer escrevendo no path do clone, config)
+3. Build orchestrator (index.mjs) — importa `_shared/google-auth` e `_shared/pmo-git`; pipeline faz `cloneOrPull → scan → classify → dedup → move → writeIndex no clone → commitAll + push se mudou`
+4. Integration smoke test com `HM_SKIP_PUSH=1` (clone fake + bare remote fake)
+5. Build run.sh + deploy.sh seguindo padrão health-monitor/gdrive-index
+6. Tudo rodando localmente, suite green
 
 **Fase 2 — Deploy + dry run:**
 
