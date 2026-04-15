@@ -33,7 +33,7 @@ Serviço daily que organiza as notas de reunião geradas automaticamente pelo Ge
 - **Reuniões com nome do Gemini default** (`Reunião iniciada às YYYY/MM/DD`) — mesmo status acima
 - **Webhook-based triggering** — cron diário é suficiente
 - **Cross-project para projetos específicos** (ex: daily VK 03002 Nissan) — o meeting é per-produto, não per-projeto (conforme workflow doc §Estrutura do PMO)
-- **Content OCR/parsing** — tudo vem como Google Doc já indexável pelo MCP
+- **Content OCR/parsing** — tudo vem como Google Doc nativo; Phase 2 vai extrair conteúdo via MCP LLM-driven, não via parsing cru
 - **Retroactive indexing de arquivos já arquivados** — Phase 2 opcional via flag `RECONCILE=1`
 
 ## 3. Decisões tomadas durante o brainstorming
@@ -48,14 +48,14 @@ Serviço daily que organiza as notas de reunião geradas automaticamente pelo Ge
 | Q2 | Schema mínimo (só metadados), extensível para action items em v2 | YAGNI — sem consumidor de action items ainda (kb-generator não existe) |
 | — | Cadência daily 23:00 UTC | Conforme workflow doc |
 | — | Dedup via `drive_file_id` como chave primária nas entries | Único identificador estável |
-| — | I/O MCP Drive via `claude --print` wrapper | Mesmo padrão de `alert-sender.mjs` já em produção |
+| — | I/O Drive via service account direto (`googleapis`) + shared lib `services/_shared/google-auth.mjs` | Indexer batch mecânico sem LLM-in-loop; service account ganha em throughput, batch APIs e debugabilidade; compartilha chave e auth lib com gdrive-index e email-index (custo marginal zero). MCP fica reservado para jarvis-chat e kb-generator. |
 | — | `target_folder_id` por produto resolvido uma vez e hardcoded em config | Estático; evita `list_folder` a cada run |
 
 ## 4. Arquitetura
 
 ### 4.1 Runtime
 
-Node.js ESM, cron `0 23 * * *` (daily 23:00 UTC), rodando em `/opt/jarvis-meeting-index/` no infra server `192.168.15.2`. Zero dependências além de Node built-ins e invocação do Google Workspace MCP via `claude --print`.
+Node.js ESM, cron `0 23 * * *` (daily 23:00 UTC), rodando em `/opt/jarvis-meeting-index/` no infra server `192.168.15.2`. Depende do `googleapis` npm e do shared lib `services/_shared/google-auth.mjs` (JWT + DWD impersonando `pedro@lumesolutions.com`, scope `drive`). Shared lib e GCP key já foram provisionados pelo gdrive-index (primeiro service do infra a consumir GCP).
 
 ### 4.2 Estrutura de arquivos
 
@@ -63,14 +63,14 @@ Node.js ESM, cron `0 23 * * *` (daily 23:00 UTC), rodando em `/opt/jarvis-meetin
 services/meeting-index/
 ├── run.sh                        # cron entry; sources nvm; wraps node
 ├── deploy.sh                     # rsync + install cron
-├── package.json                  # type: module
+├── package.json                  # type: module; dep: googleapis, ../_shared
 ├── index.mjs                     # orquestrador principal
 ├── config/
 │   ├── products.json             # aliases + Drive folder IDs
 │   └── patterns.json             # regex de meeting types
 ├── lib/
 │   ├── config.mjs                # loader + validador
-│   ├── drive-client.mjs          # wrapper MCP (list/move/metadata)
+│   ├── drive-client.mjs          # wrapper googleapis Drive v3 (list/move/metadata, supportsAllDrives=true)
 │   ├── classifier.mjs            # PURE: (filename) → {product, type} | null
 │   ├── index-writer.mjs          # I/O: read/write pmo/products/{prod}/meetings/index.json atomic
 │   └── dedup.mjs                 # PURE: (scanned, indexes) → new_files
@@ -92,9 +92,10 @@ services/meeting-index/
 | `classifier.mjs` | Regex permissivo sobre filename → `{product, meeting_type, matched_text}` ou `null` | 100% pura |
 | `dedup.mjs` | Compara scanned files com indexes existentes, retorna só novos | 100% pura |
 | `config.mjs` | Lê `products.json` + `patterns.json`, valida, retorna normalizado | Quase pura |
-| `drive-client.mjs` | `listFolder()`, `moveFile()`, `getMetadata()` via MCP via `claude --print` | I/O (subprocess) |
+| `drive-client.mjs` | `listFolder(id)`, `moveFile(id, fromParent, toParent)` (com `supportsAllDrives=true`), `getMetadata(id)` via `googleapis` Drive v3; retry 2x backoff em 429/5xx | I/O (HTTP) |
 | `index-writer.mjs` | `readIndex()`, `writeIndex()` com atomic tmp+rename | I/O (filesystem) |
-| `index.mjs` | Pipeline: load → scan → classify → dedup → move + upsert → write state | I/O composto |
+| `index.mjs` | Pipeline: `getDriveClient()` → load → scan → classify → dedup → move + upsert → write state | I/O composto |
+| `../_shared/google-auth.mjs` | Factory compartilhada (provisionada pelo gdrive-index): `getDriveClient({scopes:['drive']})` retorna cliente `googleapis` autenticado | I/O de carregamento único |
 
 Os 2 módulos puros (`classifier`, `dedup`) carregam toda a lógica de negócio. ~28 testes unitários cobrem seu comportamento sem I/O.
 
@@ -116,8 +117,8 @@ flowchart TD
     WRITE_IDX --> STATE[write_state to state.json]
     STATE --> DONE([exit 0 success or partial])
 
-    META -.->|MCP error 2x retry| SKIP1[log + skip file]
-    MOVE -.->|MCP error 2x retry| SKIP2[log + skip file]
+    META -.->|Drive API 429/5xx 2x retry| SKIP1[log + skip file]
+    MOVE -.->|Drive API 429/5xx 2x retry| SKIP2[log + skip file]
     SKIP1 --> LOOP
     SKIP2 --> LOOP
     SCAN -.->|fatal error| FAIL([exit 1 failed])
@@ -288,10 +289,11 @@ flowchart TD
 |---|---|
 | `services/health-monitor/config/services.json` | Adicionar entry `meeting-index` com `added_at: null` inicialmente; flip após Fase 3 do rollout |
 | `pmo/products/{diemaster,spotfusion,visionking}/` | Diretórios CRIADOS pelo primeiro run do service (via `mkdir -p`). Arquivos committed manualmente por Pedro depois do primeiro index ser escrito (ou via cron separado se quiser). |
-| Google Drive `Meu Drive / Meet Recordings` | Source. Service faz `list_folder` + `move_file` aqui. |
-| Google Drive `[0N] Produto / 00 - Anotações Reuniões` | Target. Um por produto. IDs hardcoded em config. |
+| Google Drive `Meu Drive / Meet Recordings` | Source. Service faz `files.list` + `files.update` (reparent) aqui. |
+| Google Drive `[0N] Produto / 00 - Anotações Reuniões` | Target. Um por produto. IDs hardcoded em config. Shared Drive — requer `supportsAllDrives=true` + `includeItemsFromAllDrives=true`. |
 | Google Drive `Meu Drive / Meet Recordings / Não classificado` | Novo subfolder, criado manualmente one-time. |
-| `claude --print` + `mcp__google-workspace__*` | Mesmo canal do alert-sender. Precisa Claude CLI instalado no server + `. nvm.sh` no cron (padrão do infra). |
+| `services/_shared/google-auth.mjs` | Shared lib provisionado pelo gdrive-index (primeiro a implementar). Reusa o mesmo arquivo em `/opt/_shared/`. Scope: `drive`. |
+| `~/.secrets/gcp-service-account.json` | Já copiado pelo setup do gdrive-index. Zero mudança para meeting-index. |
 
 ## 8. Testes
 
@@ -328,11 +330,12 @@ Total: ~32 testes. Rodam em <500ms. Zero I/O externo, zero mocks complexos.
 
 **Fase 0 — Setup (manual, one-time):**
 
-1. Resolver IDs:
-   - `list_folder` em cada product drive (`[01] SMART DIE`, `[02] SPOT FUSION`, `[03] VISION KING`) → encontrar folder `00 - Anotações Reuniões` → pegar IDs
+1. **Pré-requisito:** `services/_shared/google-auth.mjs` + `~/.secrets/gcp-service-account.json` já devem estar setup no infra (provisionados pelo gdrive-index §9 Fase 0). Se meeting-index for implementado antes, replicar os passos 4-6 daquele spec.
+2. Resolver IDs:
+   - Usar o próprio `drive-client` (smoke script) em cada product drive (`[01] SMART DIE`, `[02] SPOT FUSION`, `[03] VISION KING`) → encontrar folder `00 - Anotações Reuniões` → pegar IDs
    - Criar folder `Meu Drive / Meet Recordings / Não classificado` → pegar ID
-2. Popular `config/products.json` com os IDs
-3. `mkdir -p pmo/products/{diemaster,spotfusion,visionking}/meetings/` no PMO repo
+3. Popular `config/products.json` com os IDs
+4. `mkdir -p pmo/products/{diemaster,spotfusion,visionking}/meetings/` no PMO repo
 
 **Fase 1 — Implementation + local tests:**
 
