@@ -83,7 +83,8 @@ register() {
 register "fetch-remotes"  "data" "Fetch all git remotes"           "bash ${SCRIPT_DIR}/fetch-all-remotes.sh"
 register "dirty-scan"     "data" "Scan dirty workspaces"           "bash ${SCRIPT_DIR}/workspace-git-analysis.sh"
 register "access-matrix"  "data" "Update GitHub access matrix"     "bash ${SCRIPT_DIR}/update-access-matrix.sh"
-register "email-ingest"   "data" "Ingest & classify new emails"    "bash ${SCRIPT_DIR}/email-ingest.sh"
+# email-sync migrated to infra service /opt/jarvis-email-index/ (hourly cron)
+# register "email-sync"     "data" "Sync emails via Gmail API"       "NODE_PATH=${ORCHESTRATOR_HOME}/mcp-servers/node_modules node ${SCRIPT_DIR}/email-sync.mjs"
 register "fetch-prs"      "data" "Fetch open pull requests"        "bash ${SCRIPT_DIR}/fetch-open-prs.sh"
 register "context-update" "data" "Update context.md & ws types"    "node ${SCRIPT_DIR}/populate-workspace-metadata.mjs"
 register "vk-health"      "data" "VK health snapshot (03002)"      "bash ${SCRIPT_DIR}/vk-health/run.sh 03002"

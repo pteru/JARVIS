@@ -1,0 +1,405 @@
+#!/usr/bin/env node
+/**
+ * Email Sync — Gmail API → local emails/index.json
+ *
+ * Replaces scripts/email-ingest.sh (IMAP-based).
+ * Uses googleapis with service account (same auth as gdrive-index.sh).
+ *
+ * Usage:
+ *   node scripts/email-sync.mjs                    # Sync all projects with Gmail labels
+ *   node scripts/email-sync.mjs 02008              # Sync specific project
+ *   node scripts/email-sync.mjs --migrate          # Enrich existing entries with gmail_id
+ *   node scripts/email-sync.mjs --migrate 02008    # Migrate specific project
+ */
+
+import fs from "fs/promises";
+import path from "path";
+import { createRequire } from "module";
+
+// ESM doesn't resolve NODE_PATH — use createRequire to load from mcp-servers/node_modules
+const _require = createRequire(
+  path.join(process.env.ORCHESTRATOR_HOME || process.env.JARVIS_HOME || "/home/teruel/JARVIS", "mcp-servers", "package.json"),
+);
+const { google } = _require("googleapis");
+
+// ─── Config ──────────────────────────────────────────────────────────────────
+
+const JARVIS_HOME = process.env.ORCHESTRATOR_HOME || process.env.JARVIS_HOME || "/home/teruel/JARVIS";
+const CREDENTIALS_PATH = path.join(JARVIS_HOME, "config", "credentials", "gcp-service-account.json");
+const PROJECT_CODES_PATH = path.join(JARVIS_HOME, "config", "project-codes.json");
+const PMO_ROOT = path.join(JARVIS_HOME, "workspaces", "strokmatic", "pmo");
+const IMPERSONATE_EMAIL = "pedro@lumesolutions.com";
+const GMAIL_SCOPE = "https://www.googleapis.com/auth/gmail.readonly";
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+function log(msg) {
+  process.stderr.write(`${msg}\n`);
+}
+
+async function loadJson(filePath) {
+  try {
+    return JSON.parse(await fs.readFile(filePath, "utf-8"));
+  } catch {
+    return null;
+  }
+}
+
+async function saveJson(filePath, data) {
+  await fs.mkdir(path.dirname(filePath), { recursive: true });
+  await fs.writeFile(filePath, JSON.stringify(data, null, 2) + "\n");
+}
+
+function indexPath(code) {
+  return path.join(PMO_ROOT, code, "emails", "index.json");
+}
+
+function parsedDir(code) {
+  return path.join(PMO_ROOT, code, "emails", "parsed");
+}
+
+async function getGmailClient() {
+  const key = JSON.parse(await fs.readFile(CREDENTIALS_PATH, "utf-8"));
+  const auth = new google.auth.JWT(
+    key.client_email,
+    null,
+    key.private_key,
+    [GMAIL_SCOPE],
+    IMPERSONATE_EMAIL,
+  );
+  return google.gmail({ version: "v1", auth });
+}
+
+function parseFromHeader(fromStr) {
+  // "Fábio Sena <sena@strokmatic.com>" → { name, email }
+  const match = fromStr.match(/^"?(.+?)"?\s*<(.+?)>$/);
+  if (match) {
+    return { name: match[1].trim(), email: match[2].trim() };
+  }
+  // Plain email
+  return { name: "", email: fromStr.trim() };
+}
+
+function getHeader(headers, name) {
+  const h = headers.find((h) => h.name.toLowerCase() === name.toLowerCase());
+  return h ? h.value : "";
+}
+
+function parseRecipients(toStr) {
+  if (!toStr) return [];
+  // Split on comma but respect quoted strings
+  return toStr
+    .split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/)
+    .map((r) => r.trim())
+    .filter(Boolean);
+}
+
+// Gmail label names use product prefix: smartdie/01002, spotfusion/02008, visionking/03008
+const PRODUCT_LABEL_MAP = {
+  diemaster: "smartdie",
+  spotfusion: "spotfusion",
+  visionking: "visionking",
+};
+
+function gmailLabelQuery(code, product) {
+  const prefix = PRODUCT_LABEL_MAP[product];
+  if (!prefix) return `label:${code}`;
+  return `label:${prefix}/${code}`;
+}
+
+// ─── Sync mode ───────────────────────────────────────────────────────────────
+
+async function syncProject(gmail, code, projectConfig) {
+  const indexFile = indexPath(code);
+  const existing = (await loadJson(indexFile)) || [];
+  const existingGmailIds = new Set(existing.filter((e) => e.gmail_id).map((e) => e.gmail_id));
+
+  const labelQuery = gmailLabelQuery(code, projectConfig.product);
+  log(`  [${code}] ${projectConfig.name} — ${existing.length} existing, query: ${labelQuery}`);
+
+  // Query Gmail for messages with this project's label
+  let allMessages = [];
+  let pageToken = null;
+
+  do {
+    const res = await gmail.users.messages.list({
+      userId: "me",
+      q: labelQuery,
+      maxResults: 500,
+      pageToken,
+    });
+    const messages = res.data.messages || [];
+    allMessages.push(...messages);
+    pageToken = res.data.nextPageToken;
+  } while (pageToken);
+
+  if (allMessages.length === 0) {
+    log(`  [${code}] No messages found with label:${code}`);
+    return { synced: 0, total: existing.length };
+  }
+
+  // Filter out already-synced
+  const newMessageIds = allMessages.filter((m) => !existingGmailIds.has(m.id));
+  log(`  [${code}] Gmail: ${allMessages.length} total, ${newMessageIds.length} new`);
+
+  if (newMessageIds.length === 0) {
+    return { synced: 0, total: existing.length };
+  }
+
+  // Fetch metadata for new messages
+  let synced = 0;
+  for (const msg of newMessageIds) {
+    try {
+      const detail = await gmail.users.messages.get({
+        userId: "me",
+        id: msg.id,
+        format: "metadata",
+        metadataHeaders: [
+          "Subject",
+          "From",
+          "To",
+          "Date",
+          "Message-ID",
+          "In-Reply-To",
+          "References",
+        ],
+      });
+
+      const headers = detail.data.payload.headers || [];
+      const from = parseFromHeader(getHeader(headers, "From"));
+      const dateStr = getHeader(headers, "Date");
+      const parsedDate = dateStr ? new Date(dateStr).toISOString() : "";
+
+      // Build attachment list from payload parts
+      const attachments = [];
+      function collectAttachments(parts) {
+        if (!parts) return;
+        for (const part of parts) {
+          if (part.filename && part.body?.attachmentId) {
+            attachments.push({
+              filename: part.filename,
+              attachment_id: part.body.attachmentId,
+              mime_type: part.mimeType || "",
+              size: parseInt(part.body.size, 10) || 0,
+            });
+          }
+          if (part.parts) collectAttachments(part.parts);
+        }
+      }
+      collectAttachments(detail.data.payload.parts || []);
+      // Check top-level payload too
+      if (detail.data.payload.filename && detail.data.payload.body?.attachmentId) {
+        attachments.push({
+          filename: detail.data.payload.filename,
+          attachment_id: detail.data.payload.body.attachmentId,
+          mime_type: detail.data.payload.mimeType || "",
+          size: parseInt(detail.data.payload.body.size, 10) || 0,
+        });
+      }
+
+      const entry = {
+        gmail_id: msg.id,
+        thread_id: msg.threadId || "",
+        hash: null,
+        subject: getHeader(headers, "Subject"),
+        sender_name: from.name,
+        sender_email: from.email,
+        recipients: parseRecipients(getHeader(headers, "To")),
+        date: parsedDate,
+        project_code: code,
+        snippet: detail.data.snippet || "",
+        has_attachments: attachments.length > 0,
+        attachment_count: attachments.length,
+        attachments,
+        message_id: getHeader(headers, "Message-ID"),
+        in_reply_to: getHeader(headers, "In-Reply-To"),
+        references: getHeader(headers, "References"),
+        label_ids: detail.data.labelIds || [],
+        category: null,
+        analysis: null,
+        synced_at: new Date().toISOString(),
+        analyzed_at: null,
+      };
+
+      existing.push(entry);
+      synced++;
+    } catch (err) {
+      log(`  [${code}] ERROR fetching ${msg.id}: ${err.message}`);
+    }
+  }
+
+  // Sort by date
+  existing.sort((a, b) => (a.date || "").localeCompare(b.date || ""));
+
+  await saveJson(indexFile, existing);
+  log(`  [${code}] Synced ${synced} new emails → ${existing.length} total`);
+
+  return { synced, total: existing.length };
+}
+
+// ─── Migrate mode ────────────────────────────────────────────────────────────
+// Enriches existing index.json entries (IMAP-era) with gmail_id, snippet,
+// thread_id, and new-schema fields. Resolves gmail_id via rfc822msgid query.
+
+async function migrateProject(gmail, code) {
+  const index = await loadJson(indexPath(code));
+  if (!index || index.length === 0) {
+    log(`  [${code}] No index.json found, skipping migration`);
+    return { migrated: 0, resolved: 0, failed: 0 };
+  }
+
+  // Only migrate entries that have a hash but no gmail_id
+  const toMigrate = index.filter((e) => e.hash && !e.gmail_id);
+
+  log(`  [${code}] ${index.length} total, ${toMigrate.length} need gmail_id resolution`);
+
+  let resolved = 0;
+  let failed = 0;
+
+  for (const entry of toMigrate) {
+    // Enrich with snippet from parsed file if missing
+    if (!entry.snippet) {
+      const parsedFile = path.join(parsedDir(code), `${entry.hash.slice(0, 16)}.json`);
+      const parsedData = await loadJson(parsedFile);
+      if (parsedData) {
+        entry.snippet = (parsedData.body_text || "").slice(0, 200);
+        // Pull analysis from parsed file if not in index
+        if (!entry.category && parsedData.category) {
+          entry.category = parsedData.category;
+        }
+        if (!entry.analysis && parsedData.analysis) {
+          entry.analysis = parsedData.analysis;
+        }
+      }
+    }
+
+    // Add new-schema fields with defaults
+    if (entry.gmail_id === undefined) entry.gmail_id = null;
+    if (entry.thread_id === undefined) entry.thread_id = null;
+    if (entry.project_code === undefined) entry.project_code = code;
+    if (entry.has_attachments === undefined) entry.has_attachments = (entry.attachments || []).length > 0;
+    if (entry.attachment_count === undefined) entry.attachment_count = (entry.attachments || []).length;
+    if (entry.label_ids === undefined) entry.label_ids = [];
+    if (entry.analysis === undefined) entry.analysis = null;
+    if (entry.synced_at === undefined) entry.synced_at = new Date().toISOString();
+    if (entry.analyzed_at === undefined) entry.analyzed_at = entry.category ? new Date().toISOString() : null;
+
+    // Resolve gmail_id via Message-ID header
+    if (entry.message_id) {
+      try {
+        const res = await gmail.users.messages.list({
+          userId: "me",
+          q: `rfc822msgid:${entry.message_id}`,
+          maxResults: 1,
+        });
+        const messages = res.data.messages || [];
+        if (messages.length > 0) {
+          entry.gmail_id = messages[0].id;
+          entry.thread_id = messages[0].threadId || null;
+          resolved++;
+
+          // Fetch snippet + labels from Gmail
+          try {
+            const detail = await gmail.users.messages.get({
+              userId: "me",
+              id: entry.gmail_id,
+              format: "metadata",
+              metadataHeaders: [],
+            });
+            entry.snippet = detail.data.snippet || entry.snippet;
+            entry.label_ids = detail.data.labelIds || [];
+          } catch {
+            // Non-critical — keep existing snippet
+          }
+        }
+      } catch (err) {
+        log(`    [${code}] Failed to resolve ${entry.message_id}: ${err.message}`);
+        failed++;
+      }
+    }
+  }
+
+  // Dedup by gmail_id — keep enriched (hash-bearing) entries over sync-only ones
+  const beforeDedup = index.length;
+  const seen = new Map(); // gmail_id → index
+  const deduped = [];
+  for (const entry of index) {
+    if (entry.gmail_id && seen.has(entry.gmail_id)) {
+      // Keep the entry that has a hash (richer, from IMAP era)
+      const existing = deduped[seen.get(entry.gmail_id)];
+      if (!existing.hash && entry.hash) {
+        deduped[seen.get(entry.gmail_id)] = entry;
+      }
+      continue;
+    }
+    if (entry.gmail_id) seen.set(entry.gmail_id, deduped.length);
+    deduped.push(entry);
+  }
+  const removed = beforeDedup - deduped.length;
+
+  // Sort by date and save
+  deduped.sort((a, b) => (a.date || "").localeCompare(b.date || ""));
+  await saveJson(indexPath(code), deduped);
+  log(`  [${code}] Enriched ${toMigrate.length} entries (${resolved} gmail_id resolved, ${failed} failed${removed > 0 ? `, ${removed} duplicates removed` : ""})`);
+
+  return { migrated: toMigrate.length, resolved, failed };
+}
+
+// ─── Main ────────────────────────────────────────────────────────────────────
+
+async function main() {
+  const args = process.argv.slice(2);
+  const migrateMode = args.includes("--migrate");
+  const projectFilter = args.filter((a) => !a.startsWith("--"));
+
+  const projectCodes = JSON.parse(await fs.readFile(PROJECT_CODES_PATH, "utf-8"));
+  const gmail = await getGmailClient();
+
+  // Determine which projects to process
+  let codes;
+  if (projectFilter.length > 0) {
+    codes = projectFilter.filter((c) => projectCodes[c]);
+    if (codes.length === 0) {
+      log(`ERROR: No valid project codes found in: ${projectFilter.join(", ")}`);
+      process.exit(1);
+    }
+  } else {
+    codes = Object.keys(projectCodes).sort();
+  }
+
+  const timestamp = new Date().toISOString();
+  const mode = migrateMode ? "migrate" : "sync";
+  log(`=== Email ${mode} — ${timestamp} ===`);
+  log(`Projects: ${codes.length}`);
+
+  let totalSynced = 0;
+  let totalMigrated = 0;
+  let totalResolved = 0;
+
+  for (const code of codes) {
+    try {
+      if (migrateMode) {
+        const result = await migrateProject(gmail, code);
+        totalMigrated += result.migrated;
+        totalResolved += result.resolved;
+      } else {
+        const result = await syncProject(gmail, code, projectCodes[code]);
+        totalSynced += result.synced;
+      }
+    } catch (err) {
+      log(`  [${code}] ERROR: ${err.message}`);
+    }
+  }
+
+  log("");
+  if (migrateMode) {
+    log(`=== Migration complete: ${totalMigrated} entries migrated, ${totalResolved} gmail_ids resolved ===`);
+  } else {
+    log(`=== Sync complete: ${totalSynced} new emails synced ===`);
+  }
+}
+
+main().catch((err) => {
+  log(`FATAL: ${err.message}`);
+  process.exit(1);
+});
