@@ -53,7 +53,11 @@ ALTER TABLE entities ADD COLUMN canonical_id TEXT;
 CREATE INDEX IF NOT EXISTS idx_entities_canonical_id ON entities(canonical_id);
 ```
 
-Applied at service start via the existing migration mechanism in `lib/db.mjs`.
+Applied at service start. If `lib/db.mjs` has no migration runner today
+(likely — ingestors currently write into a schema declared at init),
+the implementation plan will introduce a small idempotent pattern:
+check `PRAGMA table_info(entities)` for the `canonical_id` column and
+issue the `ALTER TABLE` once on first boot after upgrade.
 
 ### New values (no schema work)
 
@@ -79,7 +83,11 @@ Pure functions, `db` passed as first argument, same style as `lib/graph.mjs`. Al
 ```
 createEntity(db, { id?, name, type, properties?, project_code?, product? })
   Validates type is in allowed set (person|company|plant|project|product|role).
-  Auto-generates id as `${type}:${slug(name)}` if not provided.
+  Auto-generates id as `${type}:${slug(name)}` if not provided, where
+    slug(s) = s.normalize('NFD').replace(/[̀-ͯ]/g,'')
+              .toLowerCase().replace(/[^\w]+/g,'_').replace(/^_|_$/g,'')
+    (matches the existing convention in `lib/ingestors/emails.mjs` and
+    `meetings.mjs`).
   Rejects existing id (returns ValidationError).
   Enforces conditional fields: type=project requires product.
   Returns the created entity.
@@ -88,7 +96,10 @@ addManualTriple(db, { subject, predicate, object, valid_from?, valid_to? })
   Validates subject and object exist (NotFoundError otherwise).
   Normalizes predicate: lowercase, strip leading/trailing whitespace, replace
     spaces and hyphens with underscores.
-  Blocks `part_of` cycles (walks up existing part_of chain from object).
+  Blocks `part_of` cycles only (walks up existing `part_of` chain from
+    object; cycles on other predicates are allowed). Rationale: `part_of`
+    is the only hierarchical predicate in v1; other predicates can
+    legitimately form cycles (e.g., `collaborates_with`).
   Generates id = `manual:${md5(subject|predicate|object)}` so the same edge
     is idempotent.
   Inserts with source='manual', confidence=1.0, created_at=now.
