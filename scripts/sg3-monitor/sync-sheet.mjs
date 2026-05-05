@@ -78,6 +78,11 @@ async function applySg3(client, existing, snap, report) {
 
   await upsertByPrimary(client, 'alocacoes', snap.alocacoes ?? [], existing, report,
     ['status_sg3', 'pendencias_sg3', 'data_inicio', 'data_vencimento_propria', 'decl_resp_id', 'colaborador_id', 'cadastro_sg3_id']);
+
+  // New: docs sourced from the Documentos screen
+  await insertOnlyByPrimary(client, 'docs_empresa', snap.docs_empresa ?? [], existing, report);
+  await insertOnlyByPrimary(client, 'docs_colaborador', snap.docs_colaborador ?? [], existing, report);
+  await insertOnlyByPrimary(client, 'declaracoes_responsabilidade', snap.declaracoes_responsabilidade ?? [], existing, report);
 }
 
 async function insertOnlyByPrimary(client, tabName, incoming, existing, report) {

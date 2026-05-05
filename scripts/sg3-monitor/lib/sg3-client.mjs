@@ -442,6 +442,179 @@ export async function scrapeAlocacoes(page, _urlOrSelector) {
   return { alocacoes, plantas, pessoas_gm, cadastros_sg3 };
 }
 
+// ─── Excel export download (with prior Buscar/search submit) ─────────────────
+
+async function downloadExportXlsxAfterSearch(page, route) {
+  const baseRoute = route.replace(/\/index$/, '');
+  const pageUrl = `https://sg3.executiva.adm.br/gm/index.php?r=${encodeURIComponent(route)}`;
+  log.info('loading documentos page for buscar→export flow', { route, pageUrl });
+  await page.goto(pageUrl, { waitUntil: 'domcontentloaded', timeout: 60_000 });
+  await page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => {});
+  await dismissPopups(page);
+  await page.waitForTimeout(800);
+  await dismissPopups(page);
+
+  // Click submit button matching /^buscar|^pesquisar|^filtrar|^consultar/i
+  log.info('clicking Buscar to populate results', { route });
+  const buscarHandle = await page.evaluateHandle(() => {
+    for (const b of document.querySelectorAll('button[type=submit], input[type=submit]')) {
+      const t = (b.innerText || b.value || '').trim().toLowerCase();
+      if (/^buscar|^pesquisar|^filtrar|^consultar/.test(t)) return b;
+    }
+    return null;
+  });
+  const hasBuscar = await buscarHandle.evaluate(b => !!b);
+  if (hasBuscar) {
+    await Promise.all([
+      page.waitForLoadState('domcontentloaded', { timeout: 30_000 }).catch(() => {}),
+      buscarHandle.evaluate(b => b.click()),
+    ]);
+    await page.waitForTimeout(2500);
+  } else {
+    log.warn('no Buscar button found — proceeding without it', { route });
+  }
+  await dismissPopups(page);
+
+  // Find export form
+  const formFound = await page.evaluate(({ route, baseRoute }) => {
+    for (const f of document.querySelectorAll('form')) {
+      if (!f.action) continue;
+      if (
+        f.action.includes(`r=${route}/export-excel`) ||
+        f.action.includes(`r=${route}%2Fexport-excel`) ||
+        f.action.includes(`r=${baseRoute}/export-excel`) ||
+        f.action.includes(`r=${baseRoute}%2Fexport-excel`)
+      ) return true;
+    }
+    return false;
+  }, { route, baseRoute });
+
+  if (!formFound) {
+    const currentUrl = page.url();
+    throw new Error(`export-excel form not found after Buscar for route=${route}. Current URL: ${currentUrl}`);
+  }
+
+  log.info('submitting export-excel form after Buscar', { route });
+  const downloadPromise = page.waitForEvent('download', { timeout: 90_000 });
+
+  await page.evaluate(({ route, baseRoute }) => {
+    for (const f of document.querySelectorAll('form')) {
+      if (!f.action) continue;
+      if (
+        f.action.includes(`r=${route}/export-excel`) ||
+        f.action.includes(`r=${route}%2Fexport-excel`) ||
+        f.action.includes(`r=${baseRoute}/export-excel`) ||
+        f.action.includes(`r=${baseRoute}%2Fexport-excel`)
+      ) { f.submit(); return; }
+    }
+  }, { route, baseRoute });
+
+  const download = await downloadPromise;
+  const filename = download.suggestedFilename() || `${baseRoute}-export.xlsx`;
+  const dest = resolve(tmpdir(), `sg3-${baseRoute.replace(/[^a-z0-9]/gi, '_')}-${Date.now()}-${filename}`);
+  await download.saveAs(dest);
+  log.info('download saved', { route, dest });
+  return dest;
+}
+
+// ─── Document tipo mapper ─────────────────────────────────────────────────────
+
+function mapDocumentTipo(documento, tipoDoc) {
+  const d = (documento || '').toUpperCase();
+  if (d.includes('DECLARACAO DE RESPONSABILIDADES')) return { target: 'declaracoes_responsabilidade' };
+  if (tipoDoc === 'FUNCIONAL') {
+    if (d.includes('ASO')) return { target: 'docs_colaborador', tipo: 'aso' };
+    if (d.includes('NR 10') || d.includes('NR-10') || d.includes('NR10')) return { target: 'docs_colaborador', tipo: 'nr10' };
+    if (d.includes('NR 35') || d.includes('NR-35') || d.includes('NR35')) return { target: 'docs_colaborador', tipo: 'nr35' };
+    if (d.includes('NR 12') || d.includes('NR-12') || d.includes('NR12')) return { target: 'docs_colaborador', tipo: 'nr12' };
+    return { target: 'docs_colaborador', tipo: 'outro' };
+  }
+  // PATRONAL or unknown TIPO
+  if (d.includes('PGR')) return { target: 'docs_empresa', tipo: 'pgr' };
+  if (d.includes('PCMSO')) return { target: 'docs_empresa', tipo: 'pcmso' };
+  if (d.includes('CND') && d.includes('FEDERAL')) return { target: 'docs_empresa', tipo: 'cnd_federal' };
+  if (d.includes('CNDT') || (d.includes('CND') && d.includes('TRABALH'))) return { target: 'docs_empresa', tipo: 'cnd_trabalhista' };
+  if (d.includes('CRF') || d.includes('FGTS')) return { target: 'docs_empresa', tipo: 'cnd_fgts' };
+  return { target: 'docs_empresa', tipo: 'outro' };
+}
+
+// ─── Scrape documentos ────────────────────────────────────────────────────────
+
+export async function scrapeDocumentos(page) {
+  const xlsxPath = await downloadExportXlsxAfterSearch(page, 'instancia-documento/index');
+  const rows = parseXlsx(xlsxPath);
+  log.info('documentos xlsx parsed', { rows: rows.length });
+
+  const docs_empresa = [];
+  const docs_colaborador = [];
+  const declaracoes_responsabilidade = [];
+
+  for (const row of rows) {
+    const rawId = String(row['ID'] ?? '').trim();
+    const tipoDoc = String(row['TIPO DE DOCUMENTO'] ?? '').trim().toUpperCase();
+    const statusDoc = String(row['STATUS DOCUMENTO'] ?? '').trim();
+    const documento = String(row['DOCUMENTO'] ?? '').trim();
+    const colaboradorNome = String(row['COLABORADOR'] ?? '').trim();
+    const empresaTerceiraNome = String(row['EMPRESA TERCEIRA'] ?? '').trim();
+    const estabelecimentoNome = String(row['ESTABELECIMENTO'] ?? '').trim();
+    const vigencia = String(row['VIGÊNCIA'] ?? row['VIGENCIA'] ?? '').trim();
+    const dataEnvio = String(row['DATA ENVIO'] ?? '').trim();
+
+    const id = `sg3-doc-${rawId}`;
+    const { target, tipo } = mapDocumentTipo(documento, tipoDoc);
+    const statusUpper = statusDoc.toUpperCase();
+    const notas = `SG3: ${statusDoc} — DOCUMENTO: ${documento}`;
+    const data_emissao = parseDate(dataEnvio) ?? null;
+    const data_vencimento = parseDate(vigencia) ?? null;
+
+    if (target === 'declaracoes_responsabilidade') {
+      const assinaturas = statusUpper === 'CONFORME' ? 'completa' : 'pendente';
+      declaracoes_responsabilidade.push({
+        id,
+        colaborador_id: slugify(colaboradorNome) || '',
+        planta_id: slugify(estabelecimentoNome) || '',
+        data_emissao: data_emissao ?? '',
+        assinaturas,
+        arquivo_url: '',
+        versao: '',
+        notas,
+        _origem: 'sg3',
+      });
+    } else if (target === 'docs_colaborador') {
+      docs_colaborador.push({
+        id,
+        colaborador_id: slugify(colaboradorNome) || '',
+        tipo: tipo ?? 'outro',
+        data_emissao: data_emissao ?? '',
+        data_vencimento: data_vencimento ?? '',
+        arquivo_url: '',
+        notas,
+        _origem: 'sg3',
+      });
+    } else {
+      // docs_empresa
+      docs_empresa.push({
+        id,
+        empresa_id: empresaNomeToId(empresaTerceiraNome) || '',
+        tipo: tipo ?? 'outro',
+        data_emissao: data_emissao ?? '',
+        data_vencimento: data_vencimento ?? '',
+        arquivo_url: '',
+        notas,
+        _origem: 'sg3',
+      });
+    }
+  }
+
+  log.info('documentos categorized', {
+    docs_empresa: docs_empresa.length,
+    docs_colaborador: docs_colaborador.length,
+    declaracoes_responsabilidade: declaracoes_responsabilidade.length,
+  });
+
+  return { docs_empresa, docs_colaborador, declaracoes_responsabilidade };
+}
+
 // ─── Scrape cadastros (colaboradores) ─────────────────────────────────────────
 
 export async function scrapeCadastros(page, _urlOrSelector) {

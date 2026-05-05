@@ -2,7 +2,7 @@
 import { resolve } from 'node:path';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { loadConfig, loadClientConfig, dataDir } from './lib/config.mjs';
-import { withSg3Session, scrapeCadastros, scrapeAlocacoes } from './lib/sg3-client.mjs';
+import { withSg3Session, scrapeCadastros, scrapeAlocacoes, scrapeDocumentos } from './lib/sg3-client.mjs';
 import { makeLogger } from './lib/logger.mjs';
 
 const log = makeLogger('collect-sg3');
@@ -41,7 +41,8 @@ async function main() {
       const partial = await withSg3Session(clientCfg, key, async (page) => {
         const cadastros = await scrapeCadastros(page, clientCfg.playwright.scrape_targets?.cadastros_contrato_url);
         const alocacoes = await scrapeAlocacoes(page, clientCfg.playwright.scrape_targets?.alocacoes_status_url);
-        return { credentialsKey: key, status: 'ok', ...cadastros, ...alocacoes };
+        const documentos = await scrapeDocumentos(page);
+        return { credentialsKey: key, status: 'ok', ...cadastros, ...alocacoes, ...documentos };
       });
       perLogin.push(partial);
     } catch (err) {
@@ -51,7 +52,7 @@ async function main() {
     }
   }
 
-  const merged = mergeByPrimary(perLogin, ['cadastros_sg3', 'colaboradores', 'plantas', 'pessoas_gm', 'alocacoes']);
+  const merged = mergeByPrimary(perLogin, ['cadastros_sg3', 'colaboradores', 'plantas', 'pessoas_gm', 'alocacoes', 'docs_empresa', 'docs_colaborador', 'declaracoes_responsabilidade']);
 
   const snapshot = {
     collected_at: new Date().toISOString(),
