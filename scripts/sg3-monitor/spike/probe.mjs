@@ -126,8 +126,8 @@ async function inspectLogin() {
   const context = await browser.newContext({ viewport: null });
   const page = await context.newPage();
   console.log(`[spike] Navigating to ${LOGIN_URL}`);
-  await page.goto(LOGIN_URL);
-  await page.waitForLoadState('networkidle');
+  await page.goto(LOGIN_URL, { waitUntil: 'domcontentloaded', timeout: 60_000 });
+  await page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => {});
   await dismissPopups(page);
 
   const inputs = await page.$$eval('input', els => els.map(e => ({
@@ -157,8 +157,8 @@ async function attemptLogin() {
   const browser = await chromium.launch({ headless: false, args: ['--start-maximized'] });
   const context = await browser.newContext({ storageState: undefined, viewport: null });
   const page = await context.newPage();
-  await page.goto(LOGIN_URL);
-  await page.waitForLoadState('networkidle');
+  await page.goto(LOGIN_URL, { waitUntil: 'domcontentloaded', timeout: 60_000 });
+  await page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => {});
 
   await dismissPopups(page);
   await page.fill('#loginform-username', creds.username);
@@ -295,14 +295,16 @@ async function inspectPage() {
 }
 
 async function tryExportExcel() {
-  const route = process.argv[3]; // e.g., 'alocacao'
+  const route = process.argv[3]; // e.g., 'alocacao' or 'instancia-documento/index'
   const credKey = process.argv[4] ?? 'gm-lume';
-  if (!route) { console.error('Usage: probe.mjs export-excel <route> [credKey]   (e.g., alocacao, colaborador)'); process.exit(1); }
+  if (!route) { console.error('Usage: probe.mjs export-excel <route> [credKey]   (e.g., alocacao, colaborador, instancia-documento/index)'); process.exit(1); }
+  // Base route (drop trailing /index for matching form action like /<route>/export-excel)
+  const baseRoute = route.replace(/\/index$/, '');
 
   const browser = await chromium.launch({ headless: false, args: ['--start-maximized'] });
   const context = await browser.newContext({ storageState: storagePath(credKey), viewport: null, acceptDownloads: true });
   const page = await context.newPage();
-  const indexUrl = `https://sg3.executiva.adm.br/gm/index.php?r=${route}`;
+  const indexUrl = `https://sg3.executiva.adm.br/gm/index.php?r=${encodeURIComponent(route)}`;
   console.log(`[spike] Loading ${indexUrl}`);
   await page.goto(indexUrl);
   await page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => {});
@@ -314,7 +316,7 @@ async function tryExportExcel() {
   const formInfo = await page.evaluate((route) => {
     const forms = document.querySelectorAll('form');
     for (const f of forms) {
-      if (f.action && f.action.includes(`r=${route}/export-excel`) || f.action.includes(`r=${route}%2Fexport-excel`)) {
+      if (f.action && (f.action.includes(`r=${route}/export-excel`) || f.action.includes(`r=${route}%2Fexport-excel`) || f.action.includes(`r=${baseRoute}/export-excel`) || f.action.includes(`r=${baseRoute}%2Fexport-excel`))) {
         const inputs = Array.from(f.querySelectorAll('input,select,textarea')).map(i => ({ name: i.name, type: i.type, value: i.value }));
         return { id: f.id, action: f.action, method: f.method, inputs };
       }
@@ -336,7 +338,7 @@ async function tryExportExcel() {
   await page.evaluate((route) => {
     const forms = document.querySelectorAll('form');
     for (const f of forms) {
-      if (f.action.includes(`r=${route}/export-excel`) || f.action.includes(`r=${route}%2Fexport-excel`)) {
+      if (f.action.includes(`r=${route}/export-excel`) || f.action.includes(`r=${route}%2Fexport-excel`) || f.action.includes(`r=${baseRoute}/export-excel`) || f.action.includes(`r=${baseRoute}%2Fexport-excel`)) {
         f.submit();
         return;
       }
@@ -360,7 +362,74 @@ async function tryExportExcel() {
   await browser.close();
 }
 
-const handlers = { 'inspect-login': inspectLogin, 'login': attemptLogin, 'gm': enterGm, 'inspect-page': inspectPage, 'export-excel': tryExportExcel };
+async function inspectAfterFilter() {
+  const url = process.argv[3];
+  const credKey = process.argv[4] ?? 'gm-lume';
+  if (!url) { console.error('Usage: probe.mjs inspect-after-filter <url> [credKey]'); process.exit(1); }
+
+  const browser = await chromium.launch({ headless: false, args: ['--start-maximized'] });
+  const context = await browser.newContext({ storageState: storagePath(credKey), viewport: null });
+  const page = await context.newPage();
+  await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60_000 });
+  await page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => {});
+  await dismissPopups(page);
+  await page.waitForTimeout(800);
+  await dismissPopups(page);
+
+  // Try to submit any filter form (look for "Pesquisar"/"Filtrar"/"Buscar" button or click main form submit)
+  const submitInfo = await page.evaluate(() => {
+    const buttons = Array.from(document.querySelectorAll('button[type=submit], input[type=submit]'));
+    for (const b of buttons) {
+      const t = (b.innerText || b.value || '').trim().toLowerCase();
+      if (/pesquisar|filtrar|buscar|consultar|aplicar/.test(t)) {
+        return { tag: b.tagName, type: b.type, id: b.id, name: b.name, text: t };
+      }
+    }
+    return null;
+  });
+  if (submitInfo) {
+    console.log('[spike] submit button found:', submitInfo);
+    const btnSel = submitInfo.id ? `#${submitInfo.id}` : `${submitInfo.tag.toLowerCase()}[type=submit]`;
+    try {
+      await Promise.all([
+        page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => {}),
+        page.click(btnSel, { force: true }),
+      ]);
+      await page.waitForTimeout(2000);
+      await dismissPopups(page);
+    } catch (err) {
+      console.log('[spike] submit click failed', err.message);
+    }
+  } else {
+    console.log('[spike] no obvious filter button — trying first POST form submit');
+    try {
+      await page.evaluate(() => {
+        for (const f of document.querySelectorAll('form')) {
+          if (f.method.toLowerCase() === 'post' && /index|pesquisar/i.test(f.action)) { f.submit(); return; }
+        }
+      });
+      await page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => {});
+      await page.waitForTimeout(2000);
+      await dismissPopups(page);
+    } catch {}
+  }
+
+  const tables = await page.$$eval('table', els => els.map(t => ({
+    id: t.id, classes: t.className,
+    headers: Array.from(t.querySelectorAll('thead th, thead td')).map(h => h.innerText.trim()),
+    firstRow: Array.from(t.querySelectorAll('tbody tr:first-child td')).map(c => c.innerText.trim().slice(0, 80)),
+    rowCount: t.querySelectorAll('tbody tr').length,
+  })));
+  const forms = await page.$$eval('form', els => els.map(f => ({ id: f.id, action: f.action, method: f.method })));
+  const summary = { url: page.url(), title: await page.title(), forms, tables };
+  console.log(JSON.stringify(summary, null, 2));
+  const safe = page.url().replace(/[^a-z0-9]/gi, '_').slice(-100);
+  writeFileSync(resolve(SPIKE_OUT, `after-filter-${safe}.json`), JSON.stringify(summary, null, 2));
+  await page.waitForTimeout(120_000);
+  await browser.close();
+}
+
+const handlers = { 'inspect-login': inspectLogin, 'login': attemptLogin, 'gm': enterGm, 'inspect-page': inspectPage, 'export-excel': tryExportExcel, 'inspect-after-filter': inspectAfterFilter };
 const fn = handlers[command];
 if (!fn) {
   console.error(`Unknown command: ${command}. Use: inspect-login | login [key] | gm [key] | inspect-page <url> [key]`);

@@ -233,9 +233,11 @@ export function validateRow(tab, row) {
       case 'enum':
         if (!col.enumValues.includes(v)) errors.push(`${tab.name}.${col.name}: invalid enum "${v}" (expected one of ${col.enumValues.join('|')})`);
         break;
-      case 'bool':
-        if (typeof v !== 'boolean' && v !== 'true' && v !== 'false') errors.push(`${tab.name}.${col.name}: invalid bool "${v}"`);
+      case 'bool': {
+        const norm = typeof v === 'boolean' ? String(v) : String(v).trim().toLowerCase();
+        if (norm !== 'true' && norm !== 'false') errors.push(`${tab.name}.${col.name}: invalid bool "${v}"`);
         break;
+      }
       case 'integer':
         if (!Number.isInteger(Number(v))) errors.push(`${tab.name}.${col.name}: invalid integer "${v}"`);
         break;

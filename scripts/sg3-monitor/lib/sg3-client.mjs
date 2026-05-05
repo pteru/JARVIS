@@ -211,6 +211,17 @@ function slugify(str) {
     .replace(/^-+|-+$/g, '');
 }
 
+// Map SG3-formatted empresa names to canonical empresa_id (matches empresas.id).
+// SG3 appends " SUB <PRINCIPAL>" suffix to subcontractor names; canonical id ignores it.
+function empresaNomeToId(nomeSg3) {
+  if (!nomeSg3) return '';
+  const upper = nomeSg3.toUpperCase();
+  if (upper.includes('STROKMATIC AUTOMACAO')) return 'strokmatic';
+  if (upper.includes('LUME TECNOLOGIA')) return 'lume';
+  // Fallback: strip trailing " SUB <X>" and slugify
+  return slugify(nomeSg3.replace(/\s+SUB\s+.+$/i, ''));
+}
+
 // ─── Status derivation ────────────────────────────────────────────────────────
 
 function deriveStatusSg3(situacao, aprovacao) {
@@ -348,7 +359,7 @@ export async function scrapeAlocacoes(page, _urlOrSelector) {
 
     const colaboradorId = slugify(colaboradorNome);
     const plantaId = slugify(estabelecimentoNome);
-    const empresaId = slugify(empresaTerceiraNome);
+    const empresaId = empresaNomeToId(empresaTerceiraNome);
 
     // Derive cadastro_sg3 key from the triplet
     const cadastroKey = `${empresaTerceiraNome}|${estabelecimentoNome}|${tipoTerceiro}`;
@@ -388,7 +399,7 @@ export async function scrapeAlocacoes(page, _urlOrSelector) {
         tipo_terceiro: tipoTerceiro,
         contrato_id: '',
         responsavel_planta_id: gestorPrestacaoNome ? slugify(gestorPrestacaoNome) : '',
-        status_aprovacao: aprovacao,
+        status_aprovacao: aprovacao === 'Sim' ? 'aprovado' : aprovacao === 'Não' ? 'pendente' : '',
         data_vencimento: '',
         _origem: 'sg3',
       });
@@ -440,12 +451,14 @@ export async function scrapeCadastros(page, _urlOrSelector) {
 
   const colaboradores = rows.map(row => {
     const nome = String(row['Nome Completo'] ?? '').trim();
+    const empresaNome = String(row['Empresa Terceira'] ?? '').trim();
     return {
       id: nome ? slugify(nome) : '',
       nome_completo: nome,
       cpf: String(row['CPF'] ?? '').trim(),
       pis: String(row['PIS'] ?? '').trim(),
-      empresa_terceira_nome: String(row['Empresa Terceira'] ?? '').trim(),
+      empresa_id: empresaNomeToId(empresaNome),
+      empresa_terceira_nome: empresaNome,
       data_admissao: parseDate(String(row['Data de Admissão'] ?? row['Data de Admissao'] ?? '')),
       data_demissao: parseDate(String(row['Data de Demissão'] ?? row['Data de Demissao'] ?? '')),
       tipo_atividade: String(row['Tipo de Atividade'] ?? '').trim(),
