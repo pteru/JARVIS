@@ -1,5 +1,5 @@
 {
-  "sheet_id": "",
+  "sheet_id": "13-uP1oKRwa6_QQgo2XfRaP0C-_wmxOnDB6-KNTI-lr8",
   "sheet_name": "GM Compliance Monitor — Fase 1",
   "drive_root_folder_id": "1Em95Bq3gOkXrsM_c-r9dPWoV4nthcK-5",
   "google_chat_space": "spaces/AAQAoCUA9zA",
@@ -7,20 +7,76 @@
   "service_account_path": "config/credentials/gcp-service-account.json",
   "impersonate_subject": "pedro@lumesolutions.com",
   "lead_times": {
-    "aso": [15, 7, 1],
-    "nr10": [15, 7, 1],
-    "nr35": [15, 7, 1],
-    "nr12": [15, 7, 1],
-    "cnd_federal": [15, 7, 1],
-    "cnd_trabalhista": [15, 7, 1],
-    "cnd_fgts": [15, 7, 1],
-    "pgr": [60, 30, 15],
-    "pcmso": [60, 30, 15],
-    "carta_subcontratacao": [60, 30, 15],
-    "aprovacao_juridico": [60, 30, 15],
-    "cadastro_sg3": [30, 15, 7],
-    "alocacao": [30, 15, 7],
-    "default": [30, 15, 7]
+    "aso": [
+      15,
+      7,
+      1
+    ],
+    "nr10": [
+      15,
+      7,
+      1
+    ],
+    "nr35": [
+      15,
+      7,
+      1
+    ],
+    "nr12": [
+      15,
+      7,
+      1
+    ],
+    "cnd_federal": [
+      15,
+      7,
+      1
+    ],
+    "cnd_trabalhista": [
+      15,
+      7,
+      1
+    ],
+    "cnd_fgts": [
+      15,
+      7,
+      1
+    ],
+    "pgr": [
+      60,
+      30,
+      15
+    ],
+    "pcmso": [
+      60,
+      30,
+      15
+    ],
+    "carta_subcontratacao": [
+      60,
+      30,
+      15
+    ],
+    "aprovacao_juridico": [
+      60,
+      30,
+      15
+    ],
+    "cadastro_sg3": [
+      30,
+      15,
+      7
+    ],
+    "alocacao": [
+      30,
+      15,
+      7
+    ],
+    "default": [
+      30,
+      15,
+      7
+    ]
   },
   "escalation": {
     "severity": "VENCIDO",
@@ -28,5 +84,8 @@
     "blocks_alocacao_ativa": true
   },
   "cron": "0 7 * * *",
-  "self_from_addresses": ["pedro@strokmatic.com", "pedro@lumesolutions.com"]
+  "self_from_addresses": [
+    "pedro@strokmatic.com",
+    "pedro@lumesolutions.com"
+  ]
 }
