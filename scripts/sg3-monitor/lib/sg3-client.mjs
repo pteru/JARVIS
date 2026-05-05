@@ -438,17 +438,21 @@ export async function scrapeCadastros(page, _urlOrSelector) {
   const rows = parseXlsx(xlsxPath);
   log.info('colaboradores xlsx parsed', { rows: rows.length });
 
-  const colaboradores = rows.map(row => ({
-    id: String(row['ID'] ?? '').trim(),
-    nome_completo: String(row['Nome Completo'] ?? '').trim(),
-    cpf: String(row['CPF'] ?? '').trim(),
-    pis: String(row['PIS'] ?? '').trim(),
-    empresa_terceira_nome: String(row['Empresa Terceira'] ?? '').trim(),
-    data_admissao: parseDate(String(row['Data de Admissão'] ?? row['Data de Admissao'] ?? '')),
-    data_demissao: parseDate(String(row['Data de Demissão'] ?? row['Data de Demissao'] ?? '')),
-    tipo_atividade: String(row['Tipo de Atividade'] ?? '').trim(),
-    _origem: 'sg3',
-  }));
+  const colaboradores = rows.map(row => {
+    const nome = String(row['Nome Completo'] ?? '').trim();
+    return {
+      id: nome ? slugify(nome) : '',
+      nome_completo: nome,
+      cpf: String(row['CPF'] ?? '').trim(),
+      pis: String(row['PIS'] ?? '').trim(),
+      empresa_terceira_nome: String(row['Empresa Terceira'] ?? '').trim(),
+      data_admissao: parseDate(String(row['Data de Admissão'] ?? row['Data de Admissao'] ?? '')),
+      data_demissao: parseDate(String(row['Data de Demissão'] ?? row['Data de Demissao'] ?? '')),
+      tipo_atividade: String(row['Tipo de Atividade'] ?? '').trim(),
+      sg3_id: String(row['ID'] ?? '').trim(),
+      _origem: 'sg3',
+    };
+  });
 
   log.info('colaboradores parsed', { count: colaboradores.length });
   return { colaboradores };

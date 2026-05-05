@@ -68,13 +68,26 @@ async function main() {
 async function applySg3(client, existing, snap, report) {
   if (!snap || snap.status !== 'ok') return;
 
+  // FK targets (plantas, colaboradores, pessoas_gm) must be inserted before alocacoes/cadastros_sg3
+  await insertOnlyByPrimary(client, 'plantas', snap.plantas ?? [], existing, report);
+  await insertOnlyByPrimary(client, 'colaboradores', snap.colaboradores ?? [], existing, report);
+  await insertOnlyByPrimary(client, 'pessoas_gm', snap.pessoas_gm ?? [], existing, report);
+
   await upsertByPrimary(client, 'cadastros_sg3', snap.cadastros_sg3 ?? [], existing, report,
     ['status_aprovacao', 'data_aprovacao', 'data_vencimento', 'sg3_url', 'responsavel_planta_id']);
 
   await upsertByPrimary(client, 'alocacoes', snap.alocacoes ?? [], existing, report,
-    ['status_sg3', 'pendencias_sg3', 'data_inicio', 'data_vencimento_propria', 'decl_resp_id']);
+    ['status_sg3', 'pendencias_sg3', 'data_inicio', 'data_vencimento_propria', 'decl_resp_id', 'colaborador_id', 'cadastro_sg3_id']);
+}
 
-  await insertOnlyByDedupe(client, 'pessoas_gm', snap.pessoas_gm ?? [], existing, 'email', report);
+async function insertOnlyByPrimary(client, tabName, incoming, existing, report) {
+  const tab = TABS.find(t => t.name === tabName);
+  const cols = tab.columns.map(c => c.name);
+  const seen = new Set((existing[tabName] ?? []).map(r => r.id).filter(Boolean));
+  const newRows = (incoming ?? []).filter(r => r.id && !seen.has(r.id))
+    .map(r => ({ ...r, _origem: r._origem ?? 'sg3', _atualizado_em: NOW_ISO }));
+  if (newRows.length > 0) await client.writeRows(tabName, newRows, cols);
+  if (newRows.length) report.inserted[tabName] = (report.inserted[tabName] ?? 0) + newRows.length;
 }
 
 async function applyDrive(client, existing, snap, report) {
@@ -151,6 +164,7 @@ async function upsertByPrimary(client, tabName, incoming, existing, report, dyna
 
   let inserted = 0, updated = 0;
   const newRows = [];
+  const overwrites = [];
 
   for (const row of incoming) {
     const r = { ...row, ...nowMeta(row._origem ?? 'sg3') };
@@ -163,11 +177,12 @@ async function upsertByPrimary(client, tabName, incoming, existing, report, dyna
       for (const col of dynamicCols) merged[col] = r[col] ?? existingRow[col] ?? '';
       merged._atualizado_em = NOW_ISO;
       merged._origem = r._origem ?? merged._origem;
-      await client.overwriteRow(tabName, index, cols, merged);
+      overwrites.push({ name: tabName, rowIndex0Based: index, columns: cols, row: merged });
       updated++;
     }
   }
 
+  if (overwrites.length > 0) await client.batchOverwriteRows(overwrites);
   if (newRows.length > 0) await client.writeRows(tabName, newRows, cols);
   if (inserted) report.inserted[tabName] = (report.inserted[tabName] ?? 0) + inserted;
   if (updated)  report.updated[tabName]  = (report.updated[tabName]  ?? 0) + updated;
@@ -180,6 +195,7 @@ async function upsertContratos(client, incoming, existing, report) {
 
   let inserted = 0, updated = 0;
   const newRows = [];
+  const overwrites = [];
 
   for (const row of incoming) {
     if (!byId.has(row.id)) { newRows.push(row); inserted++; continue; }
@@ -190,10 +206,11 @@ async function upsertContratos(client, incoming, existing, report) {
       if (!merged[col]) merged[col] = row[col] ?? '';
     }
     merged._atualizado_em = NOW_ISO;
-    await client.overwriteRow('contratos', index, cols, merged);
+    overwrites.push({ name: 'contratos', rowIndex0Based: index, columns: cols, row: merged });
     updated++;
   }
 
+  if (overwrites.length > 0) await client.batchOverwriteRows(overwrites);
   if (newRows.length > 0) await client.writeRows('contratos', newRows, cols);
   if (inserted) report.inserted.contratos = (report.inserted.contratos ?? 0) + inserted;
   if (updated)  report.updated.contratos  = (report.updated.contratos  ?? 0) + updated;

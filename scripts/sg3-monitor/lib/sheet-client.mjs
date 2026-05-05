@@ -47,6 +47,20 @@ export class SheetClient {
     });
   }
 
+  async batchOverwriteRows(updates) {
+    if (updates.length === 0) return;
+    const data = updates.map(({ name, rowIndex0Based, columns, row }) => ({
+      range: `${name}!A${rowIndex0Based + 2}`,
+      values: [columns.map(c => row[c] ?? '')],
+    }));
+    for (let i = 0; i < data.length; i += 100) {
+      await this.sheets.spreadsheets.values.batchUpdate({
+        spreadsheetId: this.sheetId,
+        requestBody: { valueInputOption: 'USER_ENTERED', data: data.slice(i, i + 100) },
+      });
+    }
+  }
+
   async getColumns(name) {
     const r = await this.sheets.spreadsheets.values.get({
       spreadsheetId: this.sheetId,
