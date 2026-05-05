@@ -571,37 +571,49 @@ export async function scrapeDocumentos(page) {
       const assinaturas = statusUpper === 'CONFORME' ? 'completa' : 'pendente';
       declaracoes_responsabilidade.push({
         id,
+        sg3_doc_id: rawId,
         colaborador_id: slugify(colaboradorNome) || '',
         planta_id: slugify(estabelecimentoNome) || '',
         data_emissao: data_emissao ?? '',
+        data_envio: data_emissao ?? '',
+        status_sg3: statusDoc,
         assinaturas,
         arquivo_url: '',
         versao: '',
         notas,
         _origem: 'sg3',
+        category: 'declaracao',
       });
     } else if (target === 'docs_colaborador') {
       docs_colaborador.push({
         id,
+        sg3_doc_id: rawId,
         colaborador_id: slugify(colaboradorNome) || '',
         tipo: tipo ?? 'outro',
         data_emissao: data_emissao ?? '',
         data_vencimento: data_vencimento ?? '',
+        data_envio: data_emissao ?? '',
+        status_sg3: statusDoc,
         arquivo_url: '',
         notas,
         _origem: 'sg3',
+        category: 'colaborador',
       });
     } else {
       // docs_empresa
       docs_empresa.push({
         id,
+        sg3_doc_id: rawId,
         empresa_id: empresaNomeToId(empresaTerceiraNome) || '',
         tipo: tipo ?? 'outro',
         data_emissao: data_emissao ?? '',
         data_vencimento: data_vencimento ?? '',
+        data_envio: data_emissao ?? '',
+        status_sg3: statusDoc,
         arquivo_url: '',
         notas,
         _origem: 'sg3',
+        category: 'empresa',
       });
     }
   }

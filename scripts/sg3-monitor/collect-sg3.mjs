@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 import { resolve } from 'node:path';
 import { mkdirSync, writeFileSync } from 'node:fs';
-import { loadConfig, loadClientConfig, dataDir } from './lib/config.mjs';
+import { loadConfig, loadClientConfig, dataDir, ROOT_DIR } from './lib/config.mjs';
 import { withSg3Session, scrapeCadastros, scrapeAlocacoes, scrapeDocumentos } from './lib/sg3-client.mjs';
+import { syncDocuments, loadState } from './lib/document-downloader.mjs';
 import { makeLogger } from './lib/logger.mjs';
 
 const log = makeLogger('collect-sg3');
@@ -54,12 +55,61 @@ async function main() {
 
   const merged = mergeByPrimary(perLogin, ['cadastros_sg3', 'colaboradores', 'plantas', 'pessoas_gm', 'alocacoes', 'docs_empresa', 'docs_colaborador', 'declaracoes_responsabilidade']);
 
+  // ─── Incremental document download ─────────────────────────────────────────
+  let dlResult = null;
+  const hasAnyDocs = (
+    (merged.docs_empresa?.length ?? 0) +
+    (merged.docs_colaborador?.length ?? 0) +
+    (merged.declaracoes_responsabilidade?.length ?? 0)
+  ) > 0;
+
+  if (hasAnyDocs && keys.length > 0) {
+    const baseDir = resolve(ROOT_DIR, 'data/sg3-monitor/documentos');
+    const statePath = resolve(ROOT_DIR, 'data/sg3-monitor/documents-state.json');
+    const authDir = resolve(ROOT_DIR, clientCfg.playwright.auth_session_dir);
+
+    // Attach category field (already set by scrapeDocumentos, but re-apply defensively)
+    const allDocs = [
+      ...(merged.docs_empresa ?? []).map(d => ({ ...d, category: d.category ?? 'empresa' })),
+      ...(merged.docs_colaborador ?? []).map(d => ({ ...d, category: d.category ?? 'colaborador' })),
+      ...(merged.declaracoes_responsabilidade ?? []).map(d => ({ ...d, category: d.category ?? 'declaracao' })),
+    ];
+
+    try {
+      dlResult = await syncDocuments({
+        docs: allDocs,
+        baseDir,
+        statePath,
+        authDir,
+        credentialsKey: keys[0],
+        rootDir: ROOT_DIR,
+        log,
+      });
+
+      // Populate arquivo_url from full state (covers both newly downloaded + previously downloaded)
+      const fullState = loadState(statePath);
+      if (Object.keys(fullState).length > 0) {
+        // Build id→file_path map: state is keyed by sg3_doc_id, docs have sg3_doc_id field
+        for (const kind of ['docs_empresa', 'docs_colaborador', 'declaracoes_responsabilidade']) {
+          for (const doc of (merged[kind] ?? [])) {
+            const entry = doc.sg3_doc_id ? fullState[doc.sg3_doc_id] : null;
+            if (entry?.file_path) doc.arquivo_url = entry.file_path;
+          }
+        }
+      }
+    } catch (err) {
+      log.error('document sync failed (non-fatal)', { err: err.message });
+      dlResult = { error: err.message };
+    }
+  }
+
   const snapshot = {
     collected_at: new Date().toISOString(),
     source: 'playwright',
     status: aggregateStatus === 'ok' ? 'ok' : aggregateStatus,
     per_login: perLogin.map(p => ({ credentialsKey: p.credentialsKey, status: p.status, error: p.error })),
     ...merged,
+    ...(dlResult !== null ? { documents_sync: dlResult } : {}),
   };
 
   const path = resolve(out, 'sg3-snapshot.json');
