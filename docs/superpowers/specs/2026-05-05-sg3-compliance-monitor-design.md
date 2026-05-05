@@ -107,8 +107,6 @@ config/sg3-monitor/config.json:
     "nr35": [15, 7, 1],
     "nr12": [15, 7, 1],
     "cnd_federal": [15, 7, 1],
-    "cnd_estadual": [15, 7, 1],
-    "cnd_municipal": [15, 7, 1],
     "cnd_trabalhista": [15, 7, 1],
     "cnd_fgts": [15, 7, 1],
     "pgr": [60, 30, 15],
@@ -121,10 +119,10 @@ config/sg3-monitor/config.json:
   },
   "notification": {
     "primary":   { "channel": "google_chat", "space": "spaces/AAQAoCUA9zA" },
-    "fallback":  { "channel": "telegram", "chat_id": "<usuário>" },
+    "fallback":  { "channel": "telegram", "bot": "jarvis_stk_alerts_bot", "chat_id": "<resolvido em runtime>" },
     "escalation": {
       "criteria": { "severity": "VENCIDO", "age_hours": 72, "blocks_alocacao_ativa": true },
-      "channel": "telegram", "chat_id": "<usuário>"
+      "channel": "telegram", "bot": "jarvis_stk_alerts_bot", "chat_id": "<resolvido em runtime>"
     }
   },
   "cron": "0 7 * * *"
@@ -189,7 +187,7 @@ _revisado_humano
 ```
 
 #### 9. `docs_empresa`
-`id, empresa_id→empresas, tipo (pgr|pcmso|cnd_federal|cnd_estadual|cnd_municipal|cnd_trabalhista|cnd_fgts|outro), data_emissao, data_vencimento, arquivo_url, notas`
+`id, empresa_id→empresas, tipo (pgr|pcmso|cnd_federal|cnd_trabalhista|cnd_fgts|outro), data_emissao, data_vencimento, arquivo_url, notas`
 
 #### 10. `docs_colaborador`
 `id, colaborador_id→colaboradores, tipo (aso|nr10|nr35|nr12|outro), data_emissao, data_vencimento, arquivo_url, notas`
@@ -424,8 +422,8 @@ Linhas com `_revisado_humano = false` → prefixo `[NÃO REVISADO]`.
 
 ```
 Primary:    Google Chat space spaces/AAQAoCUA9zA
-Fallback:   Telegram pessoal (se Google Chat falhar)
-Escalation: Telegram pessoal quando severity=VENCIDO + age >72h + bloqueia alocacao ativa
+Fallback:   Telegram via jarvis_stk_alerts_bot (se Google Chat falhar)
+Escalation: Telegram via jarvis_stk_alerts_bot quando severity=VENCIDO + age >72h + bloqueia alocacao ativa
 ```
 
 Falha total do canal → relatório do dia salvo em `data/sg3-monitor/{date}/last-report.md`. Falha consecutiva (>2 dias) num collector vira alerta separado escalado.
