@@ -79,3 +79,8 @@ data/jarvis-chat/
 
 # References (external archives — URL pointers in references/README.md)
 references/Personal_AI_Infrastructure/
+
+# SG3 Compliance Monitor
+data/sg3-monitor/
+config/sg3-monitor/clients/*.json
+!config/sg3-monitor/clients/gm.json.example

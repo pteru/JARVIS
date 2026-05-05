@@ -1,0 +1,18 @@
+{
+  "name": "jarvis",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "sg3:bootstrap": "node scripts/sg3-monitor/bootstrap.mjs",
+    "sg3:run": "bash scripts/sg3-monitor/run.sh",
+    "sg3:collect-only": "node scripts/sg3-monitor/run-collectors.mjs",
+    "sg3:dry-run": "DRY_RUN=1 bash scripts/sg3-monitor/run.sh",
+    "sg3:status": "node scripts/sg3-monitor/status.mjs",
+    "sg3:validate": "node scripts/sg3-monitor/sync-sheet.mjs --validate-only",
+    "sg3:test": "node --test tests/sg3-monitor/unit tests/sg3-monitor/integration"
+  },
+  "dependencies": {
+    "googleapis": "^144.0.0",
+    "playwright": "^1.48.0"
+  }
+}
