@@ -1202,8 +1202,8 @@ Then write the file:
   "playwright": {
     "login_url": "https://<sg3-gm-instance>/login",
     "credentials_secret_path": "~/.secrets/sg3-credentials.json",
-    "credentials_key": "gm",
-    "auth_session_path": "data/sg3-monitor/auth/gm-storage-state.json",
+    "credentials_keys": ["gm-lume", "gm-strokmatic"],
+    "auth_session_dir": "data/sg3-monitor/auth/",
     "scrape_targets": {
       "cadastros_contrato_url": "https://<sg3-gm-instance>/contratos",
       "alocacoes_status_url": "https://<sg3-gm-instance>/alocacoes",
@@ -1217,6 +1217,8 @@ Then write the file:
   }
 }
 ```
+
+**Multi-login note:** the GM SG3 portal has **separate user accounts per empresa**. Strokmatic e Lume têm logins distintos, e cada login só vê seus próprios colaboradores/alocações. Por isso `credentials_keys` é uma lista — `collect-sg3.mjs` vai iterar todos, abrindo uma sessão Playwright por credencial, e o sync mescla por `id` (união). Cada credencial em `~/.secrets/sg3-credentials.json` carrega `empresa_id` para anotar qual empresa cada colaborador pertence.
 
 The real `gm.json` will be populated by the bootstrap spike (Task 26). The example is committed; the real file is gitignored.
 
@@ -2009,9 +2011,9 @@ function expandHome(p) {
   return p.startsWith('~/') ? resolve(homedir(), p.slice(2)) : p;
 }
 
-export async function withSg3Session(clientConfig, work) {
+export async function withSg3Session(clientConfig, credentialsKey, work) {
   const cfg = clientConfig.playwright;
-  const sessionPath = expandHome(cfg.auth_session_path);
+  const sessionPath = resolve(expandHome(cfg.auth_session_dir), `${credentialsKey}-storage-state.json`);
   mkdirSync(dirname(sessionPath), { recursive: true });
 
   const browser = await chromium.launch({
@@ -2025,7 +2027,7 @@ export async function withSg3Session(clientConfig, work) {
   try {
     const page = await context.newPage();
 
-    const result = await tryOrLogin(page, cfg, async () => work(page));
+    const result = await tryOrLogin(page, cfg, credentialsKey, async () => work(page));
 
     await context.storageState({ path: sessionPath });
     return result;
@@ -2034,24 +2036,24 @@ export async function withSg3Session(clientConfig, work) {
   }
 }
 
-async function tryOrLogin(page, cfg, fn) {
+async function tryOrLogin(page, cfg, credentialsKey, fn) {
   try {
     return await fn();
   } catch (err) {
     if (!/login|auth|unauth|redirect/i.test(err.message)) throw err;
-    log.warn('first attempt failed; trying login flow', { err: err.message });
-    await login(page, cfg);
+    log.warn('first attempt failed; trying login flow', { err: err.message, credentialsKey });
+    await login(page, cfg, credentialsKey);
     return await fn();
   }
 }
 
-async function login(page, cfg) {
+async function login(page, cfg, credentialsKey) {
   const credsPath = expandHome(cfg.credentials_secret_path);
   if (!existsSync(credsPath)) {
     throw new Error(`credentials file not found at ${credsPath}; cannot auto-login`);
   }
-  const creds = JSON.parse(readFileSync(credsPath, 'utf-8'))[cfg.credentials_key];
-  if (!creds) throw new Error(`credentials missing key ${cfg.credentials_key}`);
+  const creds = JSON.parse(readFileSync(credsPath, 'utf-8'))[credentialsKey];
+  if (!creds) throw new Error(`credentials missing key ${credentialsKey}`);
 
   await page.goto(cfg.login_url);
   await page.fill(cfg.selectors.login_user, creds.username);
@@ -2114,33 +2116,59 @@ async function main() {
   const out = dataDir(argDate);
   mkdirSync(out, { recursive: true });
 
-  let snapshot;
-  try {
-    const clientCfg = loadClientConfig('gm');
-    snapshot = await withSg3Session(clientCfg, async (page) => {
-      const cadastros  = await scrapeCadastros(page,  clientCfg.playwright.scrape_targets.cadastros_contrato_url);
-      const alocacoes  = await scrapeAlocacoes(page,  clientCfg.playwright.scrape_targets.alocacoes_status_url);
-      return {
-        collected_at: new Date().toISOString(),
-        source: 'playwright',
-        status: 'ok',
-        ...cadastros,
-        ...alocacoes,
-      };
-    });
-  } catch (err) {
-    log.error('sg3 scrape failed', { err: err.message });
-    snapshot = {
-      collected_at: new Date().toISOString(),
-      source: 'playwright',
-      status: /credentials|mfa|login/i.test(err.message) ? 'auth_expired' : 'failed',
-      error: err.message,
-    };
+  const clientCfg = loadClientConfig('gm');
+  const keys = clientCfg.playwright.credentials_keys ?? [];
+  const perLogin = [];
+  let aggregateStatus = 'ok';
+
+  for (const key of keys) {
+    try {
+      const partial = await withSg3Session(clientCfg, key, async (page) => {
+        const cadastros = await scrapeCadastros(page, clientCfg.playwright.scrape_targets.cadastros_contrato_url);
+        const alocacoes = await scrapeAlocacoes(page, clientCfg.playwright.scrape_targets.alocacoes_status_url);
+        return { credentialsKey: key, status: 'ok', ...cadastros, ...alocacoes };
+      });
+      perLogin.push(partial);
+    } catch (err) {
+      log.error('sg3 scrape failed for credential', { key, err: err.message });
+      aggregateStatus = /credentials|mfa|login/i.test(err.message) ? 'auth_expired' : 'failed';
+      perLogin.push({ credentialsKey: key, status: aggregateStatus, error: err.message });
+    }
   }
+
+  // Merge per-login results by id (union)
+  const merged = mergeByPrimary(perLogin, ['cadastros_sg3', 'colaboradores', 'plantas', 'pessoas_gm', 'alocacoes']);
+
+  const snapshot = {
+    collected_at: new Date().toISOString(),
+    source: 'playwright',
+    status: aggregateStatus === 'ok' ? 'ok' : aggregateStatus,
+    per_login: perLogin.map(p => ({ credentialsKey: p.credentialsKey, status: p.status, error: p.error })),
+    ...merged,
+  };
 
   const path = resolve(out, 'sg3-snapshot.json');
   writeFileSync(path, JSON.stringify(snapshot, null, 2));
-  log.info('snapshot written', { path, status: snapshot.status });
+  log.info('snapshot written', { path, status: snapshot.status, logins: keys.length });
+}
+
+function mergeByPrimary(perLogin, kinds) {
+  const out = Object.fromEntries(kinds.map(k => [k, []]));
+  for (const p of perLogin) {
+    if (p.status !== 'ok') continue;
+    for (const kind of kinds) {
+      const existing = new Map(out[kind].map(r => [r.id, r]));
+      for (const row of (p[kind] ?? [])) {
+        const prev = existing.get(row.id);
+        if (!prev) { out[kind].push(row); existing.set(row.id, row); }
+        else {
+          // shallow merge — fill empty fields from new row
+          for (const k of Object.keys(row)) if (prev[k] == null || prev[k] === '') prev[k] = row[k];
+        }
+      }
+    }
+  }
+  return out;
 }
 
 main().catch(err => {
