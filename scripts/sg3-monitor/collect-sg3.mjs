@@ -39,8 +39,8 @@ async function main() {
   for (const key of keys) {
     try {
       const partial = await withSg3Session(clientCfg, key, async (page) => {
-        const cadastros = await scrapeCadastros(page, clientCfg.playwright.scrape_targets.cadastros_contrato_url);
-        const alocacoes = await scrapeAlocacoes(page, clientCfg.playwright.scrape_targets.alocacoes_status_url);
+        const cadastros = await scrapeCadastros(page, clientCfg.playwright.scrape_targets?.cadastros_contrato_url);
+        const alocacoes = await scrapeAlocacoes(page, clientCfg.playwright.scrape_targets?.alocacoes_status_url);
         return { credentialsKey: key, status: 'ok', ...cadastros, ...alocacoes };
       });
       perLogin.push(partial);
