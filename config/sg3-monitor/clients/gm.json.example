@@ -1,0 +1,25 @@
+{
+  "name": "GM",
+  "use_api": false,
+  "api": {
+    "base_url": "",
+    "auth": "session_cookie",
+    "endpoints": {}
+  },
+  "playwright": {
+    "login_url": "https://<sg3-gm-instance>/login",
+    "credentials_secret_path": "~/.secrets/sg3-credentials.json",
+    "credentials_keys": ["gm-lume", "gm-strokmatic"],
+    "auth_session_dir": "data/sg3-monitor/auth/",
+    "scrape_targets": {
+      "cadastros_contrato_url": "https://<sg3-gm-instance>/contratos",
+      "alocacoes_status_url": "https://<sg3-gm-instance>/alocacoes",
+      "alocacoes_pendencias_url": "https://<sg3-gm-instance>/pendencias"
+    },
+    "selectors": {
+      "login_user": "input[name=username]",
+      "login_pass": "input[name=password]",
+      "login_submit": "button[type=submit]"
+    }
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "master_label": "sg3",
+  "lookback_days": 365,
+  "classifiers": [
+    {
+      "type": "aprovacao_juridico_gm",
+      "match": { "from_pattern": "marilza", "subject_pattern": "(subcontratação|carta)" },
+      "extracao": { "fields": ["carta_id", "prazo_definido", "status"], "use_llm_for": ["prazo_definido"] },
+      "confirmacao_humana": true
+    },
+    {
+      "type": "aprovacao_comprador_gm",
+      "match": { "from_domain": "gm.com", "subject_pattern": "(aprovação|aprovado).*(subcontratação|carta)" },
+      "extracao": { "fields": ["carta_id", "status"] }
+    },
+    {
+      "type": "email_patrimonial",
+      "match": { "to_pattern": "patrimonial", "from_pattern": "me" },
+      "extracao": { "fields": ["alocacao_inferida"], "use_llm_for": ["alocacao_inferida"] }
+    },
+    {
+      "type": "outro_sg3",
+      "fallback": true,
+      "extracao": { "fields": ["tipo_inferido"], "use_llm_for": ["tipo_inferido"] }
+    }
+  ]
+}
