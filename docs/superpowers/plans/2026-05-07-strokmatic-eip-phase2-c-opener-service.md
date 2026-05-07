@@ -2,11 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:subagent-driven-development` (recommended) or `superpowers:executing-plans` to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build the certified C-side comm-layer process for `strokmatic-eip`. Fresh fork of upstream OpENer v2.3, re-apply the Bucket-A cert-required deltas catalogued in the Phase 0 audit, add a new `redis_bridge.c` that mirrors a 128-byte I/O assembly to/from Redis with zero application logic, write an EDS for `STROKMATIC-COMM-V1`, and prepare for ODVA conformance test (CT) submission.
+**Goal:** Build the certified C-side comm-layer process for `strokmatic-eip`. Fresh fork of upstream OpENer at `e601e4a` (April 2024 — the legacy fork's merge-base; `v2.3` was attempted first but failed to build on modern GCC, see Revision section below), re-apply the Bucket-A cert-required deltas catalogued in the Phase 0 audit, add a new `redis_bridge.c` that mirrors a 128-byte I/O assembly to/from Redis with zero application logic, write an EDS for `STROKMATIC-COMM-V1`, and prepare for ODVA conformance test (CT) submission.
 
 **Architecture:** OpENer C process running as the EtherNet/IP Class 1 adapter (the device, not the scanner). On every PLC scan cycle, mirror the input assembly bytes to `io:in:<plc_key>` Redis key, and read `io:out:<plc_key>` to populate the output assembly bytes. Fixed 128-byte assemblies. The first 16 bytes of each assembly form a "header lane" — comm-layer-owned heartbeat counter, status flags, and EDS identity hash. Plugins live in separate Python repos and consume Redis via `strokmatic-comm-sdk`; this layer is plugin-agnostic.
 
-**Tech Stack:** C99, OpENer EIPStack (upstream v2.3), CMake, Linux POSIX (the cert target), `lldpd` (via `strokmatic-lldpd` submodule), `hiredis` (Redis C client), Docker for build & deployment, ODVA Conformance Test tool for verification.
+**Tech Stack:** C99, OpENer EIPStack (upstream pinned at `e601e4a`, April 2024), CMake, Linux POSIX (the cert target), `lldpd` (via `strokmatic-lldpd` submodule), `hiredis` (Redis C client), Docker for build & deployment, ODVA Conformance Test tool for verification.
 
 **Spec:** `docs/superpowers/specs/2026-05-07-strokmatic-eip-generic-communicator-design.md`
 **Phase 0 audit:** `docs/superpowers/audits/2026-05-07-phase0-eip-fork-audit.md`
@@ -16,10 +16,47 @@ This plan covers Phase 2 only. Phase 0 (archaeology) is complete. Phases 3 (lab 
 
 ---
 
+## ⚠️ Revision 2026-05-07 — Plan partially executed; halted for revision
+
+Phase 2 execution started 2026-05-07 and produced commits up through `3ce3087` (Tasks 0–3 complete). Halted at Task 4 because the build broke in ways the plan had not anticipated:
+
+| Issue surfaced during execution | Plan gap |
+|---|---|
+| **Upstream OpENer v2.3 doesn't build on modern GCC** (10+ default `-fno-common`) — link-time multiple-definition errors on `g_current_active_tcp_socket`, `g_time_value`, `g_ethernet_link`, etc., declared without `extern` in headers | Phase 0 audit and Task 1 chose v2.3 as the fresh-fork base WITHOUT smoke-building it on the dev environment. v2.3 (March 2019) predates GCC 10's default change. **New target: `e601e4a`** (April 2024, the legacy fork's merge-base). |
+| **LLDP CIP files include `json-c`, `lldpctl`, `lldpd-structs.h`** with build-wiring needed in top-level POSIX `CMakeLists.txt` (~50 lines: `find_library(LLDPCTL_LIBRARY)`, `find_path(LLDPCTL_INCLUDE_DIR)`, compat-dir include, json-c discovery, feature-test macros for `IFNAMSIZ`/`ETHER_ADDR_LEN`) | Original Task 7 ("build flags") compressed all this into ~10 lines. **Task 7 is replaced by Task 7-new which catalogues every legacy POSIX CMakeLists hunk.** |
+| **Legacy POSIX CMakeLists has `find_package(PythonLibs)` + `target_link_libraries(OpENer ${PYTHON_LIBRARIES})`** — the legacy C process embedded Python | Spec says "C contains zero application logic"; legacy violated this. Phase 2 design decision: drop Python embedding entirely. Validate that no Bucket-A C code actually calls into Python (likely the embedding was for the `sample_application/Iplc/*.py` helpers we're removing in Task 8). |
+
+### Revision actions taken in the plan
+
+- Added Task 0.5 (smoke-build the upstream base before declaring it the target).
+- Task 1 now vendors **`e601e4a`** instead of `v2.3` (force-push master).
+- Task 7 expanded to fully catalog legacy POSIX CMakeLists deltas (json-c, lldpctl, compat-dir, feature-test macros).
+- Task 8 ("Remove sample_application") now also verifies no remaining Python references in CMakeLists / source after removal.
+- Task 9 (redis_bridge.c) explicitly states: NO Python embedding, NO Python helpers.
+
+### What execution produced before halting
+
+| Phase 2 Task | Status | Commit on `master` of `strokmatic/strokmatic-eip` | Notes |
+|---|---|---|---|
+| P2.0 — cert/README.md identity decisions | ✅ done | `f66adda` | Solid; no revision needed. |
+| P2.1 — vendor upstream OpENer v2.3 | ⚠️ **needs redo with `e601e4a`** | `fccd7db` (tagged `upstream-v2.3-import`) | Master will be force-pushed when Task 1 reruns with the new base. Tag is preserved for archaeology. |
+| P2.2 — strokmatic-lldpd submodule | ✅ done | `ef975b6` | Submodule pin and `.gitmodules` are base-independent; survives the v2.3→e601e4a re-vendor. |
+| P2.3 — LLDP CIP source files | ✅ done | `3ce3087` | Files are legacy/strokmatic-only; survive the re-vendor. CMakeLists.txt edit may need rework after Task 7-new lands the build wiring. |
+
+`master` is in a known-broken state (build fails). When execution resumes, the operator decides:
+- **(a) Hard reset master to `f66adda` (cert/README.md only) and re-execute Tasks 1–3 cleanly with `e601e4a`** — cleanest history, ~10 min replay cost.
+- **(b) Add a fix-up commit on top of `3ce3087` that swaps the v2.3 import for `e601e4a`** — preserves the linear history we already have, but the diff is enormous (effectively re-vendoring).
+
+Recommend (a) for clean cert-evidence story.
+
+---
+
+---
+
 ## Scope
 
 **IN:**
-- `strokmatic/strokmatic-eip` repo populated on `master` with: upstream OpENer v2.3 base, Bucket-A cert-required changes re-applied as logical commits, `strokmatic-lldpd` as submodule, new `redis_bridge.c`, new clean `main.c`, EDS file for `STROKMATIC-COMM-V1`, Dockerfile, GitHub Actions CI for build smoke-test
+- `strokmatic/strokmatic-eip` repo populated on `master` with: upstream OpENer `e601e4a` base, Bucket-A cert-required changes re-applied as logical commits, `strokmatic-lldpd` as submodule, new `redis_bridge.c`, new clean `main.c`, EDS file for `STROKMATIC-COMM-V1`, Dockerfile, GitHub Actions CI for build smoke-test
 - In-house conformance test against the ODVA CT tool, with results that improve on the CT20 baseline (the April 2024 internal run had 48 errors → must drop to 0 errors before ODVA submission)
 - Documentation (README + CERTIFICATION.md) in the repo
 
@@ -73,7 +110,7 @@ strokmatic-eip/
 ├── CERTIFICATION.md                     # NEW — recert trigger documentation
 ├── deps/
 │   └── strokmatic-lldpd/                # NEW git submodule → github.com/strokmatic/strokmatic-lldpd
-├── source/                              # vendored from upstream OpENer v2.3
+├── source/                              # vendored from upstream OpENer e601e4a
 │   ├── src/
 │   │   ├── cip/
 │   │   │   ├── cipLLDPDataTable.{c,h}   # NEW (re-applied from legacy Bucket A)
@@ -187,41 +224,120 @@ git commit -m "docs(cert): document identity decisions for STROKMATIC-COMM-V1"
 
 ---
 
-### Task 1: Vendor upstream OpENer v2.3 onto master
+### Task 0.5 (NEW 2026-05-07): Smoke-build the upstream base BEFORE vendoring
+
+Don't trust assumed-stable tags. Verify the chosen upstream commit builds on the dev environment with no strokmatic deltas before declaring it the fork target.
+
+**Files:** none (verification only)
+
+- [ ] **Step 1: Clone upstream OpENer to a scratch dir**
+
+```bash
+mkdir -p /tmp/eip-base-smoke
+cd /tmp/eip-base-smoke
+git clone https://github.com/EIPStackGroup/OpENer.git base
+cd base
+git checkout e601e4a   # legacy's merge-base; April 2024
+```
+
+- [ ] **Step 2: Attempt a clean build**
+
+```bash
+mkdir build && cd build
+cmake -DCMAKE_C_COMPILER=gcc -DOpENer_PLATFORM:STRING="POSIX" -DCMAKE_BUILD_TYPE:STRING="Debug" -DBUILD_SHARED_LIBS:BOOL=OFF ../source
+make -j 2>&1 | tee build.log
+ls src/ports/POSIX/OpENer  # confirms binary exists
+```
+
+- [ ] **Step 3: Decide**
+
+- If build succeeds → `e601e4a` is the new fork target. Proceed to Task 1.
+- If build fails → check error class. If `-fno-common` errors, try adding `-DCMAKE_C_FLAGS=-fcommon`. If that succeeds, document the workaround. If not, try a newer commit (`upstream/master` HEAD, or commits between `e601e4a` and master that fix the issue).
+- Record the chosen base SHA + any compile flags needed → write to `cert/UPSTREAM_BASE.md` (commit in Task 1).
+
+This task SHOULD have happened in Phase 0 audit. Documenting here so it isn't skipped on the next re-plan.
+
+---
+
+### Task 1: Vendor upstream OpENer `e601e4a` onto master (REVISED — was v2.3)
 
 **Files:**
-- Modify: working tree of `master` (will become a copy of upstream's v2.3 tag)
+- Modify: working tree of `master` (will become a copy of upstream at the chosen base SHA)
 - Create: `source/` directory tree from upstream
+- Create: `cert/UPSTREAM_BASE.md` documenting the chosen base + any required compile flags
 
-- [ ] **Step 1: Add upstream OpENer as a remote**
+- [ ] **Step 1: Hard reset master to the cert/README.md commit**
 
-```bash
-cd /home/teruel/JARVIS/workspaces/strokmatic/sdk/strokmatic-eip
-git remote add upstream https://github.com/EIPStackGroup/OpENer.git
-git fetch upstream --tags
-git tag -l 'v*' | grep -E '^v[0-9]' | sort -V | tail -5
-```
-
-Confirm `v2.3` is in the list.
-
-- [ ] **Step 2: Pull upstream v2.3 tree contents into master**
-
-We don't merge upstream's commit history into master — that would pollute the linear strokmatic-eip story. Instead, take a snapshot:
+If executing for the first time:
 
 ```bash
 cd /home/teruel/JARVIS/workspaces/strokmatic/sdk/strokmatic-eip
+git fetch origin
 git checkout master
-# Read upstream v2.3 into a temp tree, then copy contents to master root
-git read-tree --reset upstream/v2.3
-git checkout-index --all --force
-git add -A
-git commit -m "vendor: import upstream OpENer v2.3"
-git tag upstream-v2.3-import
 ```
 
-This produces a single commit on master containing all of upstream's v2.3 source.
+If recovering from the v2.3-vendor mis-execution (commits `fccd7db` onward), reset:
 
-- [ ] **Step 3: Verify the imported tree**
+```bash
+git reset --hard f66adda   # cert/README.md is the last "clean" master commit
+```
+
+**WARNING — destructive.** Confirm with user before resetting if any work-in-progress commits exist on top of `3ce3087`.
+
+- [ ] **Step 2: Add upstream OpENer as a remote (idempotent)**
+
+```bash
+git remote add upstream https://github.com/EIPStackGroup/OpENer.git 2>&1 || echo "(already added)"
+git fetch upstream --tags
+git fetch upstream master:refs/remotes/upstream/master
+```
+
+Confirm `e601e4a` is reachable:
+
+```bash
+git show e601e4a --stat | head -3
+```
+
+- [ ] **Step 3: Pull upstream `e601e4a` tree contents into master**
+
+We don't merge upstream's commit history — that would pollute the linear strokmatic-eip story. Instead, take a snapshot, while preserving our `README.md` + `cert/`:
+
+```bash
+cd /home/teruel/JARVIS/workspaces/strokmatic/sdk/strokmatic-eip
+mkdir -p /tmp/strokmatic-eip-master-preserve
+cp README.md /tmp/strokmatic-eip-master-preserve/README.md
+cp -r cert /tmp/strokmatic-eip-master-preserve/cert
+
+git read-tree --reset e601e4a
+git checkout-index --all --force
+
+# Restore preserved files (overwriting upstream's README.md with ours)
+cp /tmp/strokmatic-eip-master-preserve/README.md README.md
+mkdir -p cert
+cp -r /tmp/strokmatic-eip-master-preserve/cert/. cert/
+
+git add -A
+git commit -m "vendor: import upstream OpENer e601e4a (preserve README + cert/)"
+git tag upstream-e601e4a-import
+```
+
+Also write `cert/UPSTREAM_BASE.md` with the smoke-build outcome from Task 0.5:
+
+```markdown
+# Upstream Base
+
+| Field | Value |
+|---|---|
+| Upstream repo | https://github.com/EIPStackGroup/OpENer |
+| Pinned commit | e601e4a5d008b6461e4285c95652b50aa0f554af (April 29, 2024) |
+| Why this commit | Legacy strokmatic-opener fork's merge-base. Builds clean on modern GCC (verified Task 0.5). Newest commit before legacy's strokmatic-only commits start. |
+| Required compile flags (if any) | (record from Task 0.5 outcome) |
+| Tag preserving the import | `upstream-e601e4a-import` |
+```
+
+`git add cert/UPSTREAM_BASE.md && git commit --amend --no-edit` to fold it into the import commit.
+
+- [ ] **Step 4: Verify the imported tree**
 
 ```bash
 ls source/src/cip/ | head
@@ -231,14 +347,14 @@ cat source/CMakeLists.txt | head -10
 
 Expected: standard OpENer layout; `source/src/ports/POSIX/main.c` exists.
 
-- [ ] **Step 4: Push to GitHub**
+- [ ] **Step 5: Push to GitHub**
 
 ```bash
 git push origin master --force-with-lease
-git push origin upstream-v2.3-import
+git push origin upstream-e601e4a-import
 ```
 
-(`--force-with-lease` because we may have rewritten the previous scaffold commit. The legacy/* branches are unaffected.)
+(`--force-with-lease` because we are rewriting the broken `fccd7db..3ce3087` history. The legacy/* branches and the tag `upstream-v2.3-import` are unaffected — keep the v2.3 import tag in place as archaeological evidence of the failed attempt.)
 
 ---
 
@@ -299,14 +415,14 @@ git push origin master
 - Create: `source/src/cip/cipLLDPmanagement.h` (~50 lines)
 - Modify: `source/src/cip/CMakeLists.txt` (add the four files)
 
-- [ ] **Step 1: Diff against upstream v2.3 to verify these files don't already exist there**
+- [ ] **Step 1: Diff against upstream e601e4a to verify these files don't already exist there**
 
 ```bash
 cd /home/teruel/JARVIS/workspaces/strokmatic/sdk/strokmatic-eip
 ls source/src/cip/ | grep -i lldp || echo "(not present — re-apply needed)"
 ```
 
-Expected: no LLDP files in the v2.3 import. Phase 0 audit Risk R4 was that some Bucket-A may already be upstream; this confirms the LLDP additions are still strokmatic-only.
+Expected: no LLDP files in the e601e4a import. Phase 0 audit Risk R4 was that some Bucket-A may already be upstream; this confirms the LLDP additions are still strokmatic-only.
 
 - [ ] **Step 2: Copy the LLDP files from the legacy/master branch**
 
@@ -379,36 +495,36 @@ git commit -m "feat(cip): add LLDP Data Table and LLDP Management CIP objects (r
 - Modify: `source/src/opener_api.h` (LLDP public API)
 - Modify: `source/src/enet_encap/endianconv.c` (small fix)
 
-- [ ] **Step 1: For each file, capture the per-file diff between upstream v2.3 and legacy**
+- [ ] **Step 1: For each file, capture the per-file diff between upstream e601e4a and legacy**
 
 ```bash
 cd /home/teruel/JARVIS/workspaces/strokmatic/sdk/strokmatic-eip
 for f in cipcommon.c cipcommon.h cipidentity.c cipmessagerouter.c cipqos.c cipassembly.c ciptypes.h; do
   echo "=== $f ==="
-  git diff upstream/v2.3 legacy/master -- source/src/cip/$f | head -100
+  git diff upstream-e601e4a-import legacy/master -- source/src/cip/$f | head -100
   echo "..."
 done
-git diff upstream/v2.3 legacy/master -- source/src/opener_api.h | head -100
-git diff upstream/v2.3 legacy/master -- source/src/enet_encap/endianconv.c
+git diff upstream-e601e4a-import legacy/master -- source/src/opener_api.h | head -100
+git diff upstream-e601e4a-import legacy/master -- source/src/enet_encap/endianconv.c
 ```
 
 This produces ~9 per-file deltas. Each represents what the legacy added on top of (an older base of) upstream.
 
-- [ ] **Step 2: Apply each delta to the v2.3-imported files**
+- [ ] **Step 2: Apply each delta to the e601e4a-imported files**
 
-For each file, use `git checkout legacy/master -- source/src/cip/<file>` then manually back out anything that was upstream-only (since v2.3 may have moved on from the legacy's base). The cleanest path:
+For each file, use `git checkout legacy/master -- source/src/cip/<file>` then manually back out anything that was upstream-only (since `e601e4a` may differ slightly from the legacy's exact merge-base). The cleanest path:
 
 ```bash
 # For each file, three-way merge: take legacy version as the work, then re-apply only the strokmatic deltas
 git checkout legacy/master -- source/src/cip/cipcommon.c
-# Inspect: does this break upstream v2.3 changes that came after the legacy fork?
-git diff upstream/v2.3 source/src/cip/cipcommon.c | head -50
+# Inspect: does this break upstream e601e4a changes that came after the legacy fork?
+git diff upstream-e601e4a-import source/src/cip/cipcommon.c | head -50
 # If the diff shows *only* LLDP-related changes, keep. If it accidentally reverts upstream improvements, manually re-apply only the LLDP hunks.
 ```
 
 This is judgment-call work per file. The Phase 0 audit Risk R1 (810-line `generic_networkhandler.c` may have undocumented cert-required hunks) and R4 (some legacy changes already upstream) come into play here.
 
-**Conservative rule:** when in doubt, prefer the upstream v2.3 version of upstream-style code (function bodies, error handling) and overlay only the LLDP-specific additions (new structs, new function declarations, new switch cases for LLDP class IDs).
+**Conservative rule:** when in doubt, prefer the upstream e601e4a version of upstream-style code (function bodies, error handling) and overlay only the LLDP-specific additions (new structs, new function declarations, new switch cases for LLDP class IDs).
 
 - [ ] **Step 3: Build incrementally**
 
@@ -466,15 +582,15 @@ git show legacy/master:source/src/ports/nvdata/nvlldp.h > source/src/ports/nvdat
 - [ ] **Step 2: Apply `nvdata.c/h` and CMakeLists deltas**
 
 ```bash
-git diff upstream/v2.3 legacy/master -- source/src/ports/nvdata/nvdata.c | head -60
+git diff upstream-e601e4a-import legacy/master -- source/src/ports/nvdata/nvdata.c | head -60
 # Apply only the LLDP-related hooks (look for nvlldp_* function calls or LLDP-tagged blocks)
 ```
 
 Open the file and add the hooks manually if the diff shows other unrelated changes.
 
 ```bash
-git diff upstream/v2.3 legacy/master -- source/src/ports/nvdata/nvdata.h
-git diff upstream/v2.3 legacy/master -- source/src/ports/nvdata/CMakeLists.txt
+git diff upstream-e601e4a-import legacy/master -- source/src/ports/nvdata/nvdata.h
+git diff upstream-e601e4a-import legacy/master -- source/src/ports/nvdata/CMakeLists.txt
 ```
 
 - [ ] **Step 3: Build to verify**
@@ -500,12 +616,12 @@ git commit -m "feat(nvdata): LLDP persistent storage (nvlldp + hooks)"
 
 These two files were the largest legacy changes (~709 + ~810 lines). **Phase 0 audit Risk R1** is most relevant here.
 
-- [ ] **Step 1: Diff against v2.3**
+- [ ] **Step 1: Diff against e601e4a**
 
 ```bash
 cd /home/teruel/JARVIS/workspaces/strokmatic/sdk/strokmatic-eip
-git diff upstream/v2.3 legacy/master -- source/src/cip/ciptcpipinterface.c | wc -l
-git diff upstream/v2.3 legacy/master -- source/src/ports/generic_networkhandler.c | wc -l
+git diff upstream-e601e4a-import legacy/master -- source/src/cip/ciptcpipinterface.c | wc -l
+git diff upstream-e601e4a-import legacy/master -- source/src/ports/generic_networkhandler.c | wc -l
 ```
 
 Get a sense of total delta size.
@@ -513,17 +629,17 @@ Get a sense of total delta size.
 - [ ] **Step 2: Inspect per-hunk and decide each**
 
 ```bash
-git diff upstream/v2.3 legacy/master -- source/src/cip/ciptcpipinterface.c | less
+git diff upstream-e601e4a-import legacy/master -- source/src/cip/ciptcpipinterface.c | less
 ```
 
 For each hunk, classify:
 - **A1 (cert-required)**: changes that look like LLDP integration, IP-stack fixes, attribute corrections (e.g., the CT20 errors about Attribute 2 / 6 sizes) → re-apply
-- **A2 (refactor noise)**: whitespace, indentation, function reordering → DROP (use v2.3's version)
+- **A2 (refactor noise)**: whitespace, indentation, function reordering → DROP (use e601e4a's version)
 - **A3 (genuinely new behavior)**: anything not obviously cert-required → consult Matheus Gomes (the legacy author at lumesolutions.com) before deciding
 
 If hunks are unclear, leave a `// TODO[strokmatic-eip Phase 2 R1]: review with Matheus` comment and proceed.
 
-- [ ] **Step 3: Apply A1 hunks to the v2.3-imported files**
+- [ ] **Step 3: Apply A1 hunks to the e601e4a-imported files**
 
 Manually patch `ciptcpipinterface.c` and `generic_networkhandler.c` with the cert-required hunks.
 
@@ -534,7 +650,7 @@ cd build && make -j 2>&1 | tail -10
 # If there's an upstream sample app that we kept (e.g. POSIX/sample_application/sampleapplication.c), run it against the ODVA CT in passive mode
 ```
 
-The v2.3 upstream `sampleapplication.c` is still present (we drop it in Task 8 when we add `redis_bridge.c`). Use it as a smoke target here.
+The e601e4a upstream `sampleapplication.c` is still present (we drop it in Task 8 when we add `redis_bridge.c`). Use it as a smoke target here.
 
 - [ ] **Step 5: Commit**
 
@@ -545,67 +661,170 @@ git commit -m "feat(net): re-apply cert-required network stack improvements"
 
 ---
 
-### Task 7: Re-apply Bucket-B — build / setup flags
+### Task 7: Re-apply Bucket-B — full POSIX build wiring (REVISED 2026-05-07 — was "build flags")
 
 **Files:**
 - Modify: `bin/posix/setup_posix.sh` (add `OPENER_RT` flag)
 - Modify: `.gitignore` (extend with build artifacts)
-- Modify: `source/src/ports/POSIX/CMakeLists.txt` (link strokmatic-lldpd)
+- Modify: `source/src/ports/POSIX/CMakeLists.txt` (link strokmatic-lldpd, json-c, lldpctl, compat-dir; remove Python embedding)
+- Modify: `source/CMakeLists.txt` (top-level — feature-test macros if not already present)
 
-- [ ] **Step 1: Apply OPENER_RT setup flag**
+> **Why this is bigger than originally scoped.** During the v2.3 attempt we discovered the LLDP CIP files (cipLLDPDataTable.c, cipLLDPmanagement.c, nvlldp.c) include `<json-c/json.h>`, `<lldpctl.h>`, `"lldpd-structs.h"` (relative path), and use `IFNAMSIZ` / `ETHER_ADDR_LEN` macros that require `_DEFAULT_SOURCE` / `_GNU_SOURCE` feature-test macros. The legacy POSIX CMakeLists has ~50 lines of `find_library` / `find_path` / `target_include_directories` / `target_link_libraries` / `target_compile_definitions` to stitch this together. Original Task 7 compressed all this into one bullet — that under-specification is what halted execution at the link stage.
+
+> **Python embedding decision (NEW):** legacy POSIX CMakeLists also has `find_package(PythonLibs)` and `target_link_libraries(OpENer ${PYTHON_LIBRARIES})`. This was for the legacy `sample_application/Iplc/*.py` helpers (camera handshake), which we drop in Task 8. **Spec-compliant decision: do NOT carry Python embedding into strokmatic-eip.** Drop those CMake hunks entirely. Validate in Task 8 that no Bucket-A C code calls `Py_*` symbols.
+
+- [ ] **Step 1: Capture the legacy POSIX CMakeLists delta vs. e601e4a**
 
 ```bash
-git diff upstream/v2.3 legacy/master -- bin/posix/setup_posix.sh
-# Apply that diff to bin/posix/setup_posix.sh
+cd /home/teruel/JARVIS/workspaces/strokmatic/sdk/strokmatic-eip
+git diff upstream-e601e4a-import legacy/master -- source/src/ports/POSIX/CMakeLists.txt > /tmp/posix-cmakelists-delta.diff
+wc -l /tmp/posix-cmakelists-delta.diff
+less /tmp/posix-cmakelists-delta.diff
 ```
 
-- [ ] **Step 2: Extend .gitignore**
+Categorize each hunk into one of:
+
+| Category | Action |
+|---|---|
+| **B1 — lldpd linkage** (`find_library(LLDPCTL_LIBRARY lldpctl)`, `find_path(LLDPCTL_INCLUDE_DIR lldpctl.h)`, include `deps/strokmatic-lldpd/include/`, link `${LLDPCTL_LIBRARY}`) | RE-APPLY |
+| **B2 — json-c discovery** (`pkg_check_modules(JSONC REQUIRED json-c)` or `find_package(JSON-C)`, include + link) | RE-APPLY |
+| **B3 — compat-dir** (include path for `lldpd-structs.h`, e.g. `deps/strokmatic-lldpd/src/`) | RE-APPLY |
+| **B4 — feature-test macros** (`add_compile_definitions(_DEFAULT_SOURCE _GNU_SOURCE)` or top-level `-D_GNU_SOURCE`) | RE-APPLY |
+| **B5 — sample_application subdir add** (`add_subdirectory(sample_application)`) | DROP (Task 8 removes the dir) |
+| **B6 — Python embedding** (`find_package(PythonLibs ...)`, `target_link_libraries(... ${PYTHON_LIBRARIES})`, `target_include_directories(... ${PYTHON_INCLUDE_DIRS})`) | **DROP** (spec violation; legacy only) |
+| **B7 — refactor noise** (variable renames, indentation) | DROP (use upstream form) |
+
+Annotate `/tmp/posix-cmakelists-delta.diff` inline as a tracking artifact (you can save the annotated file to `cert/POSIX_CMAKE_DELTA_REVIEW.md` for the cert paper trail).
+
+- [ ] **Step 2: Author the new POSIX CMakeLists.txt manually**
+
+Edit `source/src/ports/POSIX/CMakeLists.txt`. Start from the e601e4a-imported version (already on master) and add only the B1–B4 categories above. Below is the expected shape of the Bucket-B additions; tune to match upstream's exact target name (`OpENer` vs `OpENer_POSIX`).
+
+```cmake
+# --- B4: feature-test macros (must come before any system includes) ---
+add_compile_definitions(_DEFAULT_SOURCE _GNU_SOURCE)
+
+# --- B2: json-c (used by cipLLDPDataTable.c, cipLLDPmanagement.c) ---
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(JSONC REQUIRED json-c)
+
+# --- B1: lldpctl (the client library shipped by strokmatic-lldpd) ---
+find_library(LLDPCTL_LIBRARY
+    NAMES lldpctl
+    PATHS ${CMAKE_SOURCE_DIR}/../deps/strokmatic-lldpd/src/lib
+          ${CMAKE_SOURCE_DIR}/../deps/strokmatic-lldpd/install/lib
+    NO_DEFAULT_PATH)
+find_path(LLDPCTL_INCLUDE_DIR
+    NAMES lldpctl.h
+    PATHS ${CMAKE_SOURCE_DIR}/../deps/strokmatic-lldpd/src/lib
+          ${CMAKE_SOURCE_DIR}/../deps/strokmatic-lldpd/install/include
+    NO_DEFAULT_PATH)
+if(NOT LLDPCTL_LIBRARY OR NOT LLDPCTL_INCLUDE_DIR)
+    message(FATAL_ERROR "strokmatic-lldpd not built. Run `cd ../deps/strokmatic-lldpd && ./autogen.sh && ./configure && make` first.")
+endif()
+
+# --- B3: compat-dir for lldpd-structs.h (relative includes from CIP LLDP files) ---
+set(LLDPD_STRUCTS_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/../deps/strokmatic-lldpd/src/daemon)
+
+target_include_directories(OpENer PRIVATE
+    ${JSONC_INCLUDE_DIRS}
+    ${LLDPCTL_INCLUDE_DIR}
+    ${LLDPD_STRUCTS_INCLUDE_DIR}
+)
+target_link_libraries(OpENer PRIVATE
+    ${JSONC_LIBRARIES}
+    ${LLDPCTL_LIBRARY}
+)
+
+# --- B5/B6/B7: NOT carried over; see cert/POSIX_CMAKE_DELTA_REVIEW.md for rationale ---
+```
+
+> Verify the actual `lldpctl.h` install path under `deps/strokmatic-lldpd/` after running its build. Adjust `find_path` `PATHS` accordingly. The legacy fork hard-coded these to specific GCS paths — your dev environment will differ.
+
+- [ ] **Step 3: Apply OPENER_RT setup flag**
 
 ```bash
-git diff upstream/v2.3 legacy/master -- .gitignore
+git diff upstream-e601e4a-import legacy/master -- bin/posix/setup_posix.sh
+# Apply only the OPENER_RT-related diff to bin/posix/setup_posix.sh.
+```
+
+- [ ] **Step 4: Extend .gitignore**
+
+```bash
+git diff upstream-e601e4a-import legacy/master -- .gitignore
 # Apply
 ```
 
 Also add Phase-2-specific entries:
+
 ```
 build/
 deps/strokmatic-lldpd/build/
+deps/strokmatic-lldpd/install/
+*.o
 ```
 
-- [ ] **Step 3: Update POSIX CMakeLists.txt to link strokmatic-lldpd**
+- [ ] **Step 5: Build strokmatic-lldpd first (it's a build prerequisite)**
 
 ```bash
-git diff upstream/v2.3 legacy/master -- source/src/ports/POSIX/CMakeLists.txt | head -50
+cd /home/teruel/JARVIS/workspaces/strokmatic/sdk/strokmatic-eip
+cd deps/strokmatic-lldpd
+./autogen.sh
+./configure --prefix=$(pwd)/install --without-snmp --without-readline
+make -j
+make install
+ls install/lib/liblldpctl.* install/include/lldpctl.h
+cd ../..
 ```
 
-Apply only the lldpd linkage hunks. Drop hunks that add `sample_application/` (since we drop that subtree in Task 8).
-
-- [ ] **Step 4: Build to verify links**
+If the configure step fails on missing autoconf/automake/libtool/libevent-dev/libbsd-dev, install:
 
 ```bash
-cd build && cmake -DCMAKE_C_COMPILER=gcc -DOpENer_PLATFORM:STRING="POSIX" -DCMAKE_BUILD_TYPE:STRING="Debug" -DBUILD_SHARED_LIBS:BOOL=OFF ../source
-make -j 2>&1 | tail -10
+sudo apt-get install -y autoconf automake libtool pkg-config libevent-dev libbsd-dev libxml2-dev
 ```
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 6: Build OpENer**
 
 ```bash
-git add bin/posix/setup_posix.sh .gitignore source/src/ports/POSIX/CMakeLists.txt
-git commit -m "build: add OPENER_RT flag, link strokmatic-lldpd, ignore build artifacts"
+mkdir -p build && cd build
+rm -rf CMakeCache.txt CMakeFiles  # in case of stale CMake state
+cmake -DCMAKE_C_COMPILER=gcc -DOpENer_PLATFORM:STRING="POSIX" -DCMAKE_BUILD_TYPE:STRING="Debug" -DBUILD_SHARED_LIBS:BOOL=OFF ../source
+make -j 2>&1 | tee build.log | tail -30
+```
+
+Expected at this stage: build still fails because Tasks 8 (sample_application removal) and 9 (redis_bridge.c) haven't run yet. The failures should be:
+- "no main" (sample_application provided main, we'll move it to redis_bridge integration), OR
+- LLDP-related includes resolve, json-c symbols link
+
+It should NOT fail with `-fno-common` multi-definition errors (those were the v2.3-only problem; e601e4a is past that).
+
+- [ ] **Step 7: Save the build log into cert/ as evidence**
+
+```bash
+cp build/build.log cert/build-task7.log
+```
+
+The cert paper trail benefits from per-task build logs. Keeps reviewers honest.
+
+- [ ] **Step 8: Commit**
+
+```bash
+git add bin/posix/setup_posix.sh .gitignore source/src/ports/POSIX/CMakeLists.txt cert/POSIX_CMAKE_DELTA_REVIEW.md cert/build-task7.log
+git commit -m "build(posix): re-apply Bucket-B — lldpd, json-c, compat-dir, feature-test macros (no Python embedding)"
 ```
 
 ---
 
-### Task 8: Remove legacy `sample_application/` subtree
+### Task 8: Remove legacy `sample_application/` subtree + verify no Python embedding remains
 
 **Files:**
 - Delete: `source/src/ports/POSIX/sample_application/` (entirely)
 
-The sample_application from upstream OpENer is the placeholder for an integrator's app code. We replace it with `redis_bridge.c` (next task).
+The sample_application from upstream OpENer is the placeholder for an integrator's app code. We replace it with `redis_bridge.c` (next task). The legacy fork additionally embedded Python via this subtree (`Iplc/*.py` helpers loaded from C); removing the subtree is also where Python-embedding leaves the codebase.
 
-- [ ] **Step 1: Verify nothing in upstream v2.3's sample_application is needed**
+- [ ] **Step 1: Verify nothing in upstream e601e4a's sample_application is needed**
 
-The upstream sample_application's `main` and `sampleapplication.c` are reference implementations. Our redis_bridge replaces both.
+The upstream sample_application's `main` and `sampleapplication.c` are reference implementations. Our redis_bridge + clean main.c (Tasks 9–10) replace both.
 
 - [ ] **Step 2: Remove**
 
@@ -620,18 +839,32 @@ rm -rf source/src/ports/POSIX/sample_application/
 sed -i '/add_subdirectory(sample_application)/d' source/src/ports/POSIX/CMakeLists.txt
 ```
 
-(Verify the line exists first; this is the upstream pattern.)
+(Verify the line exists first; this is the upstream pattern. Task 7 already dropped Python-related CMake hunks; this drops the directory reference.)
 
-- [ ] **Step 4: Build will fail (no main.c) — that's expected**
+- [ ] **Step 4: Verify no Python references remain anywhere in the source tree**
 
-The build expects a `main.c` somewhere. Task 9 adds it.
+After removing sample_application, no C code, no CMake, no script in the repo should reference Python embedding. Sweep:
 
-- [ ] **Step 5: Commit**
+```bash
+cd /home/teruel/JARVIS/workspaces/strokmatic/sdk/strokmatic-eip
+grep -rn -E "Py_|PyObject|PyRun_|PYTHON_LIBRARIES|PYTHON_INCLUDE_DIRS|PythonLibs|find_package\(Python" source/ bin/ cert/ | grep -v "deps/strokmatic-lldpd" || echo "(clean — no Python references)"
+```
+
+Expected: `(clean — no Python references)`. If any hits, investigate — they should ALL come from sample_application (removed) or a Bucket-A C file we re-applied that legitimately doesn't need Python (then the reference is dead code from the legacy fork; delete the offending block).
+
+If hits remain in Bucket-A C files (cipcommon.c, etc.), open `cert/PYTHON_REMNANTS.md` and document each. Investigate whether the C code path is reachable in our config (likely it was a legacy hook for camera handshake — not reachable now). Delete the block, commit separately, document in the cert README.
+
+- [ ] **Step 5: Build expectation**
+
+Build will fail (no main.c) — that's expected. Task 10 adds it. The build SHOULD NOT fail with Python-related errors after this task; if it does, Step 4's sweep missed something.
+
+- [ ] **Step 6: Commit**
 
 ```bash
 git add source/src/ports/POSIX/CMakeLists.txt
 git rm -r source/src/ports/POSIX/sample_application
-git commit -m "remove: drop legacy sample_application subtree (replaced by redis_bridge)"
+[ -f cert/PYTHON_REMNANTS.md ] && git add cert/PYTHON_REMNANTS.md
+git commit -m "remove: drop sample_application subtree + verify no Python embedding remains"
 ```
 
 ---
@@ -645,6 +878,8 @@ git commit -m "remove: drop legacy sample_application subtree (replaced by redis
 - Modify: `source/src/ports/POSIX/CMakeLists.txt` (link `hiredis` + `redis_bridge`)
 
 The redis_bridge is the only NEW C code in this whole plan. It owns the contract between the C process and the SDK's Redis schema.
+
+> **Constraint (spec-mandated):** redis_bridge.c MUST NOT embed Python, MUST NOT spawn Python interpreters, MUST NOT call into Python via FFI. The C process is plugin-agnostic; the SDK's Redis IPC contract is the *only* boundary. The legacy fork violated this with `Py_*` calls in its sample_application — that's why Tasks 7/8 strip Python wholesale. If a future requirement appears that "needs" Python in C, it belongs in a separate Python plugin process consuming Redis, never in this layer. Reviewers MUST reject any patch to redis_bridge.c that adds a Python dependency.
 
 #### redis_bridge.h interface
 
@@ -869,11 +1104,11 @@ The new main is a clean composition: parse env vars, init OpENer, register the I
 
 ```bash
 cd /home/teruel/JARVIS/workspaces/strokmatic/sdk/strokmatic-eip
-git show upstream/v2.3:source/src/ports/POSIX/main.c | wc -l
-git show upstream/v2.3:source/src/ports/POSIX/main.c | head -100
+git show upstream-e601e4a-import:source/src/ports/POSIX/main.c | wc -l
+git show upstream-e601e4a-import:source/src/ports/POSIX/main.c | head -100
 ```
 
-Use the upstream main as the structural starting point.
+Use the upstream main as the structural starting point. (The legacy main.c is NOT a useful reference — it was 1000+ lines of camera-acquisition logic; spec rule says zero app logic in C.)
 
 - [ ] **Step 2: Implement the new main.c**
 
@@ -1390,12 +1625,19 @@ git push origin --tags
 | Conformance testing strategy | Task 15 |
 | CERTIFICATION.md recert triggers | Task 14 |
 | Phased migration → Phase 2 = this plan | covered |
+| Spec rule "C contains zero application logic" | Tasks 7, 8, 9 (Python-embedding stripped + verified) |
 
 **No spec gaps identified.**
 
 **2. Placeholder scan:** None — every task has concrete commands, exact file paths, and code blocks. The two operational tasks (Task 0 ODVA Product Code application, Task 15 CT runs) describe specific actions the engineer takes, with clear deliverables.
 
 **3. Type consistency:** redis_bridge function names match between `redis_bridge.h` (Task 9), `main.c` (Task 10), and `eds_identity.c.in` (Task 11). EDS revision constant names (`STROKMATIC_EDS_REVISION_MAJOR/MINOR`, `STROKMATIC_EDS_IDENTITY_HASH`) are consistent across CMake config (Task 11), C generation template (Task 11), and main.c usage (Task 10).
+
+**4. Revision consistency check (post-2026-05-07 build-failure revision):**
+- Upstream base: every Task that diffs against upstream now uses `upstream-e601e4a-import` (the tag created in Task 1 Step 3); no remaining `upstream/v2.3` references in re-apply tasks (Tasks 3–7).
+- Build wiring: Task 7 catalogs B1 (lldpctl) / B2 (json-c) / B3 (compat-dir) / B4 (feature-test macros) explicitly, with sample CMake fragments. Drops B5 (sample_application include) / B6 (Python embedding) / B7 (refactor noise) explicitly.
+- Python embedding: dropped in Task 7 (CMake hunks), verified absent in Task 8 (grep sweep), forbidden in Task 9 (constraint paragraph). Three checkpoints for the same rule — intentional defense in depth for a spec violation that the legacy carried.
+- Smoke-build the base BEFORE vendoring: Task 0.5 added; this is the gap that caused the v2.3 dead-end.
 
 ---
 

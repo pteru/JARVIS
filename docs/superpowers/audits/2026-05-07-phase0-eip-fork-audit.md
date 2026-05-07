@@ -7,6 +7,24 @@
 
 ---
 
+## ⚠️ Revision 2026-05-07 — Phase 0 was incomplete
+
+This audit originally recommended `upstream OpENer v2.3` as the fresh-fork base. **That recommendation is wrong** — discovered during Phase 2 execution:
+
+- **v2.3 (March 2019) does not build on modern GCC** (10+, default `-fno-common`). Globals declared without `extern` in `generic_networkhandler.h` and `cipethernetlink.h` produce link-time multiple-definition errors. Even with NO strokmatic deltas applied (just `git read-tree` of v2.3), the link fails.
+- **v2.3 also lacks build wiring for the legacy LLDP CIP files** (json-c discovery, lldpctl find_library, lldpd-structs.h include path). The legacy fork added 50+ lines of POSIX CMakeLists.txt that the audit did NOT capture in Bucket B.
+
+**Revised recommendation:** target **upstream `e601e4a`** (April 29 2024, the legacy fork's actual merge-base) **— OR a later upstream master commit, after smoke-build verification on the actual dev environment**.
+
+**Lessons learned (added to plan-revision discipline):**
+1. Always smoke-build the proposed upstream base BEFORE declaring it the fork target. Don't rely on tag-stability assumptions for codebases ≥5 years old.
+2. Phase 0 file inventory is necessary but insufficient. The audit must also catalog **build-time deltas** in `CMakeLists.txt` files at every level, system package dependencies (json-c, lldpctl-dev, libsnmp-dev, libreadline-dev), and feature-test macros (`_DEFAULT_SOURCE`, `_GNU_SOURCE`).
+3. The implicit Python embedding in legacy POSIX CMakeLists (`find_package(PythonLibs); target_link_libraries(OpENer ${PYTHON_LIBRARIES})`) suggests the legacy *did* embed Python in the C process — likely how the `sample_application/Iplc/*.py` helpers ran. This contradicts the spec's "C contains zero application logic" principle and needs Phase 2 design clarification: do we drop Python embedding in v2 (implied by spec) and accept that the legacy C process was a Python+C hybrid?
+
+The original audit body below remains accurate for **what's in the legacy fork relative to its merge-base**. The error was in choosing v2.3 as the new fork target.
+
+---
+
 ## Executive Summary
 
 The legacy fork diverged from upstream OpENer at commit **`e601e4a`** (April 29, 2024) and added **exactly 11 strokmatic commits** before submission to ODVA on June 19, 2024. Total delta: **68 files changed, +4 534 / −950 lines**.
@@ -170,9 +188,9 @@ The entire `source/src/ports/POSIX/sample_application/` subtree was the strokmat
 
 ---
 
-## Recommended Phase 2 Strategy
+## Recommended Phase 2 Strategy (revised 2026-05-07)
 
-1. **Fresh fork target:** upstream OpENer `v2.3` (or `master` HEAD).
+1. **Fresh fork target:** upstream OpENer `e601e4a` (the legacy fork's merge-base, April 2024). v2.3 is too old for modern GCC. After smoke-building `e601e4a` to verify it builds out-of-box on the dev environment, only THEN proceed.
 2. **Layered re-application** — instead of "11 commits in original order," reorganize into clean logical commits in `strokmatic-eip`:
    - Commit 1: Add LLDP CIP objects (`cipLLDPDataTable.c/h`, `cipLLDPmanagement.c/h`) + minimal hooks in `cipcommon.c`, `cipidentity.c`, `cipmessagerouter.c`, `cipqos.c`, `cipassembly.c`, `ciptypes.h`, `opener_api.h`, `endianconv.c`. Add corresponding `CMakeLists.txt` lines.
    - Commit 2: Add LLDP nvdata persistence (`nvlldp.c/h`) + nvdata.c/h hooks + nvdata CMakeLists.
@@ -191,13 +209,16 @@ The entire `source/src/ports/POSIX/sample_application/` subtree was the strokmat
 
 ## Risks Identified
 
-| # | Risk | Mitigation |
-|---|---|---|
-| R1 | The 810-line `generic_networkhandler.c` refactor (commit 9 `e50e959`) may include cert-required fixes for specific test cases that aren't documented in commit messages | Hunk-by-hunk review; consult Matheus if any hunk's purpose is unclear |
-| R2 | `myglobals.h` may contain assembly-related globals required for cert | Inspect content; if cert-related, add to commit 6 |
-| R3 | `strokmatic-lldpd` is a private GCS submodule; access may be lost over time | Mirror it to `github.com/strokmatic/strokmatic-lldpd` BEFORE Phase 2 starts, or absorb it into `strokmatic-eip` directly |
-| R4 | Some Bucket-A modifications may already be merged to upstream OpENer between `e601e4a` and `v2.3` | Diff the modified files against `v2.3` before re-applying; skip what's already there |
-| R5 | Coding rules PDF/TeX changes may have been required by ODVA reviewer feedback | Probably unrelated to cert — skip for now; revisit if conformance fails |
+| # | Risk | Mitigation | Status |
+|---|---|---|---|
+| R1 | The 810-line `generic_networkhandler.c` refactor (commit 9 `e50e959`) may include cert-required fixes for specific test cases that aren't documented in commit messages | Hunk-by-hunk review; consult Matheus if any hunk's purpose is unclear | Open |
+| R2 | `myglobals.h` may contain assembly-related globals required for cert | Inspect content; if cert-related, add to commit 6 | Open |
+| R3 | `strokmatic-lldpd` is a private GCS submodule; access may be lost over time | Mirror it to `github.com/strokmatic/strokmatic-lldpd` BEFORE Phase 2 starts, or absorb it into `strokmatic-eip` directly | **Closed 2026-05-07** — migrated to `github.com/strokmatic/strokmatic-lldpd`, full history preserved |
+| R4 | Some Bucket-A modifications may already be merged to upstream OpENer between `e601e4a` and `v2.3` | Diff the modified files against `v2.3` before re-applying; skip what's already there | Moot (target is now `e601e4a`, the merge-base — no upstream-of-base divergence) |
+| R5 | Coding rules PDF/TeX changes may have been required by ODVA reviewer feedback | Probably unrelated to cert — skip for now; revisit if conformance fails | Open |
+| **R6 (NEW 2026-05-07)** | **Upstream OpENer build wiring** — json-c discovery, lldpctl find_library, lldpd-structs.h include path, feature-test macros for `IFNAMSIZ` / `ETHER_ADDR_LEN`, possible Python embedding (find_package(PythonLibs)) — was undercounted in Bucket B. The legacy POSIX `CMakeLists.txt` has 50+ lines of additions on top of upstream. | Add a dedicated build-wiring task to Phase 2 plan. Catalog every legacy CMake delta hunk-by-hunk before re-applying. | Open |
+| **R7 (NEW 2026-05-07)** | **Upstream OpENer v2.3 doesn't build on modern GCC** (10+ default `-fno-common`) due to header globals declared without `extern`. | Re-target upstream base to `e601e4a` (legacy's merge-base). Smoke-build the chosen base before any further work. | Open |
+| **R8 (NEW 2026-05-07)** | **Legacy embeds Python in the C process** (`find_package(PythonLibs)` + `target_link_libraries(OpENer ${PYTHON_LIBRARIES})` in legacy POSIX CMakeLists). This contradicts the spec's "C contains zero application logic" principle and was not caught in Phase 0 audit. | Phase 2 design decision: drop Python embedding entirely (preferred — matches spec). Validate that the LLDP CIP code (or any other Bucket-A code) doesn't actually call into Python. | Open |
 
 ---
 
