@@ -8,18 +8,21 @@
 ## High Priority
 
 ### Sealer Pipeline (SEALER-01 through SEALER-12)
-- [ ] [COMPLEX] SEALER-01: Create point-cloud-processor service — Python microservice. Redis DB0 → outlier removal → RANSAC → ROI → depth map → pc-processed-queue. Open3D, numpy, scipy.
-- [ ] [MEDIUM] SEALER-02: Adapt image-saver for 3D point cloud storage — Auto-detect 2D vs 3D from Redis HASH. Save .ply for point clouds. Backward-compatible.
-- [ ] [COMPLEX] SEALER-03: Create sealer-bead-measurement service — Cross-section analysis: centerline PCA, perpendicular slicing 5mm, Gaussian fit. Per-segment pass/fail (width<3mm, height<1.5mm, continuity<80%).
+
+> **Status consolidado 2026-04-16** — revisão do estado real vs. backlog inicial.
+
+- [X] [COMPLEX] SEALER-01: Create point-cloud-processor service — Python microservice. Redis DB0 → outlier removal → RANSAC → ROI → depth map → pc-processed-queue. Open3D, numpy, scipy. **→ Implementado por William Abe (commit `5b8bff6`, 14/04/2026). 57 testes passando. Submódulo registrado no monorepo (commit `b3fe75ba`, branch `feat/add-point-cloud-processor-submodule`, aguardando merge). Spec+plano TDD em `docs/superpowers/`.**
+- [ ] [MEDIUM] SEALER-02: Adapt image-saver for 3D point cloud storage — Auto-detect 2D vs 3D from Redis HASH. Save .ply for point clouds. Backward-compatible. **→ Próximo da fila do Vinicius Sotero (após SEALER-08).**
+- [ ] [COMPLEX] SEALER-03: Create sealer-bead-measurement service — Cross-section analysis guiada pelo `sealer_centerline` (curva teórica do cordão via robot path + CAD da peça). Slicing perpendicular 5mm + fit Gaussiano/parabólico. Per-segment pass/fail (width ≥ 3mm, height ≥ 1.5mm, continuity ≥ 80%, offset ≤ 2mm). Múltiplos cordões por peça. **→ Contexto v3 gerado (`~/Downloads/2026-04-15-sealer-03-sealer-bead-measurement-context.md`). William Abe vai escrever spec formal + plano TDD após finalizar SEALER-01.**
 - [ ] [COMPLEX] SEALER-04: Create 3D inference training pipeline — Geometric rules + YOLOv11 on depth map tiles. ONNX + OpenVINO for CPU (AAEON Boxer-6641, no GPU). 6 defect classes.
 - [ ] [MEDIUM] SEALER-05: Adapt database-writer for sealer measurements — DB_WRITER_MODE=sealer. New tables + stored procedure insert_sealer_measurements(jsonb).
 - [ ] [MEDIUM] SEALER-06: Create sealer-inspection NestJS module — 4 REST endpoints: inspections list, detail, measurements, trends. Sequelize entities.
 - [ ] [COMPLEX] SEALER-07: Create sealer-visualization Angular module — Three.js point cloud viewer. Bead cross-section charts. Pass/fail dashboard. Dark theme.
-- [ ] [COMPLEX] SEALER-08: Create hikrobot-acquisition service — C++ for Hikrobot MV-DLS1400M-15 (MV3D SDK, NOT GenICam). Redis DB0 HASH with point_cloud_data.
+- [ ] [COMPLEX] SEALER-08: **Adapt** `camera-acquisition` service to support 3D cameras (Hikrobot MV-DLS1400M-15 via MV3D SDK, NOT GenICam). Modo 2D preservado para compatibilidade; novo modo 3D grava `point_cloud_data` em Redis DB0 HASH. **→ Em desenvolvimento por Vinicius Sotero, quase finalizado.** *(Nota: descrição original era "Create hikrobot-acquisition service"; mudou para adaptação do `camera-acquisition` existente em vez de serviço novo.)*
 - [ ] [MEDIUM] SEALER-09: Create 3D sealer pipeline integration tests — E2E with dedicated ports (5676/6383/5436). Contract + pipeline + benchmark tests.
-- [ ] [MEDIUM] SEALER-10: Create 3D camera calibration tool — Python CLI. Reference block calibration. ICP/SVD transform. Validation tolerances.
-- [ ] [SIMPLE] SEALER-11: Define sealer RabbitMQ queue topology — Topic exchange, 5 queues, DLX. Message schemas documented.
-- [ ] [COMPLEX] SEALER-12: Create sealer deployment topology — topologies/sealer-single-node.yaml. Commissioning script. Network config docs.
+- [ ] [MEDIUM] SEALER-10: Create 3D camera calibration tool — Python CLI. Reference block calibration. ICP/SVD transform. Validation tolerances. **→ Vinicius Sotero em andamento — executando testes de precisão da câmera 3D Hikrobot como base para a ferramenta.**
+- [X] [SIMPLE] SEALER-11: Define sealer RabbitMQ queue topology — Topic exchange, 5 queues, DLX. Message schemas documented. **→ Definido em `topologies/sealer-single-node.yaml` e em `architecture/vk-sealer-pipeline.md`.**
+- [X] [COMPLEX] SEALER-12: Create sealer deployment topology — topologies/sealer-single-node.yaml. Commissioning script. Network config docs. **→ `topologies/sealer-single-node.yaml` finalizado (2026-03-04). Falta apenas commissioning script e docs de rede.**
 
 ### SparkTest Pipeline (SPARK-01 through SPARK-07)
 - [ ] [COMPLEX] SPARK-01: Create wifi-camera-acquisition service — Python RTSP from DJI WiFi cameras. Redis DB0. Start/stop via pub/sub.
@@ -28,6 +31,14 @@
 - [ ] [COMPLEX] SPARK-04: Create backend-sparktest NestJS API — Tablet frontend gateway. WebSocket updates. New PostgreSQL schema.
 - [ ] [COMPLEX] SPARK-05: Create frontend-sparktest Angular PWA — Tablet-optimized dark-theme touch UI. Material input + OCR.
 - [ ] [MEDIUM] SPARK-07: Adapt database-writer for spark test results — New queue + PostgreSQL insert function.
+
+### DB Schema Convergence
+
+- [ ] [COMPLEX] **SCHEMA-MIGRATE-STEEL-TO-COMMON** — Phase 2 epic (post-comissionamento 03008). Migrar deployments de laminação (sql-vk-steel) para sql-vk-common: criar `pecas_steel_tracking` extension table; reescrever `insert_frames_pecas`, `fn_evaluate_rules`, `fn_return_regras_de_negocio_v3`, `fn_process_regras_complete_batch`; ajustar queries do `visionking-result` (Python) e backend-laminacao (Sequelize); switch laminação topology para `sql-vk-common`. Cutover requer janela de manutenção. ~3 semanas. **Ref**: spec `docs/superpowers/specs/2026-05-06-sealer-db-schema-design.md` §10 (Phase 2 Plan).
+
+### Result Service Generalization
+
+- [ ] [MEDIUM] **RESULT-SERVICE-GENERALIZE** — Phase 2 epic (post-comissionamento 03008). Mesclar `services/result/` (laminação) e `services/sealer-result/` (Hyundai 03008) em uma única imagem profile-driven via `VR_PROFILE=steel|sealer`. Padrão paralelo a `database-writer` (default mode + `INSERT_FUNCTION`) e `inference` (`INF_PROFILE`). Esperado: extrair core (Redis pubsub/poll loop, DB connection lifecycle, heartbeat, Redis writer) para `src/core/`; mover lógica steel-domain (corrida, NC, tracking, position monitor) para `src/profiles/steel/`; mover lógica sealer (B-light query, NOT_FOUND grace period, simple pass/fail mapping) para `src/profiles/sealer/`; parametrizar pubsub channel/poll hash names por perfil. Cutover laminação requer janela de manutenção (regression suite obrigatória — produção 03002/03009). Sealer migra trivialmente (image swap + env). Inclui retrofit de `handlers/` sub-package em steel (atualmente concentrado em `main.py`). ~2 semanas. **Refs**: spec `docs/superpowers/specs/2026-05-06-sealer-result-service-design.md` §1, plan `docs/superpowers/plans/2026-05-06-sealer-result-service.md` (header note). **Bloqueio**: ambos services Phase 1 estáveis em produção por ≥4 semanas.
 
 ### Security & Quality
 - [ ] [complex] SEC-01: Rotate and remove hardcoded credentials — `.env.example` has `<skm-password>`, `<sissurface-password>`. GCP JSON keys.
