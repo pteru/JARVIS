@@ -280,7 +280,7 @@ A single divergent byte fails the gate.
 ### 9.4 Cycle-period stability sweep (lab, acceptance gate)
 Driven by R2. With the parity gate green at one cycle period, repeat the parity run at the full set: **10 / 25 / 50 / 100 / 250 ms**. For each value, record:
 - whether the PLC ever sees a missed handshake step (it should never)
-- `status.last_cycle_us` distribution — the loop must stay well below the configured period
+- `status.last_cycle_us` distribution — the loop must stay below **50 %** of the configured period (Python + Redis on localhost runs ~7-8 ms per cycle on typical hardware; 50 % leaves headroom while still satisfying "well below")
 - whether `get-result` service errors or backpressure rate changes
 - whether the bit-for-bit diff stays empty
 
