@@ -160,22 +160,29 @@ Matches v1's `else` branch at lines 189–215.
 ## 6. `cfg:plc-result-v2:<inst>` schema
 
 ```python
-from pydantic import BaseModel, Field, model_validator
-from strokmatic_comm_sdk import PluginConfig, IoMap
+from pydantic import BaseModel, ConfigDict, Field
+from strokmatic_comm_sdk import PluginConfig
 
-class PlcResultV2IoMap(IoMap):
+class PlcResultV2IoMap(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    # Input bytes (PLC → device, read by plugin)
     request_result_off:        int = 32
     result_write_comp_plc_off: int = 33
     fault_reset_extend_off:    int = 34
+
+    # Output bytes (device → PLC, written by plugin)
     result_off:                int = 32   # u32 LE, occupies 32-35
     result_write_comp_dev_off: int = 36
     in_cycle_off:              int = 37
     fault_reset_off:           int = 38
 
 class PlcResultV2Config(PluginConfig):
+    model_config = ConfigDict(extra="forbid")
+
     plc_key:           str        # e.g. "192.168.15.10" — used in io:in:<plc_key>
     cell:              str        # canonical instance identity (matches <inst> in cfg key)
-    io_map:            PlcResultV2IoMap = PlcResultV2IoMap()
+    io_map:            PlcResultV2IoMap = Field(default_factory=PlcResultV2IoMap)
     # get-result coordination on application Redis (NOT the IO bus Redis)
     redis_app_host:    str
     redis_app_port:    int        = 6379
@@ -184,15 +191,9 @@ class PlcResultV2Config(PluginConfig):
     returned_result_key:    str   # default: f"{plc_key}_RETURNED_RESULT"
     tryout:            bool       = False
     cycle_period_ms:   int        = Field(50, ge=1, le=1000)   # see §11/R2 stability notes
-
-    @model_validator(mode="after")
-    def _validate_lane(self):
-        # IoMap base class checks each offset against LANE_RANGE env var.
-        # We additionally check that 'result' fits in 2 bytes.
-        return self
 ```
 
-`PluginConfig.load()` and `PluginConfig.save()` come from the SDK; `model_validator` checks `LANE_RANGE` and rejects out-of-range offsets at startup.
+`PluginConfig.load()` and `PluginConfig.save()` come from the SDK. `LANE_RANGE` enforcement happens **at runner startup**, not in the schema — the Pydantic model accepts any int offsets; the runner rejects offsets outside the env-var-declared `LANE_RANGE` before the main loop begins. This matches the camera plugin v2 pattern.
 
 ---
 
