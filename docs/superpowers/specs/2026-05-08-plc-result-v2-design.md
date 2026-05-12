@@ -49,7 +49,7 @@ PLC ─── EtherNet/IP Class 1 ──→ strokmatic-eip (certified C)
                               (returns result via Redis hash, same path)
 ```
 
-**One container per (CELL, ROBOT) pair.** The instance key in `cfg:plc-result-v2:<inst>` is `<CELL>_<ROBOT>` (matching how the camera plugin v2 will identify instances).
+**One container per CELL.** The instance key in `cfg:plc-result-v2:<inst>` is the bare `<CELL>` identifier (e.g. `cfg:plc-result-v2:BSL01`). SpotFusion deployments are 1:1 cell-to-PLC in practice, so the cell name is the canonical identity. The cfg still carries `plc_key` separately for IO bus routing.
 
 **The plugin only touches:**
 - `io:in:<PLC_KEY>[32:48]` (read) — PLC's signals to us
@@ -79,13 +79,13 @@ PLC ─── EtherNet/IP Class 1 ──→ strokmatic-eip (certified C)
 
 | Offset | Field | Type | Source semantic | Legacy v1 equivalent |
 |---|---|---|---|---|
-| 32–33 | `result` | u16 LE | inspection result code from get-result (0 = none) | `TAG_RESULT_P` via `PLC.WRITE(3, …)` |
-| 34 | `result_write_comp_dev` | u8 (0/1) | device ack — "RESULT is valid this cycle, latch it" | `PLC.WRITE(4, …)` |
-| 35 | `in_cycle` | u8 (0/1) | plc-result is mid-handshake | `PLC.WRITE(6, …)` |
-| 36 | `fault_reset` | u8 (0/1) | pass-through of `fault_reset_extend` (always-on every cycle) | `TAG_FAULT_RESET_P` |
-| 37–47 | reserved | — | spare | — |
+| 32–35 | `result` | u32 LE | inspection result code from get-result (0 = none) | `TAG_RESULT_P` via `PLC.WRITE(3, …)` |
+| 36 | `result_write_comp_dev` | u8 (0/1) | device ack — "RESULT is valid this cycle, latch it" | `PLC.WRITE(4, …)` |
+| 37 | `in_cycle` | u8 (0/1) | plc-result is mid-handshake | `PLC.WRITE(6, …)` |
+| 38 | `fault_reset` | u8 (0/1) | pass-through of `fault_reset_extend` (always-on every cycle) | `TAG_FAULT_RESET_P` |
+| 39–47 | reserved | — | spare | — |
 
-**Why these widths.** Every flag is a u8 (not packed bits) because (a) the lane has slack — 16 bytes for 6 fields — and (b) a u8 per flag survives plain `od -An -tu1` on a Redis blob, making lab debugging trivial. `result` is u16 LE: v1 reads the value via `eval()` of a Redis string (could be anything that Python parses to int), but in practice the production values fit in u16. Confirming this against a live deployment dump is **risk R1** below.
+**Why these widths.** Every flag is a u8 (not packed bits) because (a) the lane has slack — 16 bytes for 6 fields — and (b) a u8 per flag survives plain `od -An -tu1` on a Redis blob, making lab debugging trivial. `result` is **u32 LE** (covers anything that fits in an Allen-Bradley CIP `DINT`) — v1 reads the value via `eval()` of a Redis string with no width discipline; widening to u32 eliminates the risk that a production deployment ever exceeded `u16` range and started silently wrapping in v2.
 
 **Byte offsets are not hardcoded.** They live in `cfg.io_map` (Pydantic-validated), defaulted to the table above. If the lane registry shifts in a future deployment, the cfg moves and no code changes.
 
@@ -93,7 +93,7 @@ PLC ─── EtherNet/IP Class 1 ──→ strokmatic-eip (certified C)
 
 ## 5. State machine
 
-Two states + always-on fault pass-through. Driven on every cycle of the runner (configurable period, default 10 ms).
+Two states + always-on fault pass-through. Driven on every cycle of the runner (configurable period, default 50 ms — see §11/R2).
 
 ```
        ┌──────────────────── PLC clears request_result
@@ -110,7 +110,7 @@ Two states + always-on fault pass-through. Driven on every cycle of the runner (
    │      │                                  │ poll <IP>_GET_RESULT_CONFIRM
    │      │                                  │ when == 1:
    │      │                                  │   read <IP>_RETURNED_RESULT (int)
-   │      │                                  │   write u16 to lane bytes 32-33
+   │      │                                  │   write u32 to lane bytes 32-35
    │      │                                  │   result_write_comp_dev := 1
    │      │                                  ▼
    │      │                              [WROTE_RESULT]
@@ -167,15 +167,14 @@ class PlcResultV2IoMap(IoMap):
     request_result_off:        int = 32
     result_write_comp_plc_off: int = 33
     fault_reset_extend_off:    int = 34
-    result_off:                int = 32   # u16 LE, occupies 32-33
-    result_write_comp_dev_off: int = 34
-    in_cycle_off:              int = 35
-    fault_reset_off:           int = 36
+    result_off:                int = 32   # u32 LE, occupies 32-35
+    result_write_comp_dev_off: int = 36
+    in_cycle_off:              int = 37
+    fault_reset_off:           int = 38
 
 class PlcResultV2Config(PluginConfig):
     plc_key:           str        # e.g. "192.168.15.10" — used in io:in:<plc_key>
-    cell:              str        # for instance identity / status fields
-    robot:             str        # for instance identity / status fields
+    cell:              str        # canonical instance identity (matches <inst> in cfg key)
     io_map:            PlcResultV2IoMap = PlcResultV2IoMap()
     # get-result coordination on application Redis (NOT the IO bus Redis)
     redis_app_host:    str
@@ -184,7 +183,7 @@ class PlcResultV2Config(PluginConfig):
     get_result_confirm_key: str   # default: f"{plc_key}_GET_RESULT_CONFIRM"
     returned_result_key:    str   # default: f"{plc_key}_RETURNED_RESULT"
     tryout:            bool       = False
-    cycle_period_ms:   int        = Field(10, ge=1, le=1000)
+    cycle_period_ms:   int        = Field(50, ge=1, le=1000)   # see §11/R2 stability notes
 
     @model_validator(mode="after")
     def _validate_lane(self):
@@ -202,6 +201,7 @@ class PlcResultV2Config(PluginConfig):
 - **`status:plc-result-v2:<inst>` hash**, written by SDK `Heartbeat` each cycle:
   - `last_beat_ms` (epoch ms)
   - `last_cycle_us` (last loop body duration)
+  - `cycle_period_ms` (currently-configured period — mirrored for observability so a tuning run can confirm what's actually live)
   - `state` (`IDLE` / `REQUESTING` / `WAITING_RESULT` / `WROTE_RESULT`)
   - `result_count` (lifetime counter of successful RESULT writes)
   - `tryout_count` (lifetime counter of cycles where TRYOUT short-circuit fired)
@@ -258,7 +258,7 @@ This split lets every unit be tested independently and keeps `runner.py` small e
 ## 9. Testing strategy
 
 ### 9.1 Unit (TDD, no I/O dependencies)
-- `test_lane.py` — for every field, encode → decode round-trip; bounds checks (u8 range, u16 range); offsets that overlap or exceed 16-byte lane rejected by IoMap validator.
+- `test_lane.py` — for every field, encode → decode round-trip; bounds checks (u8 range, u32 range); offsets that overlap or exceed 16-byte lane rejected by IoMap validator.
 - `test_state_machine.py` — full transition table. Each row: (current state, input lane bits, cfg.tryout) → (expected next state, expected out lane bits, expected get-result actions). ~20 rows covers the entire machine including TRYOUT and fault-reset-only cycles.
 - `test_config.py` — `LANE_RANGE` env var enforcement; missing required field; offset exceeds 47; offset below 32.
 
@@ -276,12 +276,21 @@ Run v1 and v2 in parallel against the same input. Two viable sources:
 
 A single divergent byte fails the gate.
 
+### 9.4 Cycle-period stability sweep (lab, acceptance gate)
+Driven by R2. With the parity gate green at one cycle period, repeat the parity run at the full set: **10 / 25 / 50 / 100 / 250 ms**. For each value, record:
+- whether the PLC ever sees a missed handshake step (it should never)
+- `status.last_cycle_us` distribution — the loop must stay well below the configured period
+- whether `get-result` service errors or backpressure rate changes
+- whether the bit-for-bit diff stays empty
+
+The chosen production cycle period lands in the topology's `cfg:plc-result-v2:<cell>.cycle_period_ms`, **not** in code. 50 ms is the design default but can be revised after the sweep.
+
 ---
 
 ## 10. Build & deploy
 
 - `plc-result-v2.Dockerfile` — Python 3.11 base, installs `strokmatic-comm-sdk` from internal PyPI (or via pip from the SDK repo path until the index is up).
-- `plc-result-v2.yml` (docker-compose) — declares `LANE_RANGE=32-47`, mounts the SDK as a dev volume in non-prod, env vars for `REDIS_*`, `CFG_KEY` (= `plc-result-v2:<cell>_<robot>`).
+- `plc-result-v2.yml` (docker-compose) — declares `LANE_RANGE=32-47`, mounts the SDK as a dev volume in non-prod, env vars for `REDIS_*`, `CFG_KEY` (= `plc-result-v2:<cell>`).
 - `cloudbuild.yaml` — mirrors v1's GCP Cloud Build (no new infra, just a new image name `plc-result-v2`).
 
 Topology integration: `spotfusion/topologies/<env>/byte-map.yaml` already lists `result | plc-result-v2 | 32-47` per the master spec — no change needed at topology level.
@@ -292,8 +301,8 @@ Topology integration: `spotfusion/topologies/<env>/byte-map.yaml` already lists 
 
 | ID | Risk | Mitigation |
 |---|---|---|
-| **R1** | v1 stores `result` as an `eval()`-able string of unknown width. Production values might exceed u16. | Before lab parity testing, dump every value `RETURNED_RESULT` has taken in production over the last 30 days from one cell's Redis. Confirm max < 65535. If not, widen to u32 (lane has plenty of room). Adjust `result_off` semantics in `io_map`. |
-| **R2** | The `get-result` service may have implicit timing assumptions that depend on v1's exact cycle period (~100 ms in production deployments). | The cycle period is in `cfg.cycle_period_ms` — start at 10 ms (matching SDK heartbeat default), but fall back to 100 ms if v1 parity testing reveals timing-sensitive coordination. |
+| **R1** | ~~v1 stores `result` as an `eval()`-able string of unknown width. Production values might exceed u16.~~ **RESOLVED 2026-05-08** by widening `result` to u32 LE (4 bytes) before any code is written. Covers the entire AB CIP `DINT` range. |
+| **R2** | The `get-result` service may have implicit timing assumptions tied to v1's cycle cadence. The right cycle period for v2 is not yet known. | `cfg.cycle_period_ms` is live-tunable (default **50 ms**). Stability testing is part of the lab acceptance phase: drive the plugin at 10/25/50/100/250 ms and check (a) PLC never sees a missed handshake step, (b) `get-result` service never errors on rate, (c) `status.last_cycle_us` stays well below the configured period, (d) bit-for-bit parity holds at every value tested. The chosen production value lands in the topology cfg, not in code. |
 | **R3** | Atomicity — writing `result` (2 bytes) + `result_write_comp_dev` (1 byte) + `in_cycle` (1 byte) must arrive at the PLC in the same Class 1 frame, not staggered. | SDK's `PLCBus.write_lane(state)` issues a single `SETRANGE` of the whole 16-byte lane per cycle. The C adapter reads `io:out:<key>` once per RPI and ships it. Two-step writes (e.g. result then ack on next cycle) are not possible in this architecture, which is what we want. |
 | **R4** | An operator edits `io_map` to overlap with the camera plugin's lane (16–31). | Two-layer defense already in master spec: deployment-runner reads `byte-map.yaml` and rejects overlap; `LANE_RANGE` env var enforced at plugin startup. |
 | **R5** | TRYOUT mode in v1 also short-circuits some redis-clear logic. We need to confirm v2's TRYOUT branch doesn't leave stale `GET_RESULT=1` in Redis. | The state machine never sets `GET_RESULT=1` when `cfg.tryout`. Cleanup-on-request-clear still runs. Unit-tested in `test_state_machine.py`. |
@@ -304,19 +313,19 @@ Topology integration: `spotfusion/topologies/<env>/byte-map.yaml` already lists 
 
 - **Replacing the `get-result` service.** It stays as-is. Plc-result-v2 is a drop-in replacement for v1's PLC-facing role only.
 - **Changing the PLC-side ladder logic.** Same handshake the PLC already expects.
-- **Multi-PLC support per container.** One container per (CELL, ROBOT) — same as v1.
+- **Multi-PLC support per container.** One container per CELL — single PLC per instance.
 - **Configurable lane size > 16 bytes.** If a future requirement needs more, that's a master-spec change (byte-map.yaml) and a new spec, not a plc-result-v2 patch.
 - **Built-in test PLC.** Tests use FakePLCBus, not a virtual PLC. Lab parity uses real EIPScanner-based or recorded streams.
 - **Telemetry beyond status hash + audit stream.** No Prometheus, no OpenTelemetry — out of scope for v2.
 
 ---
 
-## 13. Open questions for user review
+## 13. Decisions resolved during review (2026-05-08)
 
-1. **R1 (result width)**: am I right that production `RETURNED_RESULT` values fit in u16? If you already know they overflow, say so and I'll widen to u32 before writing the plan.
-2. **Cycle period**: is 10 ms the right default, or should it match v1's actual production cadence (which I'd guess is ~100 ms based on typical PLC scan rates)?
-3. **Repo branch name**: `v2/sdk-based` consistent with the camera plugin v2 plan — confirm or override.
-4. **Instance key format**: `<cell>_<robot>` or different — confirm or override.
+1. **Result width**: u32 LE — v1 values may exceed `u16` range; widening up front eliminates the risk.
+2. **Cycle period**: default 50 ms; live-tunable via `cfg.cycle_period_ms`; stability testing at multiple values is an explicit lab acceptance task (R2).
+3. **Branch name**: `v2/sdk-based` confirmed (matches the camera plugin v2 plan).
+4. **Instance key**: bare `<CELL>` (1:1 cell-to-PLC in SpotFusion deployments; cfg carries `plc_key` separately for IO bus routing).
 
 ---
 
