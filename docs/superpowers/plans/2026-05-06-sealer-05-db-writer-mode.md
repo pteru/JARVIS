@@ -2,15 +2,15 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: `superpowers:subagent-driven-development` or `superpowers:executing-plans`. Steps use `- [ ]` checkbox tracking.
 
-**Goal:** Configure 3 instances of `visionking-database-writer` (default mode, no code change) for the sealer profile — `frame-writer`, `result-writer-3d`, `result-writer-2d` — each pointing at a distinct queue + INSERT_FUNCTION wrapper from [4.8].
+**Goal:** Configure 2 instances of `visionking-database-writer` (default mode, no code change) for the sealer profile — `frame-writer` and `result-writer-3d` — each pointing at a distinct queue + INSERT_FUNCTION wrapper from [4.8]. Per-segment 2D detection persistence is **out of scope** (deferred to a companion spec, post-pivot 2026-06-01).
 
 **Tech Stack:** YAML topology + bash smoke tests + docs. No Python code change.
 
-**Spec:** `docs/superpowers/specs/2026-05-06-sealer-05-db-writer-mode-design.md`
+**Spec:** `docs/superpowers/specs/2026-05-06-sealer-05-db-writer-mode-design.md` (rev 2026-06-01).
 
 **Repo path:** `services/database-writer/` (no code change), `topologies/sealer-single-node.yaml`, `architecture/vk-sealer-pipeline.md`
 
-**Estimate:** 1d implementation + 0,5d ajustes (was 4d in original sealer-mode approach). ~5 smoke tests.
+**Estimate:** 0.5d implementation + 0.5d ajustes (was 1d + 0.5d in v1 with 3 instances).
 
 ---
 
@@ -43,32 +43,26 @@ services:
       INSERT_FUNCTION: "insert_sealer_measurements"
       PSQL_DB: "sealer"
 
-  # 2D ROI detections
-  result-writer-2d:
-    enabled: true
-    node: main
-    network_mode: host
-    resources: { memory: "1024M", cpus: "0.25" }
-    env_overrides:
-      DB_WRITER_RABBIT_QUEUE: "sealer-2d-result-queue"
-      INSERT_FUNCTION: "insert_sealer_2d_detection"
-      PSQL_DB: "sealer"
-
   inference:
     enabled: true
     env_overrides:
-      INF_PROFILE: "sealer-2d"
+      INF_PROFILE: "sealer-per-frame"
       INF_RABBIT_INPUT_QUEUE: "sealer-inference-queue"
-      INF_RABBIT_OUTPUT_QUEUE: "sealer-2d-result-queue"   # was: sealer-result-queue
+      INF_RABBIT_OUTPUT_QUEUE: "sealer-detection-queue"
+
+  pixel-to-object:                                # NOT a db-writer; topology completeness only
+    enabled: true
+    env_overrides:
+      VK_PROFILE: "sealer"
+      RABBITMQ_INPUT_QUEUE: "sealer-detection-queue"
+      RABBITMQ_OUTPUT_QUEUE: "sealer-result-queue"   # TBD; coordinate with sealer-result spec
 ```
 
-- [ ] **Step 2: queue declaration**
+- [ ] **Step 2: queue declaration verification**
 
-Either via RabbitMQ Management UI or via init script (existing pattern in `services/setup/`). Add:
-- `sealer-2d-result-queue` (durable, with x-dead-letter-exchange → sealer-dlx)
-- `sealer-2d-result-dlq` (DLX target)
+No new queues to declare in this task. Pre-pivot `sealer-2d-result-queue` and `sealer-2d-result-dlq` are **deleted** from any prior topology (not used). The other queues (`sealer-detection-queue` etc.) are owned by the inference + pixel-to-object specs.
 
-If queues are auto-declared by image-saver / inference / db-writer on startup, no explicit step needed — verify after smoke test.
+Verify via RabbitMQ Management UI that the legacy `sealer-2d-result-queue` is absent after redeploy.
 
 - [ ] **Step 3: validate topology**
 
@@ -77,7 +71,7 @@ cd workspaces/strokmatic/visionking
 python -m topology_configurator validate topologies/sealer-single-node.yaml
 ```
 
-- [ ] **Step 4: commit** `feat(sealer-topology): split result-writer into -3d and -2d instances + add sealer-2d-result-queue`
+- [ ] **Step 4: commit** `feat(sealer-topology): 2 db-writer instances (frame-writer + result-writer-3d) + inference sealer-per-frame profile`
 
 ---
 
@@ -90,15 +84,14 @@ Update queue table:
 ```markdown
 | Queue | Routing Key | Producer | Consumer |
 |-------|-------------|----------|----------|
-| `sealer-frame-writer-queue`  | `sealer.frame`        | image-saver               | frame-writer (default mode) |
-| `sealer-processed-queue`     | `sealer.processed`    | image-saver               | point-cloud-processor       |
-| `sealer-measurement-queue`   | `sealer.measurement`  | point-cloud-processor     | sealer-bead-measurement     |
-| `sealer-inference-queue`     | `sealer.inference`    | point-cloud-processor     | inference (sealer-2d)       |
-| `sealer-result-queue`        | `sealer.result`       | sealer-bead-measurement   | result-writer-3d            |
-| `sealer-2d-result-queue`     | `sealer.detection_2d` | inference (sealer-2d)     | result-writer-2d            |
-| `sealer-frame-writer-dlq`    | DLX                   | (NACK)                    | manual triage               |
-| `sealer-result-dlq`          | DLX                   | (NACK)                    | manual triage               |
-| `sealer-2d-result-dlq`       | DLX                   | (NACK)                    | manual triage               |
+| `sealer-frame-writer-queue`  | `sealer.frame`        | image-saver                 | frame-writer (default mode)         |
+| `sealer-processed-queue`     | `sealer.processed`    | image-saver                 | point-cloud-processor               |
+| `sealer-measurement-queue`   | `sealer.measurement`  | point-cloud-processor       | sealer-bead-measurement (SEALER-03) |
+| `sealer-inference-queue`     | `sealer.inference`    | point-cloud-processor       | inference (sealer-per-frame, N/part)|
+| `sealer-detection-queue`     | `sealer.detection`    | inference (sealer-per-frame)| pixel-to-object (VK_PROFILE=sealer) |
+| `sealer-result-queue`        | `sealer.result`       | sealer-bead-measurement     | result-writer-3d                    |
+| `sealer-frame-writer-dlq`    | DLX                   | (NACK)                      | manual triage                       |
+| `sealer-result-dlq`          | DLX                   | (NACK)                      | manual triage                       |
 ```
 
 Update "Database Writer Instances" section:
@@ -106,15 +99,16 @@ Update "Database Writer Instances" section:
 ```markdown
 ## Database Writer Instances
 
-Three instances of `visionking-database-writer` (all in default mode, distinguished only by env vars):
+Two instances of `visionking-database-writer` (all in default mode, distinguished only by env vars):
 
 | Instance         | Queue                           | INSERT_FUNCTION                    | Wraps tables                 |
 |------------------|---------------------------------|------------------------------------|------------------------------|
-| frame-writer     | sealer-frame-writer-queue       | insert_sealer_frame                | tbl_parts → pecas, frames    |
+| frame-writer     | sealer-frame-writer-queue       | insert_sealer_frame                | pecas, frames, frames_pecas  |
 | result-writer-3d | sealer-result-queue             | insert_sealer_measurements         | defeitos_agg + defeitos      |
-| result-writer-2d | sealer-2d-result-queue          | insert_sealer_2d_detection         | defeitos                     |
 
-All wrappers live in sql-vk-common/procedures/sealer/ ([4.8]).
+Wrappers live in `sql-vk-common/procedures/sealer/` ([4.8]).
+
+**Per-segment 2D detection persistence (class IDs 1020/1021) is out of scope of this topology** post the 2026-06-01 pivot — see the spec §2 for context. A companion spec will define a future persistence path.
 ```
 
 - [ ] **Step 2: smoke script** `services/database-writer/scripts/smoke_sealer.sh`
@@ -140,14 +134,7 @@ sleep 2
 $PG -tAc "SELECT COUNT(*) FROM defeitos_agg WHERE peca_id IN (SELECT id FROM pecas WHERE peca='00000000-0000-0000-0000-000000000100')" | grep -q "1"
 $PG -tAc "SELECT COUNT(*) FROM defeitos WHERE peca_id IN (SELECT id FROM pecas WHERE peca='00000000-0000-0000-0000-000000000100')" | grep -q "1"
 
-# Inject a 2D detection
-docker exec sealer-rabbit rabbitmqadmin publish exchange='' \
-    routing_key='sealer-2d-result-queue' \
-    payload='{"part_uuid":"00000000-0000-0000-0000-000000000100","inferred_at":"2026-05-15T10:30:50Z","detections":[{"roi_index":0,"roi_name":"left_sill_front","presence":true,"position_x_px":1340,"width_px":87,"confidence":0.92}]}'
-sleep 2
-$PG -tAc "SELECT COUNT(*) FROM defeitos WHERE class_id=1020 AND peca_id IN (SELECT id FROM pecas WHERE peca='00000000-0000-0000-0000-000000000100')" | grep -q "1"
-
-echo "All 3 db-writer instances smoke test passed"
+echo "All 2 db-writer instances smoke test passed"
 ```
 
 - [ ] **Step 3: run smoke**
@@ -160,7 +147,7 @@ bash services/database-writer/scripts/smoke_sealer.sh
 docker-compose down
 ```
 
-- [ ] **Step 4: commit** `feat(sealer-topology): smoke script + architecture doc update for 3 db-writer instances`
+- [ ] **Step 4: commit** `feat(sealer-topology): smoke script + architecture doc update for 2 db-writer instances`
 
 ---
 
@@ -173,27 +160,30 @@ Add section "Sealer Profile Usage" (no new code, just config):
 ```markdown
 ## Sealer Profile
 
-The sealer profile uses **3 instances** of this service in default mode, each pointing at a different queue and INSERT_FUNCTION:
+The sealer profile uses **2 instances** of this service in default mode, each pointing at a different queue and INSERT_FUNCTION:
 
 | Instance | DB_WRITER_RABBIT_QUEUE | INSERT_FUNCTION |
 |---|---|---|
 | frame-writer | sealer-frame-writer-queue | insert_sealer_frame |
 | result-writer-3d | sealer-result-queue | insert_sealer_measurements |
-| result-writer-2d | sealer-2d-result-queue | insert_sealer_2d_detection |
 
-All 3 stored procedures live in `sql-vk-common/procedures/sealer/` (B-light schema adoption — see SEALER-DB-ADOPTION).
+Both stored procedures live in `sql-vk-common/procedures/sealer/` (B-light schema adoption — see SEALER-DB-ADOPTION).
 
 No code change in this service; sealer support is entirely topology + procedures. See `topologies/sealer-single-node.yaml`.
+
+**Per-segment 2D detection persistence (class IDs 1020/1021) is NOT handled here** post the 2026-06-01 architectural pivot — that path will be defined in a separate companion spec.
 ```
 
 - [ ] **Step 2: backlog SEALER-05 marked complete after merge**
 
 - [ ] **Step 3: changelog entry** via mcp tool:
 ```
-- Added: Sealer profile uses 3 instances of database-writer (default mode):
-  frame-writer, result-writer-3d, result-writer-2d. Each points at a separate
-  queue + INSERT_FUNCTION wrapper. No code change in db-writer service —
-  configuration only. See sealer-single-node.yaml.
+- Added: Sealer profile uses 2 instances of database-writer (default mode):
+  frame-writer and result-writer-3d. Each points at a separate queue +
+  INSERT_FUNCTION wrapper. No code change in db-writer service — configuration
+  only. See sealer-single-node.yaml.
+- Note: per-segment 2D detection persistence (class IDs 1020/1021) is NOT
+  handled here post the 2026-06-01 architectural pivot — companion spec pending.
 ```
 
 - [ ] **Step 4: commit** `docs(database-writer): sealer profile multi-instance configuration`
@@ -203,15 +193,25 @@ No code change in this service; sealer support is entirely topology + procedures
 ## Cross-cutting checks
 
 - Topology validates clean
-- Smoke test passes (all 3 instances writing to expected tables)
+- Smoke test passes (both instances writing to expected tables)
 - Existing default-mode tests still pass (no regression in laminacao/carrocerias deployments)
-- Rabbit DLX configured for all 3 queues
+- Rabbit DLX configured for both queues
+- Legacy `sealer-2d-result-queue` / `sealer-2d-result-dlq` absent from broker after redeploy
 
 ## Definition of done
 
 - All 3 tasks committed
-- 3 db-writer instances running in sealer topology
+- 2 db-writer instances running in sealer topology
 - Smoke test passes
 - Architecture doc updated
 - Backlog SEALER-05 marked complete
 - Changelog entry recorded
+
+---
+
+## Revision history
+
+| Date | Author | Change |
+|---|---|---|
+| 2026-05-07 | Pedro Teruel | Initial plan (3 instances incl. `result-writer-2d`). |
+| 2026-06-01 | Pedro Teruel (with Claude) | Aligned with rewritten spec — dropped `result-writer-2d` and `sealer-2d-result-queue` everywhere; inference env updated for `sealer-per-frame` profile + new queue names; added `pixel-to-object` placeholder in topology for completeness (not a db-writer); per-segment 2D detection persistence noted as out of scope, pending companion spec. Estimate halved (0.5d + 0.5d). |

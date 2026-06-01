@@ -16,10 +16,13 @@ The sealer pipeline reads project data from a bind-mounted folder `/config/seale
 ```
 /config/sealer/CRETA_2026/
 ├── part.stl                  # Triangle mesh CAD
-└── sealer_centerline.json    # 3D bead centerlines (consumed by SEALER-03 and [4.11] inference)
+└── sealer_centerline.json    # 3D bead centerlines (consumed by SEALER-03, SEALER-01 per-frame projection, and downstream [4.11] inference)
 ```
 
-`sealer_centerline.json` is the **single source of truth** for bead geometry: SEALER-03 uses it to extract 3D measurements; the [4.11] 2D inference service derives 2D ROIs at runtime by projecting it through `depth_map_origin_mm` + `depth_map_resolution_mm` (no authored ROI file).
+`sealer_centerline.json` is the **single source of truth** for bead geometry. **Three consumers post-2026-06-01:**
+- **SEALER-03** uses it to extract 3D measurements from `merged.ply`.
+- **SEALER-01** (point-cloud-processor) reads it during Stage 7 and **projects each centerline point per frame** into pixel coords (using intrinsics + extrinsics + `T_part→CAD`), publishing the resulting `centerline_projected[]` to `sealer-inference-queue`.
+- **[4.11] inference** (profile `sealer-per-frame`) consumes the projected `centerline_projected[]` from SEALER-01 and samples a window per point. It does **not** read `sealer_centerline.json` directly anymore (was used by the pre-pivot stitched-image flow).
 
 This spec defines a **Phase 1 CLI tooling suite** to produce these files from upstream sources (STEP CADs and robot path exports). **No GUI** — Strokmatic engineering operates manually per new car model. GUI is deferred to **Phase 2 backlog** (separate epic, post-comissionamento).
 
@@ -189,12 +192,14 @@ Estimated time per model: **~20 min** (assuming inputs are clean).
 ## 11. References
 
 - SEALER-03 spec (centerline JSON schema; `sealer_centerline.json` is the input contract)
-- [4.11] 2D inference spec (consumes `sealer_centerline.json` and derives ROIs at runtime — no authored ROI file)
+- `2026-06-01-sealer-inference-per-frame-design.md` (substitui [4.11]) — consome `centerline_projected[]` já em pixel coords (não lê `sealer_centerline.json` direto)
+- `2026-04-13-sealer-01-point-cloud-processor-design.md` §4 Stage 7 — consome `sealer_centerline.json` na projeção per-frame
 - [4.13] E2E test spec (uses synthetic outputs of these tools as fixtures)
 
 ---
 
 ## Revision History
 
-- **2026-05-07** — Removed `roi-builder` CLI tool and `sealer_2d_rois.json` artifact. The 2D inference service ([4.11]) now derives ROIs at runtime from `sealer_centerline.json` + depth_map metadata — single source of truth between SEALER-03 and inference. Saves the authoring step entirely (no operator decision required for ROI placement). Tool count reduced from 5 to 4; estimated provisioning time reduced from ~30 min to ~20 min per model.
+- **2026-06-01** — Centerline consumer list reorganised after the SEALER architectural pivot: SEALER-01 now consumes `sealer_centerline.json` during a new per-frame centerline projection stage, and publishes pixel-coord points to the inference. The inference itself no longer reads the JSON. SEALER-03 consumption unchanged. Schema unchanged on this side (the `bead_id` + `expected_height_mm` additions are tracked in SEALER-03 §3.3, which is the SSOT for the schema).
+- **2026-05-07** — Removed `roi-builder` CLI tool and `sealer_2d_rois.json` artifact. The (then-current) 2D inference service derived ROIs at runtime from `sealer_centerline.json` + depth_map metadata — single source of truth between SEALER-03 and inference. Saved the authoring step entirely. Tool count reduced from 5 to 4; estimated provisioning time reduced from ~30 min to ~20 min per model. *(Note 2026-06-01: the runtime-ROI-derivation flow was itself superseded — see entry above.)*
 - **2026-05-06** — Initial draft.

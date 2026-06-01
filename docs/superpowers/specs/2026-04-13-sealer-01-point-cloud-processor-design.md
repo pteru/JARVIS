@@ -15,19 +15,20 @@ The `point-cloud-processor` is a **multi-frame aggregator with 3D processing** f
 1. Accumulates individual frame messages (PLY + BIN) from the same part (identified by VIN number)
 2. Registers and merges the point clouds into a single cloud using known encoder positions
 3. **Best-fit registers the merged cloud against the CAD STL of the part**, producing `T_part→CAD` and yielding a cloud expressed in CAD coordinates
-4. Stitches the 2D images into a composite view
-5. Generates a depth map (2D projection in CAD frame) for ROI projection and ML inference
-6. Publishes results downstream (measurement + inference queues), including `T_part→CAD` so consumers can reason about CAD-frame geometry
+4. *(Optional, env-gated)* Generates a **per-frame depth map** (2D projection of each frame's cloud onto the CAD-XY plane), N maps per part. Off by default — no current consumer in the pipeline; useful for operator diagnostics / heightmap visualization during commissioning.
+5. **Per-frame centerline projection**: projects `sealer_centerline.json` points into pixel coords of each frame using composed pose (calibration + encoder + `T_part→CAD`), computes per-point `px_per_mm` + optional `tangent_uv`, filters in-FOV, and **fans out N per-frame messages** to `sealer-inference-queue` for the centerline-driven inference service
+6. Publishes 1 consolidated message to `sealer-measurement-queue` (consumed by SEALER-03) including `T_part→CAD`
 
 ### Key Design Decisions
 
 - **Accumulation pattern**: Redis hash per scan (same as DieMaster `StrokeAccumulator`)
 - **Frame count**: Configurable per Model Type via Redis DB3 `settings` hash; falls back to timeout-only if not configured
 - **Inter-frame registration**: Translation-only using known encoder positions (no ICP)
-- **CAD registration**: ICP point-to-plane against the part STL after merge — yields `T_part→CAD` and publishes the consolidated cloud + depth map already in CAD frame. Centralising it here means **downstream services (sealer-bead-measurement, sealer-2d inference) consume CAD-aligned outputs without re-running ICP**, and ROIs can be defined in CAD space and projected per part.
+- **CAD registration**: ICP point-to-plane against the part STL after merge — yields `T_part→CAD` and publishes the consolidated cloud already in CAD frame. Centralising it here means **downstream services (sealer-bead-measurement, sealer-per-frame inference) consume CAD-aligned outputs without re-running ICP**.
 - **Overlap handling**: Voxel grid downsampling (simple, effective)
-- **Image stitching**: Undistort + translation + linear feathering, with optional ECC refinement
-- **Four outputs in Phase 1**: merged PLY (in CAD frame), stitched PNG, depth map NPY (in CAD frame), `T_part→CAD`
+- **No image stitching** (removed 2026-06-01). The new inference is centerline-driven per-frame; no consumer needs a stitched PNG.
+- **Per-frame centerline projection + fan-out**: a final pipeline stage projects the centerline (CAD mm) into pixel coords of each frame using `K` from the calibration file + `encoder_position_mm` shift + `T_part→CAD`. N messages published to `sealer-inference-queue` (one per frame). Contract: `2026-06-01-sealer-inference-per-frame-design.md` §4.
+- **Outputs**: merged PLY (CAD frame), N per-frame messages to `sealer-inference-queue`, 1 consolidated message to `sealer-measurement-queue` (with `T_part→CAD`). Per-frame depth maps (CAD frame, N files) emitted only when `PCP_DEPTH_MAP_ENABLED=true`.
 
 ---
 
@@ -59,16 +60,22 @@ The `point-cloud-processor` is a **multi-frame aggregator with 3D processing** f
                          │  │ 5. CAD best-fit (ICP)     │◄─────┼──── part.stl
                          │  │     → T_part→CAD          │      │
                          │  │     → apply T to cloud    │──────┼───► merged.ply (CAD frame)
-                         │  │ 6. Undistort + stitch     │──────┼───► stitched.png
-                         │  │ 7. Generate depth map     │──────┼───► depth_map.npy (CAD frame)
+                         │  │ 6. Per-frame depth map    │┄┄┄┄┄┄┼┄┄► depth_map_{frame_uuid}.npy
+                         │  │    (per frame, CAD-XY)    │      │     (N files, CAD frame)
+                         │  │    OPT-IN via env flag    │      │     ONLY when DEPTH_MAP_ENABLED
+                         │  │ 7. Per-frame centerline   │◄─────┼──── sealer_centerline.json
+                         │  │    projection (3D→u,v +   │      │
+                         │  │    px/mm + tangent)       │      │
                          │  └───────────────────────────┘      │
                          │           │                     │
                          └───────────┼─────────────────────┘
                                      │
-                      ┌──────────────┴──────────────┐
-                      ▼                             ▼
-          sealer-measurement-queue       sealer-inference-queue
-          (bead-measurement)             (inference, Phase 2)
+                      ┌──────────────┴──────────────────────┐
+                      ▼                                     ▼
+          sealer-measurement-queue              sealer-inference-queue
+          (bead-measurement, 1 msg/part)        (per-frame inference,
+                                                 N msgs/part with
+                                                 centerline_projected[])
 ```
 
 ### Input Message (from `sealer-processed-queue`)
@@ -90,7 +97,13 @@ The `point-cloud-processor` is a **multi-frame aggregator with 3D processing** f
 }
 ```
 
-### Output Message (to both downstream queues)
+### Output Messages — bifurcated
+
+The pipeline emits **two distinct kinds** of message:
+
+#### (a) 1 consolidated message → `sealer-measurement-queue`
+
+Consumed by SEALER-03 (sealer-bead-measurement). Same shape as before, minus stitching:
 
 ```json
 {
@@ -102,13 +115,10 @@ The `point-cloud-processor` is a **multi-frame aggregator with 3D processing** f
   "partial": false,
   "degraded": false,
   "merged_ply_path": "/img_saved/def-456/HK3D001/merged.ply",
-  "depth_map_path": "/img_saved/def-456/HK3D001/depth_map.npy",
-  "stitched_image_path": "/img_saved/def-456/HK3D001/stitched.png",
+  "depth_maps": [],
   "total_points": 1850000,
   "scan_duration_ms": 8500,
   "processed_at": "2026-05-27T14:30:14.000Z",
-  "depth_map_origin_mm": [-450.0, -1200.0],
-  "depth_map_resolution_mm": 0.5,
   "cad_registration": {
     "T_part_to_CAD": [[1.0, 0.0, 0.0, 0.5],
                      [0.0, 1.0, 0.0, -1.2],
@@ -124,9 +134,34 @@ The `point-cloud-processor` is a **multi-frame aggregator with 3D processing** f
 }
 ```
 
-`T_part_to_CAD` is the 4×4 rigid transform that has **already been applied** to `merged.ply` and to the cloud underlying `depth_map.npy`. Consumers should treat both files as expressed in CAD coordinates. `depth_map_origin_mm = [x_min, y_min]` and `depth_map_resolution_mm` describe the grid origin and pixel size in CAD coordinates so consumers can map pixel ↔ CAD position without ambiguity. The matrix is published for diagnostics, drift monitoring, and to allow consumers (e.g. 2D inference) to project CAD-frame ROIs into pixel space without re-running ICP.
+Changes vs the pre-2026-06-01 version:
+- `stitched_image_path` **removed** (no stitching).
+- `depth_map_path` + top-level `depth_map_origin_mm` / `depth_map_resolution_mm` **replaced** by `depth_maps[]` array. When `PCP_DEPTH_MAP_ENABLED=true`, the array contains one entry per frame:
+  ```json
+  {"frame_uuid": "...", "frame_index": 0,
+   "path": "/img_saved/def-456/HK3D001/depth_map_<uuid0>.npy",
+   "origin_mm": [-450.0, -1200.0], "resolution_mm": 0.5}
+  ```
+  When `false` (default), `depth_maps` is an empty array.
 
-If `cad_registration.converged=false` (RMSE above the threshold or ICP fails to find enough inliers), the message is published with `degraded=true`, `T_part_to_CAD = identity`, and the cloud and depth map are kept in part frame. Downstream services should fail safe — no measurements emitted; the part is flagged for re-inspection.
+`T_part_to_CAD` is the 4×4 rigid transform that has **already been applied** to `merged.ply` (and to each per-frame cloud underlying the `depth_maps[].path` files when present). Consumers should treat all of them as expressed in CAD coordinates.
+
+If `cad_registration.converged=false`, the message is published with `degraded=true`, `T_part_to_CAD = identity`, clouds + depth maps kept in part frame, **and no `sealer-inference-queue` messages are emitted** (the per-frame centerline projection would land in wrong pixels — see §7). Downstream services should fail safe.
+
+#### (b) N per-frame messages → `sealer-inference-queue`
+
+Consumed by `vk-inference` profile `sealer-per-frame`. One message per frame. Contract is **defined by**:
+
+> `docs/superpowers/specs/2026-06-01-sealer-inference-per-frame-design.md` §4 (FROZEN input contract).
+
+Key fields produced by this service (full schema in that spec):
+
+- `frame_uuid`, `part_uuid`, `vin_number`, `model_type`, `camera_serial_number`, `camera_id`, `frame_index`, `total_frames_hint`
+- `frame_image_path` (from the raw frame on disk)
+- `frame_captured_at`, `scan_started_at`, `frame_current_position`, `camera_current_position`, `frame_info`
+- `centerline_projected[]` — one entry per centerline point that lies in this frame's FOV, each with `bead_id`, `bead_name`, `segment_idx`, `u`, `v`, `px_per_mm`, `tangent_uv`, `expected_width_mm`, `expected_height_mm`
+
+Emission timing: published in batch at the end of Stage 7, after CAD registration. Frame ordering preserved by `frame_index`. The downstream `pixel-to-object` SequenceManager handles ordering via the reorder window.
 
 ---
 
@@ -330,40 +365,83 @@ For Hyundai Creta CAD (~50k vertices, ~50k sampled target) and merged cloud ~1.8
 - Apply T + save: ~50 ms
 - **Total stage budget**: ~500 ms (warm cache: ~400 ms)
 
-### Stage 6 — Image Stitching
+### Stage 6 — Per-frame Depth Map Generation (OPTIONAL, opt-in via env)
 
-Composition of 2D images by translation (same principle as point clouds):
+**Gated by `PCP_DEPTH_MAP_ENABLED`** (env var, default `false`). When `false`, the stage is skipped entirely, no files are written, and `depth_maps` in the output message is `[]`.
 
-1. **Undistort**: correct lens distortion on each frame using camera intrinsic matrix (K) and distortion coefficients (D)
-   - `cv2.undistort(frame, K, D)` or `cv2.remap` with pre-computed maps (faster for N frames)
-   - K and D loaded from calibration file: `PCP_CAMERA_CALIBRATION_FILE` (YAML or JSON, standard OpenCV format)
-   - Remap maps computed once at startup and reused for all frames
-2. **Position** each corrected frame on the canvas using encoder shift converted to pixels:
-   - `shift_px = shift_mm * sealer_image_pixels_per_mm`
-3. **Linear feathering** (alpha ramp) in the overlap band between consecutive images
+**Rationale for opt-in:** post the 2026-06-01 pivot, no service in the current pipeline consumes the depth map. SEALER-03 reads `merged.ply` directly; the new per-frame inference reads `frame_image_path` directly. The stage is kept as a diagnostic output for commissioning / operator-side heightmap visualization, and ready to wire to a future analyzer if one needs depth context.
 
-Output: `stitched.png` saved to `/img_saved/{part_uuid}/{camera_serial}/stitched.png`
+When enabled, after Stage 5, each per-frame cloud (kept in memory from Stage 3 — encoder-translated, not yet CAD-aligned) is transformed individually by `T_part→CAD` and projected:
 
-### Stage 7 — Depth Map Generation
+1. For each frame `f` (sorted by encoder position):
+   - `cloud_cad_f = T_part→CAD @ cloud_translated_f` (cloud was kept around since Stage 3)
+   - Project `cloud_cad_f` onto the CAD-XY plane (top-down)
+   - Each pixel = minimum Z value of points falling in the cell
+   - Per-frame bounding box → per-frame `origin_mm` + same `resolution_mm` (Redis tunable `sealer_depth_map_resolution_mm`, default 0.5)
+2. Save `depth_map_{frame_uuid}.npy` per frame to `/img_saved/{part_uuid}/{camera_serial}/`
+3. Per-frame entry in `depth_maps[]` in the consolidated output message (§ Output Messages a).
 
-2D projection of the merged cloud (already in CAD frame after Stage 5) for ROI projection and ML inference:
+Notes:
+- When disabled (default), the N translated clouds can be freed right after Stage 5 (which has already produced the merged+transformed cloud). Memory peak drops by ~50 MB.
+- When enabled, the N translated clouds stay in memory through Stage 6 (~50 MB extra for 20 frames of 100k points each).
+- If a future consumer needs a merged depth map back, it is straightforward to derive by stacking the per-frame ones onto a shared canvas.
 
-1. Project the cloud onto the CAD-XY plane (top-down view of the body panel in CAD coordinates)
-2. Each pixel = minimum Z value of points falling in the cell
-3. Pixel grid origin and resolution determined by the cloud's bounding box and `sealer_depth_map_resolution_mm`. The grid origin (`x_min`, `y_min` in CAD mm) is published in the output message so consumers can map pixel ↔ 3D CAD coordinates without ambiguity.
-4. Format: numpy array float32 + sidecar metadata
+### Stage 7 — Per-frame Centerline Projection + Inference Fan-out
 
-Output:
-- `depth_map.npy` saved to `/img_saved/{part_uuid}/{camera_serial}/depth_map.npy`
-- `depth_map_origin_mm = [x_min, y_min]` and `depth_map_resolution_mm` in output message
+The new stage that feeds the per-frame inference (`vk-inference` profile `sealer-per-frame`). Produces N messages on `sealer-inference-queue`, one per frame.
+
+#### 7.1 Inputs
+
+- `sealer_centerline.json` loaded from `${PCP_CAD_DIR}/${model_type}/sealer_centerline.json`, mtime-cached per model_type (same caching pattern as the STL).
+- `K` (intrinsic matrix) and `D` (distortion coeffs) from `PCP_CAMERA_CALIBRATION_FILE` — already loaded at startup.
+- `T_part→CAD` from Stage 5.
+- Per-frame `encoder_position_mm`.
+- `PCP_SHIFT_UNIT_VECTOR` (existing env, e.g. `[0, 1, 0]`).
+- Reference encoder = `frames[0].encoder_position_mm` (frame 0 anchors the camera coord system, matching the conventions of Stage 3 / Stage 5).
+
+#### 7.2 Algorithm
+
+For each frame `f`:
+
+1. **Compose pose** — for a point `p_cad` in CAD coords, transform to frame `f`'s camera coords:
+   ```
+   p_part = inv(T_part→CAD) @ p_cad
+   shift_f = (encoder_f - encoder_0) * PCP_SHIFT_UNIT_VECTOR   # vector in camera-0 coords
+   p_cam_f = p_part - shift_f                                   # camera f sees scene shifted by -shift_f
+   ```
+   *(Convention: `merged.ply` post-Stage 5 lives in CAD coords; the per-frame cloud in camera-frame coords post-Stage 3 lives in "camera 0" frame, so `shift_f` is in camera-0 coords identically to the original Stage 3 translation.)*
+
+2. **For each bead** in `sealer_centerline.json`:
+   - Resample the polyline at `sealer_centerline_resample_arc_length_mm` (Redis, default 10 mm) to get evenly-spaced 3D centerline points `p_cad_i` with monotonic `segment_idx = i`.
+   - For each `p_cad_i`:
+     - `p_cam_i = inv(T_part→CAD) @ p_cad_i - shift_f`
+     - **Reject if** `p_cam_i.z <= 0` (behind the camera).
+     - Project: `(u, v) = K @ (p_cam_i.x/z, p_cam_i.y/z, 1)`, then apply distortion via `cv2.projectPoints` for accuracy.
+     - **px/mm**: `px_per_mm = fx / p_cam_i.z` (pinhole derivative; `fx` from `K[0,0]`).
+     - **tangent_uv** (optional, computed when neighbors exist): project `p_cad_{i-1}` and `p_cad_{i+1}`; tangent_uv = normalize((u_{i+1} - u_{i-1}, v_{i+1} - v_{i-1})). For endpoints use the available neighbor.
+     - **In-FOV filter**: compute the window side that the downstream inference will use (`INF_SEALER_WINDOW_SIDE_PX` for fixed mode, or `K_factor × max(expected_width, expected_height) × px_per_mm` for dynamic — both are config in the inference service). To stay decoupled, this service applies a **generous margin filter**: `sealer_centerline_in_fov_margin_px` (Redis, default 128 px) — accept if `margin < u < W - margin` and `margin < v < H - margin`. Inference re-rejects with its own logic if needed.
+     - Build the per-point dict per the inference spec §4 (`bead_id`, `bead_name`, `segment_idx`, `u`, `v`, `px_per_mm`, `tangent_uv`, `expected_width_mm`, `expected_height_mm`).
+
+3. **If `centerline_projected[]` is empty** (all centerline points fell outside FOV for this frame), still publish the message with empty array. The inference service ACKs and publishes empty `detections=[]`. Avoids "missing frame" gaps in the downstream SequenceManager.
+
+4. **Publish** one message per frame to `sealer-inference-queue`. Contract: `2026-06-01-sealer-inference-per-frame-design.md` §4.
+
+#### 7.3 Skip on degraded
+
+If `cad_registration.converged == false` (Stage 5 failure), this stage is **skipped entirely**. No messages emitted to `sealer-inference-queue`. The consolidated measurement message still goes out with `degraded=true` so SEALER-03 can NACK to DLX.
+
+#### 7.4 Performance
+
+Cheap math: 20 frames × ~200 centerline points × ~20 µs per projection = ~80 ms total. Negligible vs the ICP cost (~300 ms).
 
 ### Output Summary
 
-| File | Format | Stage | Frame | Consumer |
-|------|--------|-------|-------|----------|
-| `merged.ply` | PLY (binary) | 5 (saved after CAD transform) | CAD | sealer-bead-measurement |
-| `stitched.png` | PNG | 6 | image (per-frame undistorted, encoder-aligned) | sealer-2d inference, dashboard |
-| `depth_map.npy` | numpy float32 | 7 | CAD (XY) | sealer-2d inference (pixel↔CAD mapping) |
+| File / Message | Format | Stage | Frame | Consumer |
+|---|---|---|---|---|
+| `merged.ply` | PLY (binary) | 5 | CAD | sealer-bead-measurement (SEALER-03) |
+| `depth_map_{frame_uuid}.npy` (N files, **opt-in**) | numpy float32 | 6 | CAD (XY) | diagnostic / future analyzers; not consumed by current pipeline; only emitted when `PCP_DEPTH_MAP_ENABLED=true` |
+| `sealer-measurement-queue` (1 msg) | JSON | post-6 | meta | sealer-bead-measurement (SEALER-03) |
+| `sealer-inference-queue` (N msgs) | JSON | 7 | meta + pixel coords | vk-inference profile `sealer-per-frame` |
 
 ---
 
@@ -379,8 +457,9 @@ Adjustable without restart. Read before each scan's pipeline runs.
 | `sealer_outlier_nb_neighbors` | `20` | 2 | SOR: number of neighbors for mean distance |
 | `sealer_outlier_std_ratio` | `2.0` | 2 | SOR: standard deviation multiplier threshold |
 | `sealer_voxel_size` | `0.5` | 4 | Voxel grid size in mm for downsampling |
-| `sealer_image_pixels_per_mm` | (required) | 6 | Pixel-to-mm ratio from camera calibration |
-| `sealer_depth_map_resolution_mm` | `0.5` | 7 | Depth map pixel size in mm (CAD frame) |
+| `sealer_depth_map_resolution_mm` | `0.5` | 6 | Per-frame depth map pixel size in mm (CAD frame) |
+| `sealer_centerline_resample_arc_length_mm` | `10.0` | 7 | Arc-length spacing for centerline resampling before projection |
+| `sealer_centerline_in_fov_margin_px` | `128` | 7 | Pixel margin for in-FOV filter (generous; inference re-rejects if needed) |
 | `sealer_cad_target_sample_size` | `50000` | 5 | Number of points sampled from STL into ICP target |
 | `sealer_cad_icp_voxel_size_mm` | `1.0` | 5 | Voxel size for source cloud downsampling before ICP |
 | `sealer_cad_icp_max_correspondence_distance_mm` | `5.0` | 5 | ICP correspondence cutoff |
@@ -396,8 +475,9 @@ Fixed at deploy time. Require restart to change.
 |-----------|-------------|
 | `PCP_RABBIT_BROKER_HOST/PORT/USER/PASS` | RabbitMQ connection |
 | `PCP_RABBIT_INPUT_QUEUE` | Input queue (`sealer-processed-queue`) |
-| `PCP_RABBIT_MEASUREMENT_QUEUE` | Output queue for bead measurement |
-| `PCP_RABBIT_INFERENCE_QUEUE` | Output queue for inference |
+| `PCP_RABBIT_MEASUREMENT_QUEUE` | Output queue for bead measurement (1 msg/part) |
+| `PCP_RABBIT_INFERENCE_QUEUE` | Output queue for per-frame inference (N msgs/part). Default: `sealer-inference-queue` |
+| `PCP_DEPTH_MAP_ENABLED` | Opt-in for Stage 6 (per-frame depth map). Default: `false` — no current consumer; turn on for diagnostics/visualization |
 | `PCP_REDIS_HOST/PORT/PASS` | Redis connection |
 | `PCP_REDIS_DB_ACCUMULATOR` | Redis DB for scan accumulation |
 | `PCP_SCAN_TIMEOUT` | Seconds without new frames before processing partial (default: 30) |
@@ -435,8 +515,8 @@ services/point-cloud-processor/
 │   │   ├── registration.py                      # Stage 3: translation by encoder
 │   │   ├── merge.py                             # Stage 4: concatenation + voxel downsample
 │   │   ├── cad_registration.py                  # Stage 5: best-fit ICP → T_part_to_CAD
-│   │   ├── stitching.py                         # Stage 6: undistort + stitch 2D
-│   │   └── depth_map.py                         # Stage 7: Z projection (CAD frame) → numpy
+│   │   ├── depth_map.py                         # Stage 6: per-frame Z projection (CAD frame) → numpy
+│   │   └── centerline_projection.py             # Stage 7: per-frame centerline 3D→(u,v) + fan-out
 │   ├── calibration/
 │   │   ├── factory_calibration.py               # camera intrinsics from .hibag
 │   │   └── cad_loader.py                        # STL load + sample + cache by model_type
@@ -449,8 +529,8 @@ services/point-cloud-processor/
     ├── test_merge.py
     ├── test_cad_registration.py
     ├── test_cad_loader.py
-    ├── test_stitching.py
-    └── test_depth_map.py
+    ├── test_depth_map.py
+    └── test_centerline_projection.py
 ```
 
 ### Lifecycle
@@ -459,13 +539,12 @@ services/point-cloud-processor/
 Startup:
   1. Read PCP_* env vars
   2. Connect to Redis (accumulator DB + settings DB3)
-  3. Load camera calibration file
-  4. Pre-compute undistort remap maps
-  5. Validate PCP_CAD_DIR exists (warn if no STLs found — service still starts; per-message DLX on missing STL)
-  6. Connect to RabbitMQ (connect_robust)
-  7. Check if settings hash exists → log warning if not
-  8. Flush stale scans from Redis (post-restart recovery)
-  9. Start consumer on sealer-processed-queue
+  3. Load camera calibration file (K + D — used by Stage 7 centerline projection)
+  4. Validate PCP_CAD_DIR exists (warn if no STLs or centerlines found — service still starts; per-message DLX on missing STL/centerline)
+  5. Connect to RabbitMQ (connect_robust)
+  6. Check if settings hash exists → log warning if not
+  7. Flush stale scans from Redis (post-restart recovery)
+  8. Start consumer on sealer-processed-queue
 
 Runtime (per message):
   1. Decode message
@@ -491,10 +570,12 @@ Shutdown (SIGTERM/SIGINT):
 | **model_type absent from `sealer_model_frames_map`** | Accumulate in timeout-only mode. Log warning once per unknown model_type. |
 | **PLY/BIN not found on disk** | Log error, mark frame as `missing` in accumulator. On processing, skip missing frames. If >30% missing → log error, `"degraded": true` in downstream message. |
 | **Corrupted PLY** (Open3D fails to read) | Same as missing — skip + log. |
-| **BIN with unknown magic bytes** | Skip frame in stitching (cloud still used). Log warning. |
+| **BIN with unknown magic bytes** | Log warning. BIN is still consumed as a raw frame image (Stage 7 reads it via `frame_image_path`); the image-saver handles the magic to set the right extension. |
 | **CAD STL missing for model_type** | NACK without requeue → DLX. Log error. Operator must provision the STL before retry. |
 | **CAD STL unreadable / corrupt** | NACK without requeue → DLX. Same handling as missing. |
-| **ICP fails to converge** (RMSE > threshold or fitness < min) | Continue pipeline. Save merged.ply in part frame. Output message has `degraded=true`, `cad_registration.converged=false`, `T_part_to_CAD = identity`. Downstream services skip measurement. |
+| **ICP fails to converge** (RMSE > threshold or fitness < min) | Continue pipeline up to Stage 6 (per-frame depth maps still produced in part frame for diagnostics). **Skip Stage 7 entirely** — no `sealer-inference-queue` messages emitted. Consolidated message published with `degraded=true`, `cad_registration.converged=false`, `T_part_to_CAD = identity`. Downstream services skip measurement. |
+| **`sealer_centerline.json` missing for `model_type`** | NACK without requeue → DLX. Log error. Operator must provision the centerline before retry (via `[4.9]` provisioning CLI). |
+| **`sealer_centerline.json` schema-invalid** (no `beads`, missing `bead_id`/`points`) | NACK without requeue → DLX. Same handling. |
 | **Pipeline processing fails** (OOM, Open3D crash) | NACK without requeue → DLX. Log error with stack trace. Memory cleanup. |
 | **Redis unavailable** | redis-py auto-reconnects. Messages remain unacked in RabbitMQ until reconnection. |
 | **RabbitMQ unavailable** | aio-pika `connect_robust` auto-reconnects. |
@@ -529,8 +610,10 @@ Structured log (loguru, JSON format) emitted after each scan is processed:
   "cad_registration_rmse_mm": 0.42,
   "cad_registration_fitness": 0.93,
   "cad_registration_converged": true,
-  "stitch_ms": 1500,
-  "depth_map_ms": 850
+  "depth_map_ms": 1000,           // null when PCP_DEPTH_MAP_ENABLED=false
+  "depth_map_files_written": 20,  // 0 when disabled
+  "centerline_projection_ms": 80,
+  "inference_messages_published": 20
 }
 ```
 
@@ -550,8 +633,8 @@ Each pipeline module tested in isolation with synthetic data:
 | `test_merge.py` | Concatenation preserves all points; voxel downsample reduces overlap density; non-overlap points unaffected |
 | `test_cad_loader.py` | Loads STL by model_type; samples target with deterministic seed; cache hit on second call; mtime invalidation; missing file raises |
 | `test_cad_registration.py` | Identity-aligned input → T ≈ identity, RMSE near 0; small (<10mm/2°) perturbation → recovers within tolerance; large (50mm/30°) perturbation → flagged as not converged; respects rmse and fitness thresholds; cloud transformed in-place after success; cloud unchanged on failure |
-| `test_stitching.py` | Undistort applies calibration correctly; shift positioning in pixels; feathering in overlap; canvas sized correctly |
-| `test_depth_map.py` | Correct Z projection; configurable resolution; empty pixels = NaN; float32 format |
+| `test_depth_map.py` | When enabled: per-frame Z projection of each translated cloud (post-Stage 5 T applied); configurable resolution; empty pixels = NaN; float32 format; one file per frame. When disabled (default): stage skipped; no files written; `depth_maps=[]` in output |
+| `test_centerline_projection.py` | Centerline JSON loaded + cached by model_type; pose composition (T_part→CAD + encoder shift) maps a known CAD point to expected camera coords; pinhole projection (with distortion) matches `cv2.projectPoints` to sub-pixel; `px_per_mm = fx / Z` for a synthetic plane; `tangent_uv` correct for a straight bead; in-FOV margin filter; degraded skip (no msgs emitted when `cad_registration.converged=false`); fan-out emits N messages for N in-FOV frames |
 | `test_redis_settings.py` | Reads `sealer_model_frames_map` from `settings` hash; timeout-only fallback when hash missing; fallback when model_type absent |
 
 ### Accumulator Tests
@@ -570,9 +653,10 @@ Full flow test:
 2. Verify:
    - All frames accumulated in Redis
    - Pipeline runs after last frame
-   - `merged.ply`, `stitched.png`, `depth_map.npy` saved to disk
-   - Message published to `sealer-measurement-queue` with correct paths
-   - Message published to `sealer-inference-queue` with correct paths
+   - `merged.ply` saved to disk
+   - N `depth_map_{frame_uuid}.npy` saved to disk **only when `PCP_DEPTH_MAP_ENABLED=true`** (E2E should run both modes; default-off ensures the rest of the pipeline does not silently depend on it)
+   - Message published to `sealer-measurement-queue` with `depth_maps[]` populated (or empty when disabled)
+   - **N** messages published to `sealer-inference-queue` (one per frame), each with `centerline_projected[]` populated per FROZEN contract
    - Scan cleaned from Redis after processing
 
 Additional scenarios:
@@ -617,9 +701,11 @@ From `topologies/sealer-single-node.yaml`:
 
 - 20 PLY frames × ~100K points × 24 bytes (XYZ float64) = ~48 MB raw
 - KD-tree + voxel grid intermediates: ~3–5× = ~200 MB peak
-- Images (20 frames × ~2 MB): ~40 MB
-- Stitched canvas: ~20 MB
+- Per-frame translated clouds kept until Stage 6 only when depth map enabled: ~50 MB (freed at Stage 5 otherwise)
+- Per-frame depth maps in memory before save (when enabled): ~20 MB
+- Images (20 frames × ~2 MB) referenced by path; not loaded by this service: negligible
 - CAD STL + sampled target (cached per model_type, ~50k points): ~5 MB per model
+- `sealer_centerline.json` (cached, ~200 points × 3 × 8B per bead × ~10 beads): negligible
 - **Peak estimate**: ~500 MB–1 GB — well within 4 GB allocation
 
 ### Cycle Time Estimate
@@ -631,9 +717,9 @@ Target: < 45 seconds (900 cars/day = 1 car every 96 seconds, but pipeline shares
 - Inter-frame registration: < 0.1 s
 - Merge + voxel downsample: ~2 s
 - CAD registration (ICP): ~0.5 s
-- Image stitching: ~2 s
-- Depth map generation: ~1 s
-- **Total estimate**: ~10.5 s — comfortable margin
+- Per-frame depth maps (20 × ~50 ms) — **only if `PCP_DEPTH_MAP_ENABLED=true`**: ~1 s
+- Per-frame centerline projection + fan-out (20 frames × ~200 points × pinhole + publish): <0.5 s
+- **Total estimate**: ~8 s with depth map off (default); ~9 s with depth map on. Stitching removed shaves ~2 s vs the pre-2026-06-01 budget.
 
 ---
 
@@ -668,8 +754,8 @@ python-dotenv
 
 ### Downstream Services
 
-- `sealer-bead-measurement` — consumes from `sealer-measurement-queue`, reads `merged.ply` (in CAD frame, no further registration required)
-- `inference` (sealer-2d profile) — consumes from `sealer-inference-queue`, reads `stitched.png` and `depth_map.npy`. Uses `T_part_to_CAD` and `depth_map_origin_mm`/`depth_map_resolution_mm` to project CAD-defined ROIs into pixel coordinates.
+- `sealer-bead-measurement` — consumes from `sealer-measurement-queue`, reads `merged.ply` (in CAD frame, no further registration required). Per-frame depth maps are listed in `depth_maps[]` for optional consumption.
+- `vk-inference` profile `sealer-per-frame` — consumes from `sealer-inference-queue`, one message per frame. Reads `frame_image_path` and the pre-computed `centerline_projected[]`. No CAD-frame logic; no depth_map read. Contract: `2026-06-01-sealer-inference-per-frame-design.md`.
 
 ---
 
@@ -707,3 +793,4 @@ CMD ["python3", "./visionking-point-cloud-processor.py"]
 |---|---|---|
 | 2026-04-13 | Pedro Teruel | Initial design (6 stages: load, SOR, registration, merge, stitching, depth_map). |
 | 2026-05-07 | Pedro Teruel | Added Stage 5 — CAD Registration (best-fit ICP merged ↔ CAD STL). Output messages now include `T_part_to_CAD`, `depth_map_origin_mm`, `depth_map_resolution_mm`. `merged.ply` and `depth_map.npy` published in CAD frame. Centralising best-fit here removes the need for downstream services (sealer-bead-measurement, sealer-2d inference) to run their own registration, and unblocks CAD-defined ROI projection for 2D inference. |
+| 2026-06-01 | Pedro Teruel (with Claude) | **Architectural pivot to per-frame inference.** Stage 6 (Image Stitching) **removed entirely** — no consumer needs `stitched.png` anymore. Stage 7 (Depth Map) **changed to per-frame** AND **made opt-in** via `PCP_DEPTH_MAP_ENABLED` (default `false`): no current consumer in the new pipeline; kept as diagnostic output for commissioning/visualization. When enabled, N maps published in CAD frame; `depth_maps[]` array in the consolidated message lists per-frame paths + origins. When disabled, `depth_maps=[]`. **New Stage 7 (Per-frame Centerline Projection + Inference Fan-out)** added: projects `sealer_centerline.json` points (3D CAD mm) → pixel coords of each frame, computes `px_per_mm` + `tangent_uv` per point, publishes N messages on `sealer-inference-queue` per the FROZEN contract in `2026-06-01-sealer-inference-per-frame-design.md` §4. ICP failure also skips Stage 7 (no inference fan-out emitted when degraded). Cycle time estimate ~8 s with depth map off (default), ~9 s with depth map on. |

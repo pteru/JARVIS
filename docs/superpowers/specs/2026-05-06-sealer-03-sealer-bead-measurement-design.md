@@ -65,7 +65,7 @@ sealer-measurement-queue│   Sealer Bead Measurement          │
 
 ### 3.1 Trigger message (`sealer-measurement-queue`)
 
-Published by SEALER-01. The cloud and depth map referenced by this message are **already in CAD frame** (SEALER-01 has applied `T_part_to_CAD` before saving).
+Published by SEALER-01 (1 message per part). The cloud is **already in CAD frame** (SEALER-01 has applied `T_part_to_CAD` before saving). Schema updated 2026-06-01 to match the SEALER-01 architectural pivot (stitching removed; per-frame depth map opt-in).
 
 ```json
 {
@@ -77,10 +77,7 @@ Published by SEALER-01. The cloud and depth map referenced by this message are *
   "partial": false,
   "degraded": false,
   "merged_ply_path": "/img_saved/{part_uuid}/{cam}/merged.ply",
-  "depth_map_path": "/img_saved/{part_uuid}/{cam}/depth_map.npy",
-  "stitched_image_path": "/img_saved/{part_uuid}/{cam}/stitched.png",
-  "depth_map_origin_mm": [x_min, y_min],
-  "depth_map_resolution_mm": 0.5,
+  "depth_maps": [],
   "total_points": 1850000,
   "scan_duration_ms": 8500,
   "processed_at": "...",
@@ -101,11 +98,14 @@ Published by SEALER-01. The cloud and depth map referenced by this message are *
 
 Notes:
 
-- `merged_ply_path` and `depth_map_path` reference files already expressed in CAD coordinates. SEALER-03 reads them as-is — no per-part transform.
+- `merged_ply_path` references a file already expressed in CAD coordinates. SEALER-03 reads it as-is — no per-part transform.
+- `depth_maps` is `[]` by default (SEALER-01 ships with `PCP_DEPTH_MAP_ENABLED=false`). When the operator enables the diagnostic depth map, the array carries one entry per frame (`{"frame_uuid","frame_index","path","origin_mm","resolution_mm"}`). **SEALER-03 does not consume this field** — it is informational only, kept here for routing to optional auditors/visualizers.
+- `stitched_image_path` is **removed** (no stitching after 2026-06-01).
+- Top-level `depth_map_path` / `depth_map_origin_mm` / `depth_map_resolution_mm` are **removed** (replaced by `depth_maps[]`).
 - `cad_registration.T_part_to_CAD` is provided for diagnostics and traceability; SEALER-03 does not need to apply it (already applied upstream).
 - If `cad_registration.converged == false` **or** `degraded == true`, see §8 Error Handling — SEALER-03 NACKs the message to the DLX without producing measurements.
 
-See SEALER-01 spec §2 (Output Message) and §4 Stage 5 for the upstream contract.
+See SEALER-01 spec §2 (Output Messages — bifurcated) and §4 Stage 5 for the upstream contract.
 
 ### 3.2 Aggregated point cloud (disk)
 
@@ -139,21 +139,27 @@ The STL is **only** required for `sealer_bead_isolation_method = cad-relative`. 
   "model_type": "CRETA_2026",
   "beads": [
     {
+      "bead_id": 1,
       "name": "left_sill",
       "points": [[x0, y0, z0], [x1, y1, z1], ...],
-      "expected_width_mm": 22.0
+      "expected_width_mm": 22.0,
+      "expected_height_mm": 4.0
     },
     {
+      "bead_id": 2,
       "name": "right_sill",
       "points": [[...]],
-      "expected_width_mm": 22.0
+      "expected_width_mm": 22.0,
+      "expected_height_mm": 4.0
     }
   ]
 }
 ```
 
+- `bead_id`: stable integer identifier (unique within `model_type`). Used as the load-bearing key in pipeline messages (cheaper to compare than strings, robust to bead renames). `bead_name` is kept for human readability and logging.
 - `points`: 3D polyline in **CAD coordinates** (mm); variable granularity (service resamples internally). Because the merged cloud also arrives in CAD frame, centerline points need no per-part transform — they overlay directly.
 - `expected_width_mm`: reference width; effective search width is controlled by `sealer_search_margin_mm` in Redis.
+- `expected_height_mm`: reference bead height (mm); analogous to `expected_width_mm` — consumed by SEALER-03 for height-tolerance checks (NOK threshold via `sealer_height_tolerance_mm` in Redis) and by the per-frame inference for window sizing.
 - For tangent computation, the service may fit an internal cubic B-spline. External interface remains polyline.
 
 ### 3.4 Camera calibration
@@ -343,9 +349,9 @@ Since v4 (2026-05-07), SEALER-03 no longer runs ICP / best-fit registration (mov
 
 - **SEALER-01 (point-cloud-processor)** — must produce:
   - `merged.ply` already in CAD frame (post-ICP), saved to `/img_saved/{part_uuid}/{camera_serial}/merged.ply`.
-  - Output message on `sealer-measurement-queue` containing `merged_ply_path`, `depth_map_path`, `depth_map_origin_mm`, `depth_map_resolution_mm`, and a `cad_registration` block with `T_part_to_CAD` (4×4), `rmse_mm`, `fitness`, `converged`, `stl_path`.
+  - Output message on `sealer-measurement-queue` containing `merged_ply_path`, `depth_maps[]` (empty when SEALER-01's depth map stage is disabled — the default; not consumed by SEALER-03 either way), and a `cad_registration` block with `T_part_to_CAD` (4×4), `rmse_mm`, `fitness`, `converged`, `stl_path`.
   - When `cad_registration.converged == false` or the scan is otherwise `degraded == true`, SEALER-01 still publishes the message (with `T_part_to_CAD = identity`); SEALER-03 then NACKs to DLX (see §8).
-  - See `2026-04-13-sealer-01-point-cloud-processor-design.md` §2 (Output Message) and §4 Stage 5.
+  - See `2026-04-13-sealer-01-point-cloud-processor-design.md` §2 (Output Messages — bifurcated, 2026-06-01) and §4 Stage 5.
 
 ### Downstream
 

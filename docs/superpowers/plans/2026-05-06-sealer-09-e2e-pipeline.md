@@ -2,64 +2,93 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: `superpowers:subagent-driven-development` or `superpowers:executing-plans`. Steps use `- [ ]` checkbox tracking.
 
-**Goal:** End-to-end integration test suite covering capture-to-DB pipeline (image-saver → point-cloud-processor → sealer-bead-measurement → inference → frame-writer + result-writer). 9 scenarios via docker-compose, asserting against the **B-light common schema** ([4.8] — `pecas`, `defeitos_agg`, `defeitos`, `frames`, `subcomponente`, `types`); gated CI workflow.
+> ⚠️ **2026-05-09 — alignment pending.** Spec was revised on 2026-05-09 to align with the existing VK monorepo E2E pattern (see spec §2 + `tests/e2e/README.md`). The task descriptions below (Task 1 docker-compose.test.yml, Task 4 `inject_frames.py`/`wait_for_processing.py`, Task 6 `verify_db.py`/`run-test.sh`, Task 7 `run-all.sh` + new workflow) **still reflect the pre-alignment design** and must be re-mapped before execution starts (11/05). Concretely:
+> - Task 1 → extend the existing `tests/e2e/docker-compose.yml` with a `sealer` profile (no new `.test.yml`)
+> - Task 4 → factories at `tests/factories/sealer_messages.py` + helper at `tests/helpers/sealer_wait.py` (no standalone scripts)
+> - Task 6 → pytest tests at `tests/e2e/pipelines/test_sealer_pipeline.py` with `@pytest.mark.pipeline` (no `verify_db.py`, no `run-test.sh`)
+> - Task 7 → extend the existing GitHub Actions workflow with `matrix.profile=[steel, sealer]` (no new `sealer-e2e.yml`)
+>
+> Task 2 (fixtures), Task 3 (per-scenario frames), Task 5 (assertion classes), and Task 8 (docs) remain valid as written — the **fixture generation logic and assertion class designs are unaffected** by the alignment. Only the orchestration layer changes.
+
+**Goal:** End-to-end integration test suite covering capture-to-DB pipeline (image-saver → point-cloud-processor → sealer-bead-measurement → inference → frame-writer + result-writer). 9 scenarios via docker-compose, asserting against the **B-light common schema** ([4.8] — `pecas`, `defeitos_agg`, `defeitos`, `frames`, `subcomponente`, `types`); CI integrated with existing E2E workflow.
 
 **Tech Stack:** Python 3.10, docker-compose, pytest, psycopg2, redis, trimesh, open3d, pillow.
 
-**Spec:** `docs/superpowers/specs/2026-05-06-sealer-09-e2e-pipeline-design.md`
+**Spec:** `docs/superpowers/specs/2026-05-06-sealer-09-e2e-pipeline-design.md` (v3, rev 2026-05-09)
 
-**Repo path:** `tests/e2e/sealer/` (NEW directory in `visionking` monorepo)
+**Repo paths (aligned to existing pattern):**
+- `tests/e2e/docker-compose.yml` — **extend** with `sealer` profile
+- `tests/e2e/sealer/fixtures/` — profile-specific data (mirrors `tests/e2e/steel/`)
+- `tests/e2e/sealer/assertions/` — per-scenario assertion classes
+- `tests/e2e/sealer/scripts/generate_fixtures.py` — idempotent fixture builder
+- `tests/e2e/shared/sql/sealer-classe-defeitos.sql` — sealer-specific defect class seeds
+- `tests/e2e/pipelines/test_sealer_pipeline.py` — pytest tests with `@pytest.mark.pipeline`
+- `tests/factories/sealer_messages.py` — frame message factory
+- `tests/helpers/sealer_wait.py` — DB-polling wait helper
+- `tests/fixtures/sealer_pipeline.py` — pytest fixtures (redis_client, pg_conn, sealer_fixtures)
 
 **Estimate:** 2d implementation + 2.5d ajustes. ~30 fixtures + 9 scenario assertions (best-fit-failure adds ~0.5d for the perturbed-cloud generator + DLQ assertion plumbing).
 
 ---
 
-## File Structure
+## File Structure (aligned, 2026-05-09)
 
 ```
-tests/e2e/sealer/
-├── README.md                              # How to run + add scenarios
-├── docker-compose.test.yml                # Infra + services for testing
-├── run-test.sh                             # Single scenario
-├── run-all.sh                              # All scenarios
-├── wait_for_healthy.sh
-├── wait_for_processing.py
-├── inject_frames.py
-├── verify_db.py
-├── fixtures/
-│   ├── CRETA_2026/                        # Common to all scenarios
-│   │   ├── part.stl                       # consumed by SEALER-01 (Stage 5 ICP) + optionally SEALER-03 (cad-relative)
-│   │   ├── sealer_centerline.json         # 2 beads in CAD coords; SSOT for ROI derivation
-│   │   └── stitched_reference.png
-│   └── scenarios/
-│       ├── happy-path/
-│       │   ├── metadata.json              # frame_uuid, part_uuid, encoder positions, etc.
-│       │   ├── frame_00.ply ... frame_19.ply
-│       │   └── frame_00.bin ... frame_19.bin
-│       ├── narrow-bead/
-│       ├── gap/
-│       ├── offset/
-│       ├── no-centerline/
-│       ├── reinspection/
-│       ├── partial-frames/
-│       ├── 2d-detection-only/
-│       └── best-fit-failure/              # cloud perturbed 60° + 200 mm vs CAD
-├── scripts/
-│   └── generate_fixtures.py                # Programmatically rebuilds fixtures/ (NO sealer_2d_rois.json)
-├── assertions/
-│   ├── __init__.py
-│   ├── base.py
-│   ├── happy_path.py
-│   ├── narrow_bead.py
-│   ├── gap.py
-│   ├── offset.py
-│   ├── no_centerline.py
-│   ├── reinspection.py
-│   ├── partial_frames.py
-│   ├── 2d_detection_only.py
-│   └── best_fit_failure.py                # asserts no pecas row + DLQ ≥1
-└── logs/                                    # Captured docker-compose logs (gitignored)
+visionking/                                # monorepo root
+├── tests/
+│   ├── factories/
+│   │   └── sealer_messages.py             # NEW — make_sealer_frame_message + inject_scenario
+│   ├── helpers/
+│   │   └── sealer_wait.py                 # NEW — wait_for_completion(pg_conn, part_uuid, ...)
+│   ├── fixtures/
+│   │   └── sealer_pipeline.py             # NEW — pytest fixtures for sealer pipeline tests
+│   └── e2e/
+│       ├── docker-compose.yml             # EXTEND — add `sealer` application profile
+│       ├── Makefile                       # (existing — no changes; PROFILE=sealer just works)
+│       ├── pipelines/
+│       │   └── test_sealer_pipeline.py    # NEW — 9 scenarios as parametrized pytest tests
+│       │                                  #        with @pytest.mark.pipeline
+│       ├── shared/sql/
+│       │   └── sealer-classe-defeitos.sql # NEW — sealer class IDs 1000/1001/1010/1011/1020/1021
+│       └── sealer/                        # NEW profile data folder (mirrors tests/e2e/steel/)
+│           ├── fixtures/
+│           │   ├── CRETA_2026/
+│           │   │   ├── part.stl           # consumed by SEALER-01 (Stage 5 ICP) +
+│           │   │   │                      #   optionally SEALER-03 (cad-relative)
+│           │   │   ├── sealer_centerline.json   # 2 beads in CAD coords; SSOT
+│           │   │   # stitched_reference.png REMOVED 2026-06-01 (no stitching)
+│           │   └── scenarios/
+│           │       ├── happy-path/
+│           │       │   ├── metadata.json
+│           │       │   ├── frame_00.ply ... frame_19.ply
+│           │       │   └── frame_00.bin ... frame_19.bin
+│           │       ├── narrow-bead/
+│           │       ├── gap/
+│           │       ├── offset/
+│           │       ├── no-centerline/
+│           │       ├── reinspection/
+│           │       ├── partial-frames/
+│           │       └── best-fit-failure/   # cloud perturbed 60° + 200 mm vs CAD
+│           │                                # (2d-detection-only REMOVED 2026-06-01)
+│           ├── scripts/
+│           │   └── generate_fixtures.py    # idempotent; output committed
+│           └── assertions/
+│               ├── __init__.py
+│               ├── base.py                 # BaseAssertions (terminal_state, helpers)
+│               ├── happy_path.py
+│               ├── narrow_bead.py
+│               ├── gap.py
+│               ├── offset.py
+│               ├── no_centerline.py
+│               ├── reinspection.py
+│               ├── partial_frames.py
+│               └── best_fit_failure.py
+│               # two_d_only.py REMOVED 2026-06-01
+└── .github/workflows/
+    └── e2e.yml                            # EXTEND — add `matrix.profile=[steel, sealer]`
 ```
+
+> **What's NOT created:** `tests/e2e/sealer/docker-compose.test.yml`, `tests/e2e/sealer/run-test.sh`, `tests/e2e/sealer/run-all.sh`, `tests/e2e/sealer/inject_frames.py`, `tests/e2e/sealer/verify_db.py`, `tests/e2e/sealer/wait_for_processing.py`, `tests/e2e/sealer/wait_for_healthy.sh`, `.github/workflows/sealer-e2e.yml` — these were in the v1 plan but **superseded** by the existing-pattern equivalents listed above.
 
 ---
 
@@ -149,13 +178,25 @@ services:
     build: ../../../services/inference
     depends_on: [redis, rabbitmq]
     environment:
-      INF_PROFILE: "sealer-2d"
-      INF_SEALER_2D_USE_MOCK: "true"
-      INF_SEALER_CONFIG_DIR: "/config/sealer"
+      INF_PROFILE: "sealer-per-frame"
+      INF_RABBIT_INPUT_QUEUE: "sealer-inference-queue"
+      INF_RABBIT_OUTPUT_QUEUE: "sealer-detection-queue"
+      INF_SEALER_ANALYZER: "mock"
+      INF_SEALER_WINDOW_MODE: "fixed"
+      INF_SEALER_WINDOW_SIDE_PX: "128"
       RABBIT_HOST: rabbitmq
     volumes:
       - img-saved:/img_saved
-      - ./fixtures:/config/sealer:ro       # sealer_centerline.json — ROIs derived at runtime
+
+  pixel-to-object:
+    build: ../../../services/pixel-to-object
+    depends_on: [redis, rabbitmq]
+    environment:
+      VK_PROFILE: "sealer"
+      RABBITMQ_INPUT_QUEUE: "sealer-detection-queue"
+      RABBITMQ_OUTPUT_QUEUE: "sealer-result-queue"   # placeholder; coordinate w/ sealer-result spec
+      RABBIT_HOST: rabbitmq
+      REDIS_HOST: redis
 
   frame-writer:
     build: ../../../services/database-writer
@@ -169,17 +210,22 @@ services:
       PSQL_DB: sealer
       RABBIT_HOST: rabbitmq
 
-  result-writer:
+  result-writer-3d:
     build: ../../../services/database-writer
     depends_on: [postgres, rabbitmq]
     environment:
-      DB_WRITER_MODE: "sealer"
       DB_WRITER_RABBIT_QUEUE: "sealer-result-queue"
+      INSERT_FUNCTION: "insert_sealer_measurements"
       PSQL_HOST: postgres
       PSQL_USER: strokmatic
       PSQL_PASS: testpass
       PSQL_DB: sealer
       RABBIT_HOST: rabbitmq
+
+  # NOTE post-2026-06-01:
+  # `result-writer-2d` removed (used to consume sealer-2d-result-queue → DELETED).
+  # Per-anchor-segment 2D detection persistence (class 1020/1021) is out of scope
+  # of this E2E suite until the companion detection-persistence spec lands.
 
 volumes:
   img-saved:
@@ -209,22 +255,23 @@ def make_centerline(out_path):
     data = {
         "model_type": "CRETA_2026",
         "beads": [
-            {"name": "left_sill",  "expected_width_mm": 22.0,
+            {"bead_id": 1, "name": "left_sill",
+             "expected_width_mm": 22.0, "expected_height_mm": 4.0,
              "points": [[(-900, y, 100)] for y in range(-2000, 2001, 200)]},
-            {"name": "right_sill", "expected_width_mm": 22.0,
+            {"bead_id": 2, "name": "right_sill",
+             "expected_width_mm": 22.0, "expected_height_mm": 4.0,
              "points": [[(900,  y, 100)] for y in range(-2000, 2001, 200)]},
         ]
     }
     Path(out_path).write_text(json.dumps(data))
 
-# NOTE: NO sealer_2d_rois.json — the 2D inference service derives ROIs at
-# runtime from sealer_centerline.json + depth_map_origin/resolution_mm
-# (see [4.11] §5.1). Authoring an ROI file here would create a drift risk
-# vs SEALER-03's centerline-driven measurement.
-
-def make_stitched(out_path):
-    """White background; placeholder for inference."""
-    Image.new("RGB", (3968, 3000), (220, 220, 220)).save(out_path)
+# NOTE post-2026-06-01:
+# - NO sealer_2d_rois.json (removed 2026-05-07).
+# - NO stitched_reference.png (removed 2026-06-01 — no stitching in SEALER-01).
+# - The centerline is consumed by SEALER-03 (3D measurement) AND by SEALER-01
+#   Stage 7 (per-frame centerline projection); the inference service no longer
+#   reads sealer_centerline.json directly (gets pre-projected (u,v) points from
+#   SEALER-01 instead).
 
 def make_calibration(out_path):
     """Identity world_to_camera, identity part_origin_in_world for simplicity."""
@@ -360,7 +407,7 @@ def wait(part_uuid, scenario, timeout):
     """Poll the common-schema for the rollup signal, with a per-scenario predicate.
 
     For success scenarios: pecas.inspected_at IS NOT NULL.
-    For DLQ-only scenarios (no-centerline, best-fit-failure, 2d-detection-only):
+    For DLQ-only scenarios (no-centerline, best-fit-failure):
     poll RabbitMQ DLQ depth via the management API instead — see helpers/dlq_wait.py.
     """
     conn = psycopg2.connect("host=localhost dbname=sealer user=strokmatic password=testpass")
@@ -432,12 +479,11 @@ class HappyPathAssertions(BaseAssertions):
             n3d = cur.fetchone()[0]
             assert 70 <= n3d <= 90, f"expected 70..90 segment rows, got {n3d}"
 
-            # 2D detections — count varies with sealer_2d_segment_arc_length_mm.
-            # Tolerant: at least one detection per bead.
-            cur.execute("""SELECT COUNT(*) FROM defeitos d
-                            JOIN pecas p ON d.peca_id=p.id
-                            WHERE p.peca=%s::uuid AND d.class_id IN (1020, 1021)""", (self.part_uuid,))
-            assert cur.fetchone()[0] >= 2, "expected >=2 bead_present/absent rows"
+            # NOTE 2026-06-01: 2D detection persistence (class 1020/1021) is OUT OF SCOPE
+            # post-pivot — no DB-side assertion here. Coverage relies on:
+            #   - 20 messages successfully processed on sealer-inference-queue (see dlq_wait helpers)
+            #   - 20 messages successfully processed on sealer-detection-queue (pixel-to-object input)
+            # When the companion detection-persistence spec lands, add the 1020/1021 assertion here.
 
             # all defeitos rows have populated metrics jsonb
             cur.execute("""SELECT COUNT(*) FROM defeitos d
@@ -481,14 +527,23 @@ class BestFitFailureAssertions(BaseAssertions):
             assert cur.fetchone()[0] == 0, "expected 0 defeitos on degraded"
 
     def assert_dlq_state(self, dlq_client):
-        """Called separately by run-test.sh after assert_state — uses the RabbitMQ
-        management API (helpers/dlq_wait.py) to check DLQ depth."""
+        """Called separately after assert_state — uses the RabbitMQ management API
+        (helpers/dlq_wait.py) to check DLQ depth. Post-pivot 2026-06-01:
+          - sealer-measurement-dlq: ≥1 (SEALER-03 NACKs the degraded input).
+          - sealer-frame-writer-dlq: 0 (frame-writer is independent).
+          - Load-bearing post-pivot signal: sealer-inference-queue / sealer-detection-queue
+            see ZERO messages for this part (SEALER-01 Stage 7 skipped on convergence failure).
+        """
         assert dlq_client.message_count("sealer-measurement-dlq") >= 1
-        assert dlq_client.message_count("sealer-2d-result-dlq") >= 1
         assert dlq_client.message_count("sealer-frame-writer-dlq") == 0
+        # Stage 7 skip signal: no inference fan-out for this part.
+        assert dlq_client.processed_count_for_part(
+            "sealer-inference-queue", self.part_uuid) == 0
+        assert dlq_client.processed_count_for_part(
+            "sealer-detection-queue", self.part_uuid) == 0
 ```
 
-(similar for narrow_bead, gap, offset, no_centerline, reinspection, partial_frames, 2d_detection_only.)
+(similar for narrow_bead, gap, offset, no_centerline, reinspection, partial_frames.)
 
 > **Note on the `pecas` row in `best-fit-failure`.** Per [4.8] §4.1 step 2, `insert_sealer_frame` UPSERTs `pecas` on every frame, so after 20 frames there is exactly 1 `pecas` row regardless of bead-measurement outcome. `nao_conforme` stays at its column default (no measurement rollup ran). This means a registration-failed part is **indistinguishable** from a still-processing or successful-pass part by inspecting `pecas` alone — the load-bearing signal of failure is the absence of rows in `defeitos_agg` and `defeitos`. Tightening this would require [4.8] schema to add an explicit `inspection_status` column (Phase 2 schema enhancement, not [4.13] concern).
 
@@ -539,12 +594,12 @@ SCENARIOS=(
     narrow-bead
     gap
     offset
-    no-centerline
+    no-centerline           # post-pivot: NACK now in SEALER-01 Stage 7
     reinspection
     partial-frames
-    2d-detection-only
-    best-fit-failure        # NEW — SEALER-01 ICP non-convergence path
+    best-fit-failure        # SEALER-01 ICP non-convergence path
 )
+# 2d-detection-only REMOVED 2026-06-01 (no longer architecturally meaningful).
 for s in "${SCENARIOS[@]}"; do
     echo "=== Running $s ==="
     ./run-test.sh "$s"
@@ -554,7 +609,7 @@ echo "All scenarios passed"
 
 - [ ] **Step 2: GitHub Actions workflow** (per spec §6.2)
 
-- [ ] **Step 3: smoke locally** all 9 scenarios
+- [ ] **Step 3: smoke locally** all 8 scenarios
 
 - [ ] **Step 4: commit** `ci(sealer-e2e): all-scenario runner + GH Actions workflow`
 
@@ -578,11 +633,12 @@ echo "All scenarios passed"
 
 ## Cross-cutting checks
 
-- All 9 scenarios pass locally + in CI
-- Wall clock per scenario < 90s (best-fit-failure can be ≤60s — short-circuits at SEALER-01 stage 5)
-- Total CI runtime ~11 min wall (≤20 min with image build cache)
+- All 8 scenarios pass locally + in CI
+- Wall clock per scenario < 90s (best-fit-failure can be ≤60s — short-circuits at SEALER-01 Stage 5 / Stage 7 skip)
+- Total CI runtime ~10 min wall (≤20 min with image build cache)
 - Failure logs captured as workflow artifacts
 - DLQ-depth assertions use the RabbitMQ management API (`/api/queues/%2F/{queue}` → `messages`); no direct AMQP consumer drift.
+- Post-pivot signals (`sealer-inference-queue` / `sealer-detection-queue` zero-message check for degraded parts) verified via consumer counters, not via DLQ depth.
 
 ## Definition of done
 
@@ -602,3 +658,5 @@ echo "All scenarios passed"
 |---|---|---|
 | 2026-05-06 | Pedro Teruel | Initial plan (8 scenarios; legacy `tbl_*` schema; `sealer_2d_rois.json` in fixtures). |
 | 2026-05-07 | Pedro Teruel | DB assertions migrated to B-light common schema (`pecas`/`defeitos`/`defeitos_agg`/`frames` + class IDs 1000/1001/1010/1011/1020/1021); fixtures lose `sealer_2d_rois.json` (ROIs derived at runtime per [4.11] §5.1); new scenario `best-fit-failure` covers CAD-registration non-convergence path with DLQ depth assertions; STL purpose documented for both SEALER-01 (mandatory) and SEALER-03 (optional); compose adds `/cad/sealer/` mount on both PCP and SBM containers; estimate +0.5d. |
+| 2026-05-09 | Pedro Teruel + Claude | **File Structure section re-aligned** to existing VK monorepo E2E pattern (`tests/e2e/docker-compose.yml` profile + Makefile + pytest + factories/helpers/fixtures + matrix CI). Banner at top flags Tasks 1, 4, 6, 7 as needing re-mapping during execution; Tasks 2, 3, 5, 8 remain valid as-is. No change to scenarios, fixtures, schema assertions or runtime budget. |
+| 2026-06-01 | Pedro Teruel (with Claude) | **Rewritten post-architectural-pivot.** Compose: `inference` env → `INF_PROFILE=sealer-per-frame` + new queue names; `result-writer-2d` block deleted; **`pixel-to-object`** service added (VK_PROFILE=sealer). Fixtures: `sealer_centerline.json` now carries `bead_id` + `expected_height_mm`; `stitched_reference.png` removed. Scenario `2d-detection-only` **removed** (no longer architecturally meaningful — stitching gone, inference depends on point cloud). `no-centerline` updated to expect NACK in SEALER-01 Stage 7. `best-fit-failure` updated to assert silence on `sealer-inference-queue` / `sealer-detection-queue` (Stage 7 skip signal) instead of `sealer-2d-result-dlq` depth. Happy-path 1020/1021 assertion replaced with a note pointing to the deferred companion spec. Scenario count 9 → 8; runtime budget ~11 → ~10 min. |

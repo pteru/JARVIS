@@ -132,6 +132,10 @@ Sealer payload shape (per SEALER-03 spec):
 
 ### 4.3 `insert_sealer_2d_detection(jsonb)`
 
+> 🚧 **CONSUMER CHANGED 2026-06-01.** Pre-pivot this procedure was called by `result-writer-2d`, which consumed `sealer-2d-result-queue` directly from the (now-superseded) [4.11] inference. Post-pivot, the inference output goes to **pixel-to-object → sealer-result**, and the per-detection persistence path is **still being designed** — likely a thin writer that consumes the inference envelope (`detections[]` with `bead_id`, `segment_idx`, `presence`, `centerline_uv_observed`, `width_mm`, `confidence` — see `2026-06-01-sealer-inference-per-frame-design.md` §7) before pixel-to-object filters absences, so 1020/1021 still get persisted regardless of tracking outcomes. The signature below is the **pre-pivot shape** kept for reference until the new writer is specced. Class IDs 1020/1021 remain valid.
+
+Pre-pivot shape (reference only):
+
 ```json
 {
   "part_uuid": "...",
@@ -143,7 +147,7 @@ Sealer payload shape (per SEALER-03 spec):
 }
 ```
 
-**Behavior**:
+**Behavior** (pre-pivot):
 1. Verify `pecas.peca = part_uuid` exists
 2. For each detection:
    - DELETE prior detection for same (part_uuid, roi_index) — UPSERT semantics
@@ -167,8 +171,8 @@ Sealer adds rows to `classe_defeitos` (used to distinguish 2D detection vs 3D me
 | 1001 | `sealer_segment_fail` | Sealer Segmento Falha | `insert_sealer_measurements` |
 | 1010 | `sealer_bead_pass` | Sealer Cordão OK | `insert_sealer_measurements` (defeitos_agg per bead) |
 | 1011 | `sealer_bead_fail` | Sealer Cordão Falha | `insert_sealer_measurements` |
-| 1020 | `bead_present` | Cordão Presente (2D) | `insert_sealer_2d_detection` |
-| 1021 | `bead_absent` | Cordão Ausente (2D) | `insert_sealer_2d_detection` |
+| 1020 | `bead_present` | Cordão Presente (2D) | `insert_sealer_2d_detection` (writer redesign pending — see §4.3) |
+| 1021 | `bead_absent` | Cordão Ausente (2D) | `insert_sealer_2d_detection` (writer redesign pending — see §4.3) |
 
 Reserve 1000–1099 in `classe_defeitos.id` for sealer; existing body/steel use lower ranges.
 
