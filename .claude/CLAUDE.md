@@ -57,7 +57,7 @@ Before marking any task as complete:
 ## Session Directives
 
 - At the end of each session, add meaningful lessons learned to **MEMORY.md** (organized by topic) and append session logs to `docs/lessons-learned.md`
-- After each session, add any ideas for improving the orchestrator itself (new skills, features, integrations) to `backlogs/orchestrator/README.md`
+- After each session, add any ideas for improving the orchestrator itself (new skills, features, integrations) to `backlogs/jarvis/README.md`
 - Always work within virtual environments (Python `venv`, Node local installs, etc.) — never install dependencies into the global system environment
 
 ## File Structure

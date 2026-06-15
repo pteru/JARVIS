@@ -57,7 +57,7 @@ If **ambiguous** (no clear keywords match), use AskUserQuestion:
 Check for existing similar items before creating new ones.
 
 **For orchestrator items:**
-1. Read `backlogs/orchestrator/README.md`
+1. Read `backlogs/jarvis/README.md`
 2. Scan both tables ("New Skills / MCP Servers" and "Improvements") for items with similar names or descriptions
 
 **For product items:**
@@ -231,7 +231,7 @@ If the spec filename already exists, append a numeric suffix (e.g., `slack-integ
 
 ### Step 8 — Update Backlog Index
 
-**For orchestrator items** — Edit `backlogs/orchestrator/README.md`:
+**For orchestrator items** — Edit `backlogs/jarvis/README.md`:
 
 - If the item belongs to **"New Skills / MCP Servers"** table, add a row:
   ```
@@ -292,7 +292,7 @@ End with: **Suggest:** "Run `/cleanup` to commit these changes."
 
 | File | Purpose |
 |------|---------|
-| `backlogs/orchestrator/README.md` | Orchestrator backlog index (two tables) |
+| `backlogs/jarvis/README.md` | Orchestrator backlog index (two tables) |
 | `backlogs/orchestrator/<name>.md` | Orchestrator spec files |
 | `backlogs/products/strokmatic.<product>.md` | Product backlog files |
 | `backlogs/plans/strokmatic.<product>.md` | Product implementation plans |
