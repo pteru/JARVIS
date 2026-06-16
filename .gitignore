@@ -126,3 +126,7 @@ data/clickup-roadmap-migration/
 data/email-attachments/
 data/hikrobot/
 data/sf-health/
+
+# Generated spec render exports (markdown is the source of truth)
+docs/superpowers/**/img-audit/
+docs/superpowers/**/*.pdf
