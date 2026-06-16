@@ -39,10 +39,10 @@ Source of truth for product task tracking. Items here mirror ClickUp (primary sy
 |------|--------|
 | [visionking-plans.md](plans/visionking-plans.md) | Deep-dive implementation specs |
 | [visionking-display-01.md](plans/visionking-display-01.md) | DISPLAY-01: Android TV kiosk app |
-| [visionking-pipeline-v2.md](plans/visionking-pipeline-v2.md) | Stroke-based processing pipeline v2 |
-| [visionking-healthchecks.md](plans/visionking-healthchecks.md) | Docker healthchecks design |
-| [visionking-data-pipeline-fixes.md](plans/visionking-data-pipeline-fixes.md) | Data pipeline debug/fixes |
-| [visionking-sparktest-profile.md](plans/visionking-sparktest-profile.md) | SparkTest deployment profile |
+| [visionking-pipeline-v2.md](../../docs/superpowers/specs/2026-03-21-stroke-based-processing-pipeline-v2-design.md) | Stroke-based processing pipeline v2 |
+| [visionking-healthchecks.md](../../docs/superpowers/specs/2026-03-23-vk-docker-healthchecks-design.md) | Docker healthchecks design |
+| [visionking-data-pipeline-fixes.md](../../docs/superpowers/specs/2026-03-24-data-pipeline-debug-fixes-design.md) | Data pipeline debug/fixes |
+| [visionking-sparktest-profile.md](../../docs/plans/2026-03-04-sparktest-deployment-profile-design.md) | SparkTest deployment profile |
 
 ### SDK
 | Plan | Status |

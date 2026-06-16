@@ -69,9 +69,9 @@ Ideas for new features, skills, and integrations. Full specs live in this direct
 | Android JARVIS App | **Planned** | — | — | [spec](specs/android-jarvis-app.md) | Android app with "Jarvis" wake word (Porcupine) → on-device STT → JARVIS intake API.<br>Bilingual, dark theme, offline queue. Shares pipeline with Telegram intake. 5 phases, ~44h. |
 | Telegram Bot Manager | **Done** | v1.3.0 | 2026-02-22 | [spec](specs/telegram-bot-manager.md) | Multi-bot notification routing. Separate bots per domain (alerts, ops, assistant, reports).<br>Config-driven registry, shared router library, backward compatible toggle. 4 phases, ~14h. |
 | `/backlog-add` Skill | **Done** | — | 2026-02-22 | — | Unified backlog item creator: classifies orchestrator vs product, duplicate detection,<br>spec generation, task code assignment, index updates. Prompt-only skill in `.claude/skills/backlog-add/`. |
-| Knowledge Base (Phase 1) | **Done** | — | 2026-04-03 | [spec](specs/knowledge-base-design.md) | 128-page PT-BR knowledge base. Repo: `teruelskm/knowledge-base`. |
-| KB Auto-Update (Phase 2) | **Done** | — | 2026-04-03 | [plan](plans/kb-auto-update.md) | Git monitor + dispatch hook + staleness report. Cron-based. |
-| KB Chat Bot (Phase 3) | **Done** | — | 2026-04-03 | [plan](plans/kb-chat-bot.md) | Google Chat @JARVIS polling bot with RAG over KB. |
+| Knowledge Base (Phase 1) | **Done** | — | 2026-04-03 | [spec](../../docs/superpowers/specs/2026-04-03-knowledge-base-design.md) | 128-page PT-BR knowledge base. Repo: `teruelskm/knowledge-base`. |
+| KB Auto-Update (Phase 2) | **Done** | — | 2026-04-03 | [plan](../../docs/superpowers/plans/2026-04-03-kb-auto-update.md) | Git monitor + dispatch hook + staleness report. Cron-based. |
+| KB Chat Bot (Phase 3) | **Done** | — | 2026-04-03 | [plan](../../docs/superpowers/plans/2026-04-03-kb-chat-bot.md) | Google Chat @JARVIS polling bot with RAG over KB. |
 | PR Review Service v2 | **Planned** | — | — | [plan](plans/pr-review-v2.md) | Smart re-review, auto-post, labels, dashboard, build checks. |
 | JARVIS Restructuring | **Planned** | — | — | [plan](plans/jarvis-restructuring.md) | Marketplace + shared libs cleanup. |
 | Document Templates Plugin | **Planned** | — | — | [plan](plans/document-templates-plugin.md) | Strokmatic plugin for report/proposal/presentation templates. |
@@ -82,11 +82,11 @@ Ideas for new features, skills, and integrations. Full specs live in this direct
 
 | Plan | Spec | Status |
 |------|------|--------|
-| [kb-auto-update.md](plans/kb-auto-update.md) | [knowledge-base-design.md](specs/knowledge-base-design.md) | Done |
-| [kb-chat-bot.md](plans/kb-chat-bot.md) | [knowledge-base-design.md](specs/knowledge-base-design.md) | Done |
-| [voice-pipeline.md](plans/voice-pipeline.md) | [voice-pipeline-design.md](specs/voice-pipeline-design.md) | Planned |
-| [git-graph-viewer.md](plans/git-graph-viewer.md) | [git-graph-viewer-design.md](specs/git-graph-viewer-design.md) | Planned |
+| [kb-auto-update.md](../../docs/superpowers/plans/2026-04-03-kb-auto-update.md) | [knowledge-base-design.md](../../docs/superpowers/specs/2026-04-03-knowledge-base-design.md) | Done |
+| [kb-chat-bot.md](../../docs/superpowers/plans/2026-04-03-kb-chat-bot.md) | [knowledge-base-design.md](../../docs/superpowers/specs/2026-04-03-knowledge-base-design.md) | Done |
+| [voice-pipeline.md](../../docs/plans/2026-02-27-voice-pipeline.md) | [voice-pipeline-design.md](../../docs/plans/2026-02-27-voice-pipeline-design.md) | Planned |
+| [git-graph-viewer.md](../../docs/plans/2026-03-11-git-graph-viewer.md) | [git-graph-viewer-design.md](../../docs/plans/2026-03-11-git-graph-viewer-design.md) | Planned |
 | [pr-review-v2.md](plans/pr-review-v2.md) | — | Planned |
 | [jarvis-restructuring.md](plans/jarvis-restructuring.md) | — | Planned |
 | [document-templates-plugin.md](plans/document-templates-plugin.md) | — | Planned |
-| [document-templates-plugin-impl.md](plans/document-templates-plugin-impl.md) | — | Planned |
+| [document-templates-plugin-impl.md](../../docs/superpowers/plans/2026-04-01-document-templates-plugin.md) | — | Planned |
