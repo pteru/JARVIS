@@ -129,4 +129,30 @@ data/sf-health/
 
 # Generated spec render exports (markdown is the source of truth)
 docs/superpowers/**/img-audit/
-docs/superpowers/**/*.pdf
+
+# Generated doc exports (markdown is source)
+docs/**/*.pdf
+
+# Generated report streams (curated reports are tracked individually)
+reports/daily/
+reports/morning/
+reports/weekly/
+reports/self-improvement/
+reports/system-update/
+reports/osint/
+reports/sandbox/
+reports/pr26-e2e/
+reports/pr-reviews/
+reports/md/
+reports/sf-health/
+reports/system-health/health-*.md
+reports/vk-health/*/monthly-*.md
+
+# External reference clones (their own git repos)
+references/claude-code/
+
+# Orphan root build artifact
+/main.js
+
+# Binary model blobs
+tools/voice-interface/pipeline/config/*.zip
