@@ -1,0 +1,133 @@
+{
+  "name": "claude-monitor",
+  "displayName": "Claude Code Monitor",
+  "description": "Sidebar view showing the status of every running Claude Code session.",
+  "version": "0.1.0",
+  "private": true,
+  "publisher": "jarvis-local",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["Other"],
+  "activationEvents": ["onStartupFinished"],
+  "main": "./extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "claude-monitor",
+          "title": "Claude Sessions",
+          "icon": "$(comment-discussion)"
+        }
+      ]
+    },
+    "views": {
+      "claude-monitor": [
+        {
+          "id": "claudeMonitor.sessions",
+          "name": "Sessions",
+          "icon": "$(comment-discussion)"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "claudeMonitor.refresh",
+        "title": "Refresh",
+        "category": "Claude Monitor",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "claudeMonitor.openCwd",
+        "title": "Open Session Folder",
+        "category": "Claude Monitor"
+      },
+      {
+        "command": "claudeMonitor.focusTerminal",
+        "title": "Focus Terminal",
+        "category": "Claude Monitor"
+      },
+      {
+        "command": "claudeMonitor.rename",
+        "title": "Rename Session",
+        "category": "Claude Monitor"
+      },
+      {
+        "command": "claudeMonitor.resume",
+        "title": "Resume in New Terminal",
+        "category": "Claude Monitor"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "claudeMonitor.refresh",
+          "when": "view == claudeMonitor.sessions",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "claudeMonitor.focusTerminal",
+          "when": "view == claudeMonitor.sessions && viewItem == session-active",
+          "group": "1_actions@1"
+        },
+        {
+          "command": "claudeMonitor.resume",
+          "when": "view == claudeMonitor.sessions && viewItem =~ /session-(ended|recent)/",
+          "group": "1_actions@1"
+        },
+        {
+          "command": "claudeMonitor.rename",
+          "when": "view == claudeMonitor.sessions && viewItem =~ /session-(active|ended)/",
+          "group": "1_actions@2"
+        },
+        {
+          "command": "claudeMonitor.openCwd",
+          "when": "view == claudeMonitor.sessions && viewItem =~ /session-(active|ended|recent)/",
+          "group": "2_open@1"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "claudeMonitor.rename",
+        "key": "f2",
+        "when": "focusedView == claudeMonitor.sessions"
+      }
+    ],
+    "configuration": {
+      "title": "Claude Monitor",
+      "properties": {
+        "claudeMonitor.sessionsDir": {
+          "type": "string",
+          "default": "",
+          "description": "Override the Claude Code sessions directory. Empty = $HOME/.claude/sessions."
+        },
+        "claudeMonitor.projectsDir": {
+          "type": "string",
+          "default": "",
+          "description": "Override the Claude Code projects directory (used to read permission-mode). Empty = $HOME/.claude/projects."
+        },
+        "claudeMonitor.refreshIntervalMs": {
+          "type": "number",
+          "default": 2000,
+          "minimum": 500,
+          "description": "Fallback poll interval for status updates (ms)."
+        },
+        "claudeMonitor.checkInThresholdMinutes": {
+          "type": "number",
+          "default": 5,
+          "minimum": 1,
+          "description": "An idle session whose last turn ran at least this many minutes is moved to the 'Needs check-in' group."
+        },
+        "claudeMonitor.recentLimit": {
+          "type": "number",
+          "default": 10,
+          "minimum": 1,
+          "description": "Maximum number of recently-used sessions to list in the 'Recent' group."
+        }
+      }
+    }
+  }
+}

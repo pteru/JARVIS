@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PLC Tag Configurator — Redis Store</title>
+<style>
+  :root {
+    --bg: #1a1a2e;
+    --surface: #16213e;
+    --surface2: #0f3460;
+    --accent: #e94560;
+    --accent2: #0ea5e9;
+    --text: #e0e0e0;
+    --text-dim: #8899aa;
+    --success: #22c55e;
+    --warning: #f59e0b;
+    --border: #2a3a5e;
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    --mono: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+
+  header h1 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--accent2);
+  }
+
+  header .stats {
+    display: flex;
+    gap: 16px;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  header .stats span { font-weight: 600; color: var(--text); }
+
+  .main {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* Left panel — Tag editor */
+  .editor-panel {
+    width: 420px;
+    min-width: 420px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .editor-panel h2 {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-dim);
+    padding: 12px 16px 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .editor-form {
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  .form-row {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    flex: 1;
+  }
+
+  .form-group.small { flex: 0 0 80px; }
+  .form-group.medium { flex: 0 0 120px; }
+
+  .form-group label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--text-dim);
+  }
+
+  input, select, textarea {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 6px 8px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-family: var(--mono);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--accent2);
+  }
+
+  select { cursor: pointer; }
+
+  textarea {
+    resize: none;
+    height: 40px;
+  }
+
+  .scaling-section {
+    background: rgba(14, 165, 233, 0.05);
+    border: 1px solid rgba(14, 165, 233, 0.15);
+    border-radius: 6px;
+    padding: 10px;
+    display: none;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .scaling-section.visible { display: flex; }
+
+  .scaling-section h3 {
+    font-size: 11px;
+    color: var(--accent2);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+
+  .btn-row {
+    display: flex;
+    gap: 8px;
+    padding-top: 4px;
+  }
+
+  button {
+    font-family: var(--font);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-primary {
+    background: var(--accent2);
+    color: #fff;
+  }
+  .btn-primary:hover { filter: brightness(1.15); }
+
+  .btn-danger {
+    background: var(--accent);
+    color: #fff;
+  }
+  .btn-danger:hover { filter: brightness(1.15); }
+
+  .btn-secondary {
+    background: var(--border);
+    color: var(--text);
+  }
+  .btn-secondary:hover { background: #3a4a6e; }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+  }
+  .btn-ghost:hover { border-color: var(--text-dim); color: var(--text); }
+
+  /* Center — Tag table */
+  .table-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .table-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .table-toolbar input {
+    flex: 1;
+    max-width: 300px;
+  }
+
+  .filter-chips {
+    display: flex;
+    gap: 6px;
+  }
+
+  .chip {
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .chip.active {
+    background: rgba(14, 165, 233, 0.15);
+    border-color: var(--accent2);
+    color: var(--accent2);
+  }
+
+  .table-scroll {
+    flex: 1;
+    overflow: auto;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+
+  thead {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+
+  th {
+    background: var(--surface2);
+    padding: 8px 10px;
+    text-align: left;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-dim);
+    border-bottom: 2px solid var(--border);
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  th:hover { color: var(--text); }
+
+  td {
+    padding: 6px 10px;
+    border-bottom: 1px solid rgba(42, 58, 94, 0.5);
+    font-family: var(--mono);
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  tr { cursor: pointer; transition: background 0.1s; }
+  tr:hover { background: rgba(14, 165, 233, 0.05); }
+  tr.selected { background: rgba(14, 165, 233, 0.1); }
+
+  .tag-type {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: 600;
+  }
+
+  .type-BOOL { background: rgba(139, 92, 246, 0.2); color: #a78bfa; }
+  .type-INT { background: rgba(14, 165, 233, 0.2); color: #38bdf8; }
+  .type-DINT { background: rgba(6, 182, 212, 0.2); color: #22d3ee; }
+  .type-REAL { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
+  .type-STRING { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+  .type-WORD { background: rgba(244, 63, 94, 0.2); color: #fb7185; }
+  .type-DWORD { background: rgba(168, 85, 247, 0.2); color: #c084fc; }
+  .type-BYTE { background: rgba(236, 72, 153, 0.2); color: #f472b6; }
+
+  .mode-R { color: var(--success); }
+  .mode-W { color: var(--warning); }
+  .mode-RW { color: var(--accent2); }
+
+  .rate-fast { color: var(--success); }
+  .rate-normal { color: var(--text); }
+  .rate-slow { color: var(--text-dim); }
+
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 300px;
+    color: var(--text-dim);
+    font-size: 14px;
+    gap: 8px;
+  }
+
+  .empty-state .icon { font-size: 48px; opacity: 0.3; }
+
+  /* Bottom — Output */
+  .output-panel {
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    height: 220px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .output-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .output-tab {
+    padding: 8px 16px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-dim);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s;
+  }
+
+  .output-tab.active {
+    color: var(--accent2);
+    border-bottom-color: var(--accent2);
+  }
+
+  .output-content {
+    flex: 1;
+    overflow: auto;
+    position: relative;
+  }
+
+  .output-code {
+    padding: 12px 16px;
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.6;
+    white-space: pre;
+    display: none;
+  }
+
+  .output-code.active { display: block; }
+
+  .copy-btn {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    font-size: 11px;
+    padding: 4px 10px;
+    background: var(--border);
+    color: var(--text);
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    z-index: 3;
+  }
+
+  .copy-btn:hover { background: #3a4a6e; }
+  .copy-btn.copied { background: var(--success); color: #000; }
+
+  /* Syntax highlighting */
+  .kw { color: #c084fc; }
+  .str { color: #4ade80; }
+  .num { color: #38bdf8; }
+  .key { color: #fbbf24; }
+  .comment { color: #4a5568; font-style: italic; }
+
+  /* Presets bar */
+  .presets-bar {
+    display: flex;
+    gap: 6px;
+    padding: 8px 16px;
+    border-bottom: 1px solid var(--border);
+    align-items: center;
+  }
+
+  .presets-bar span {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--text-dim);
+    margin-right: 4px;
+  }
+
+  .preset-btn {
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .preset-btn:hover {
+    border-color: var(--accent2);
+    color: var(--accent2);
+  }
+
+  .delete-col { width: 30px; text-align: center; }
+  .delete-btn {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 2px;
+  }
+  .delete-btn:hover { color: var(--accent); }
+
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .toggle {
+    position: relative;
+    width: 36px;
+    height: 20px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.2s;
+    border: none;
+    outline: none;
+  }
+
+  .toggle:checked { background: var(--accent2); }
+
+  .toggle::before {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    top: 2px;
+    left: 2px;
+    background: #fff;
+    transition: transform 0.2s;
+  }
+
+  .toggle:checked::before { transform: translateX(16px); }
+
+  .import-export {
+    display: flex;
+    gap: 6px;
+    margin-left: auto;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>PLC Tag Configurator</h1>
+  <div class="stats">
+    Tags: <span id="statTotal">0</span>
+    &middot; R: <span id="statRead">0</span>
+    &middot; W: <span id="statWrite">0</span>
+    &middot; R/W: <span id="statRW">0</span>
+    &middot; Groups: <span id="statGroups">0</span>
+    &middot; Redis keys: <span id="statKeys">0</span>
+  </div>
+</header>
+
+<div class="presets-bar">
+  <span>Presets:</span>
+  <button class="preset-btn" onclick="loadPreset('siemens-s7')">Siemens S7-1500</button>
+  <button class="preset-btn" onclick="loadPreset('ab-compactlogix')">AB CompactLogix</button>
+  <button class="preset-btn" onclick="loadPreset('modbus-io')">Modbus I/O</button>
+  <button class="preset-btn" onclick="loadPreset('opc-ua')">OPC-UA Server</button>
+  <button class="preset-btn" onclick="loadPreset('empty')">Limpar Tudo</button>
+  <div class="import-export">
+    <button class="btn-ghost" onclick="exportJSON()" style="font-size:11px;padding:4px 10px;">Exportar JSON</button>
+    <button class="btn-ghost" onclick="document.getElementById('importFile').click()" style="font-size:11px;padding:4px 10px;">Importar JSON</button>
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
+  </div>
+</div>
+
+<div class="main">
+  <!-- Left: Editor -->
+  <div class="editor-panel">
+    <h2 id="editorTitle">Nova Tag</h2>
+    <div class="editor-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Nome da Tag</label>
+          <input type="text" id="tagName" placeholder="ex: temp_forno_01">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Endereco PLC</label>
+          <input type="text" id="tagAddress" placeholder="ex: DB10.DBW0">
+        </div>
+        <div class="form-group small">
+          <label>Tipo</label>
+          <select id="tagType">
+            <option value="BOOL">BOOL</option>
+            <option value="BYTE">BYTE</option>
+            <option value="WORD">WORD</option>
+            <option value="DWORD">DWORD</option>
+            <option value="INT" selected>INT</option>
+            <option value="DINT">DINT</option>
+            <option value="REAL">REAL</option>
+            <option value="STRING">STRING</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group small">
+          <label>Modo</label>
+          <select id="tagMode">
+            <option value="R">Read</option>
+            <option value="W">Write</option>
+            <option value="RW">R/W</option>
+          </select>
+        </div>
+        <div class="form-group small">
+          <label>Scan (ms)</label>
+          <input type="number" id="tagScanRate" value="1000" min="50" step="50">
+        </div>
+        <div class="form-group">
+          <label>Grupo</label>
+          <input type="text" id="tagGroup" placeholder="ex: forno, prensa" list="groupList">
+          <datalist id="groupList"></datalist>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Unidade Eng.</label>
+          <input type="text" id="tagUnit" placeholder="ex: °C, bar, mm">
+        </div>
+        <div class="form-group">
+          <label>Redis Key Prefix</label>
+          <input type="text" id="tagRedisPrefix" placeholder="ex: plc:line1" value="plc:tags">
+        </div>
+      </div>
+
+      <div class="toggle-row">
+        <input type="checkbox" class="toggle" id="tagScalingEnabled" onchange="toggleScaling()">
+        <label style="font-size:12px;color:var(--text-dim)">Escalonamento linear</label>
+      </div>
+
+      <div class="scaling-section" id="scalingSection">
+        <h3>Raw &rarr; Engenharia</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Raw Min</label>
+            <input type="number" id="tagRawMin" value="0">
+          </div>
+          <div class="form-group">
+            <label>Raw Max</label>
+            <input type="number" id="tagRawMax" value="32767">
+          </div>
+          <div class="form-group">
+            <label>Eng Min</label>
+            <input type="number" id="tagEngMin" value="0" step="0.1">
+          </div>
+          <div class="form-group">
+            <label>Eng Max</label>
+            <input type="number" id="tagEngMax" value="100" step="0.1">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Descricao</label>
+          <textarea id="tagDescription" placeholder="Descricao da tag..."></textarea>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn-primary" id="btnSave" onclick="saveTag()">Adicionar Tag</button>
+        <button class="btn-secondary" onclick="resetForm()">Limpar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Center: Table -->
+  <div class="table-panel">
+    <div class="table-toolbar">
+      <input type="text" id="searchInput" placeholder="Buscar tags..." oninput="renderTable()">
+      <div class="filter-chips" id="filterChips"></div>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th onclick="sortBy('name')">Nome</th>
+            <th onclick="sortBy('address')">Endereco</th>
+            <th onclick="sortBy('type')">Tipo</th>
+            <th onclick="sortBy('mode')">Modo</th>
+            <th onclick="sortBy('scanRate')">Scan</th>
+            <th onclick="sortBy('group')">Grupo</th>
+            <th onclick="sortBy('unit')">Unidade</th>
+            <th>Scaling</th>
+            <th class="delete-col"></th>
+          </tr>
+        </thead>
+        <tbody id="tagTableBody"></tbody>
+      </table>
+      <div class="empty-state" id="emptyState">
+        <div class="icon">&#9881;</div>
+        <div>Nenhuma tag configurada</div>
+        <div style="font-size:12px">Use o painel esquerdo ou carregue um preset</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom: Output -->
+<div class="output-panel">
+  <div class="output-tabs">
+    <div class="output-tab active" data-tab="redis" onclick="switchTab('redis')">Redis Commands</div>
+    <div class="output-tab" data-tab="json" onclick="switchTab('json')">JSON Config</div>
+    <div class="output-tab" data-tab="python" onclick="switchTab('python')">Python Client</div>
+    <div class="output-tab" data-tab="prompt" onclick="switchTab('prompt')">Prompt</div>
+  </div>
+  <div class="output-content">
+    <button class="copy-btn" onclick="copyOutput()">Copiar</button>
+    <div class="output-code active" id="out-redis"></div>
+    <div class="output-code" id="out-json"></div>
+    <div class="output-code" id="out-python"></div>
+    <div class="output-code" id="out-prompt"></div>
+  </div>
+</div>
+
+<script>
+// === State ===
+let tags = [];
+let editingIndex = -1;
+let currentSort = { field: 'name', asc: true };
+let activeGroupFilter = null;
+let activeTab = 'redis';
+
+// === Defaults ===
+const DEFAULTS = {
+  name: '', address: '', type: 'INT', mode: 'R', scanRate: 1000,
+  group: '', unit: '', redisPrefix: 'plc:tags', description: '',
+  scaling: null
+};
+
+// === Presets ===
+const PRESETS = {
+  'siemens-s7': [
+    { name: 'temp_forno_z1', address: 'DB10.DBD0', type: 'REAL', mode: 'R', scanRate: 500, group: 'forno', unit: '°C', redisPrefix: 'plc:s7', description: 'Temperatura zona 1', scaling: { rawMin: 0, rawMax: 32767, engMin: 0, engMax: 1200 } },
+    { name: 'temp_forno_z2', address: 'DB10.DBD4', type: 'REAL', mode: 'R', scanRate: 500, group: 'forno', unit: '°C', redisPrefix: 'plc:s7', description: 'Temperatura zona 2', scaling: { rawMin: 0, rawMax: 32767, engMin: 0, engMax: 1200 } },
+    { name: 'pressao_hidraulica', address: 'DB10.DBD8', type: 'REAL', mode: 'R', scanRate: 250, group: 'prensa', unit: 'bar', redisPrefix: 'plc:s7', description: 'Pressao cilindro principal', scaling: { rawMin: 0, rawMax: 27648, engMin: 0, engMax: 350 } },
+    { name: 'pos_carro', address: 'DB10.DBD12', type: 'REAL', mode: 'R', scanRate: 100, group: 'prensa', unit: 'mm', redisPrefix: 'plc:s7', description: 'Posicao carro prensa', scaling: null },
+    { name: 'ciclo_ativo', address: 'DB10.DBX16.0', type: 'BOOL', mode: 'R', scanRate: 200, group: 'prensa', unit: '', redisPrefix: 'plc:s7', description: 'Ciclo em andamento', scaling: null },
+    { name: 'sp_temp_z1', address: 'DB20.DBD0', type: 'REAL', mode: 'RW', scanRate: 2000, group: 'forno', unit: '°C', redisPrefix: 'plc:s7', description: 'Setpoint temperatura zona 1', scaling: { rawMin: 0, rawMax: 32767, engMin: 0, engMax: 1200 } },
+    { name: 'modo_operacao', address: 'DB20.DBW4', type: 'INT', mode: 'RW', scanRate: 1000, group: 'geral', unit: '', redisPrefix: 'plc:s7', description: '0=Manual, 1=Semi, 2=Auto', scaling: null },
+    { name: 'contador_pecas', address: 'DB30.DBD0', type: 'DINT', mode: 'R', scanRate: 1000, group: 'producao', unit: 'pcs', redisPrefix: 'plc:s7', description: 'Contador de pecas produzidas', scaling: null },
+    { name: 'alarme_geral', address: 'DB30.DBX4.0', type: 'BOOL', mode: 'R', scanRate: 100, group: 'alarmes', unit: '', redisPrefix: 'plc:s7', description: 'Alarme geral ativo', scaling: null },
+    { name: 'velocidade_linha', address: 'DB10.DBD20', type: 'REAL', mode: 'R', scanRate: 250, group: 'producao', unit: 'm/min', redisPrefix: 'plc:s7', description: 'Velocidade da linha', scaling: { rawMin: 0, rawMax: 27648, engMin: 0, engMax: 60 } },
+  ],
+  'ab-compactlogix': [
+    { name: 'Motor1_Speed', address: 'Program:Main.Motor1.Speed', type: 'REAL', mode: 'R', scanRate: 200, group: 'drives', unit: 'RPM', redisPrefix: 'plc:ab', description: 'Motor 1 speed feedback', scaling: null },
+    { name: 'Motor1_Current', address: 'Program:Main.Motor1.Current', type: 'REAL', mode: 'R', scanRate: 500, group: 'drives', unit: 'A', redisPrefix: 'plc:ab', description: 'Motor 1 current draw', scaling: null },
+    { name: 'Motor1_Run', address: 'Program:Main.Motor1.RunCmd', type: 'BOOL', mode: 'RW', scanRate: 200, group: 'drives', unit: '', redisPrefix: 'plc:ab', description: 'Motor 1 run command', scaling: null },
+    { name: 'Conv_Speed_SP', address: 'Program:Main.Conveyor.SpeedSP', type: 'REAL', mode: 'W', scanRate: 1000, group: 'conveyor', unit: 'm/min', redisPrefix: 'plc:ab', description: 'Conveyor speed setpoint', scaling: null },
+    { name: 'Conv_Running', address: 'Program:Main.Conveyor.Running', type: 'BOOL', mode: 'R', scanRate: 200, group: 'conveyor', unit: '', redisPrefix: 'plc:ab', description: 'Conveyor running status', scaling: null },
+    { name: 'Batch_Count', address: 'Program:Main.Production.BatchCount', type: 'DINT', mode: 'R', scanRate: 2000, group: 'production', unit: 'pcs', redisPrefix: 'plc:ab', description: 'Current batch count', scaling: null },
+    { name: 'Tank_Level', address: 'Program:Main.Tank1.Level', type: 'REAL', mode: 'R', scanRate: 500, group: 'process', unit: '%', redisPrefix: 'plc:ab', description: 'Tank 1 level', scaling: { rawMin: 4000, rawMax: 20000, engMin: 0, engMax: 100 } },
+    { name: 'Tank_Valve', address: 'Program:Main.Tank1.InletValve', type: 'BOOL', mode: 'RW', scanRate: 500, group: 'process', unit: '', redisPrefix: 'plc:ab', description: 'Tank 1 inlet valve command', scaling: null },
+  ],
+  'modbus-io': [
+    { name: 'AI_CH0', address: '40001', type: 'INT', mode: 'R', scanRate: 250, group: 'analog_in', unit: 'mA', redisPrefix: 'plc:modbus', description: 'Analog input channel 0 (4-20mA)', scaling: { rawMin: 0, rawMax: 32767, engMin: 4, engMax: 20 } },
+    { name: 'AI_CH1', address: '40002', type: 'INT', mode: 'R', scanRate: 250, group: 'analog_in', unit: 'mA', redisPrefix: 'plc:modbus', description: 'Analog input channel 1 (4-20mA)', scaling: { rawMin: 0, rawMax: 32767, engMin: 4, engMax: 20 } },
+    { name: 'AI_CH2', address: '40003', type: 'INT', mode: 'R', scanRate: 250, group: 'analog_in', unit: 'V', redisPrefix: 'plc:modbus', description: 'Analog input channel 2 (0-10V)', scaling: { rawMin: 0, rawMax: 32767, engMin: 0, engMax: 10 } },
+    { name: 'AO_CH0', address: '40101', type: 'INT', mode: 'W', scanRate: 500, group: 'analog_out', unit: 'mA', redisPrefix: 'plc:modbus', description: 'Analog output channel 0', scaling: { rawMin: 0, rawMax: 32767, engMin: 4, engMax: 20 } },
+    { name: 'DI_WORD0', address: '10001', type: 'WORD', mode: 'R', scanRate: 100, group: 'digital_in', unit: '', redisPrefix: 'plc:modbus', description: 'Digital inputs 0-15', scaling: null },
+    { name: 'DO_WORD0', address: '00001', type: 'WORD', mode: 'W', scanRate: 100, group: 'digital_out', unit: '', redisPrefix: 'plc:modbus', description: 'Digital outputs 0-15', scaling: null },
+  ],
+  'opc-ua': [
+    { name: 'ns2_Temperature', address: 'ns=2;s=Channel1.Device1.Temperature', type: 'REAL', mode: 'R', scanRate: 1000, group: 'sensors', unit: '°C', redisPrefix: 'plc:opcua', description: 'Temperature sensor via OPC-UA', scaling: null },
+    { name: 'ns2_Pressure', address: 'ns=2;s=Channel1.Device1.Pressure', type: 'REAL', mode: 'R', scanRate: 1000, group: 'sensors', unit: 'bar', redisPrefix: 'plc:opcua', description: 'Pressure transducer via OPC-UA', scaling: null },
+    { name: 'ns2_FlowRate', address: 'ns=2;s=Channel1.Device1.FlowRate', type: 'REAL', mode: 'R', scanRate: 500, group: 'sensors', unit: 'L/min', redisPrefix: 'plc:opcua', description: 'Flow meter reading', scaling: null },
+    { name: 'ns2_Valve1', address: 'ns=2;s=Channel1.Device1.Valve1_Cmd', type: 'BOOL', mode: 'RW', scanRate: 500, group: 'actuators', unit: '', redisPrefix: 'plc:opcua', description: 'Valve 1 command', scaling: null },
+    { name: 'ns2_PumpSpeed', address: 'ns=2;s=Channel1.Device1.Pump1_SP', type: 'REAL', mode: 'W', scanRate: 1000, group: 'actuators', unit: 'Hz', redisPrefix: 'plc:opcua', description: 'Pump 1 frequency setpoint', scaling: null },
+    { name: 'ns2_SystemStatus', address: 'ns=2;s=Channel1.Device1.Status', type: 'INT', mode: 'R', scanRate: 2000, group: 'system', unit: '', redisPrefix: 'plc:opcua', description: '0=Off 1=Ready 2=Running 3=Fault', scaling: null },
+  ],
+};
+
+// === Tag operations ===
+function getFormData() {
+  const data = {
+    name: document.getElementById('tagName').value.trim(),
+    address: document.getElementById('tagAddress').value.trim(),
+    type: document.getElementById('tagType').value,
+    mode: document.getElementById('tagMode').value,
+    scanRate: parseInt(document.getElementById('tagScanRate').value) || 1000,
+    group: document.getElementById('tagGroup').value.trim(),
+    unit: document.getElementById('tagUnit').value.trim(),
+    redisPrefix: document.getElementById('tagRedisPrefix').value.trim() || 'plc:tags',
+    description: document.getElementById('tagDescription').value.trim(),
+    scaling: null
+  };
+
+  if (document.getElementById('tagScalingEnabled').checked) {
+    data.scaling = {
+      rawMin: parseFloat(document.getElementById('tagRawMin').value) || 0,
+      rawMax: parseFloat(document.getElementById('tagRawMax').value) || 32767,
+      engMin: parseFloat(document.getElementById('tagEngMin').value) || 0,
+      engMax: parseFloat(document.getElementById('tagEngMax').value) || 100,
+    };
+  }
+
+  return data;
+}
+
+function populateForm(tag) {
+  document.getElementById('tagName').value = tag.name;
+  document.getElementById('tagAddress').value = tag.address;
+  document.getElementById('tagType').value = tag.type;
+  document.getElementById('tagMode').value = tag.mode;
+  document.getElementById('tagScanRate').value = tag.scanRate;
+  document.getElementById('tagGroup').value = tag.group;
+  document.getElementById('tagUnit').value = tag.unit;
+  document.getElementById('tagRedisPrefix').value = tag.redisPrefix;
+  document.getElementById('tagDescription').value = tag.description;
+
+  const hasScaling = !!tag.scaling;
+  document.getElementById('tagScalingEnabled').checked = hasScaling;
+  toggleScaling();
+
+  if (hasScaling) {
+    document.getElementById('tagRawMin').value = tag.scaling.rawMin;
+    document.getElementById('tagRawMax').value = tag.scaling.rawMax;
+    document.getElementById('tagEngMin').value = tag.scaling.engMin;
+    document.getElementById('tagEngMax').value = tag.scaling.engMax;
+  }
+}
+
+function resetForm() {
+  document.getElementById('tagName').value = '';
+  document.getElementById('tagAddress').value = '';
+  document.getElementById('tagType').value = 'INT';
+  document.getElementById('tagMode').value = 'R';
+  document.getElementById('tagScanRate').value = '1000';
+  document.getElementById('tagGroup').value = '';
+  document.getElementById('tagUnit').value = '';
+  document.getElementById('tagRedisPrefix').value = 'plc:tags';
+  document.getElementById('tagDescription').value = '';
+  document.getElementById('tagScalingEnabled').checked = false;
+  toggleScaling();
+  editingIndex = -1;
+  document.getElementById('editorTitle').textContent = 'Nova Tag';
+  document.getElementById('btnSave').textContent = 'Adicionar Tag';
+}
+
+function saveTag() {
+  const data = getFormData();
+  if (!data.name || !data.address) {
+    document.getElementById('tagName').style.borderColor = data.name ? '' : 'var(--accent)';
+    document.getElementById('tagAddress').style.borderColor = data.address ? '' : 'var(--accent)';
+    setTimeout(() => {
+      document.getElementById('tagName').style.borderColor = '';
+      document.getElementById('tagAddress').style.borderColor = '';
+    }, 1500);
+    return;
+  }
+
+  if (editingIndex >= 0) {
+    tags[editingIndex] = data;
+  } else {
+    tags.push(data);
+  }
+
+  resetForm();
+  updateAll();
+}
+
+function editTag(index) {
+  editingIndex = index;
+  populateForm(tags[index]);
+  document.getElementById('editorTitle').textContent = 'Editando: ' + tags[index].name;
+  document.getElementById('btnSave').textContent = 'Salvar Tag';
+}
+
+function deleteTag(index, e) {
+  e.stopPropagation();
+  tags.splice(index, 1);
+  if (editingIndex === index) resetForm();
+  else if (editingIndex > index) editingIndex--;
+  updateAll();
+}
+
+function toggleScaling() {
+  const section = document.getElementById('scalingSection');
+  section.classList.toggle('visible', document.getElementById('tagScalingEnabled').checked);
+}
+
+// === Sorting & filtering ===
+function sortBy(field) {
+  if (currentSort.field === field) currentSort.asc = !currentSort.asc;
+  else { currentSort.field = field; currentSort.asc = true; }
+  renderTable();
+}
+
+function getGroups() {
+  return [...new Set(tags.map(t => t.group).filter(Boolean))].sort();
+}
+
+// === Rendering ===
+function renderTable() {
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  const tbody = document.getElementById('tagTableBody');
+  const empty = document.getElementById('emptyState');
+
+  let filtered = tags.filter(t => {
+    if (activeGroupFilter && t.group !== activeGroupFilter) return false;
+    if (search) {
+      return t.name.toLowerCase().includes(search) ||
+             t.address.toLowerCase().includes(search) ||
+             t.description.toLowerCase().includes(search) ||
+             t.group.toLowerCase().includes(search);
+    }
+    return true;
+  });
+
+  // Sort
+  const { field, asc } = currentSort;
+  filtered.sort((a, b) => {
+    let va = a[field] || '', vb = b[field] || '';
+    if (field === 'scanRate') { va = Number(va); vb = Number(vb); }
+    if (typeof va === 'string') { va = va.toLowerCase(); vb = vb.toLowerCase(); }
+    return va < vb ? (asc ? -1 : 1) : va > vb ? (asc ? 1 : -1) : 0;
+  });
+
+  if (tags.length === 0) {
+    empty.style.display = 'flex';
+    tbody.innerHTML = '';
+    renderFilterChips();
+    return;
+  }
+
+  empty.style.display = 'none';
+
+  tbody.innerHTML = filtered.map((t, fi) => {
+    const realIndex = tags.indexOf(t);
+    const rateClass = t.scanRate <= 200 ? 'rate-fast' : t.scanRate >= 2000 ? 'rate-slow' : 'rate-normal';
+    const scalingText = t.scaling ?
+      `${t.scaling.rawMin}-${t.scaling.rawMax} → ${t.scaling.engMin}-${t.scaling.engMax}` : '—';
+
+    return `<tr class="${realIndex === editingIndex ? 'selected' : ''}" onclick="editTag(${realIndex})">
+      <td>${esc(t.name)}</td>
+      <td>${esc(t.address)}</td>
+      <td><span class="tag-type type-${t.type}">${t.type}</span></td>
+      <td><span class="mode-${t.mode}">${t.mode}</span></td>
+      <td class="${rateClass}">${t.scanRate}ms</td>
+      <td>${esc(t.group)}</td>
+      <td>${esc(t.unit) || '—'}</td>
+      <td style="font-size:10px;color:var(--text-dim)">${scalingText}</td>
+      <td class="delete-col"><button class="delete-btn" onclick="deleteTag(${realIndex}, event)" title="Remover">&times;</button></td>
+    </tr>`;
+  }).join('');
+
+  renderFilterChips();
+}
+
+function renderFilterChips() {
+  const groups = getGroups();
+  const container = document.getElementById('filterChips');
+  container.innerHTML = groups.map(g =>
+    `<div class="chip ${activeGroupFilter === g ? 'active' : ''}" onclick="toggleGroup('${esc(g)}')">${esc(g)}</div>`
+  ).join('');
+
+  // Update datalist
+  const dl = document.getElementById('groupList');
+  dl.innerHTML = groups.map(g => `<option value="${esc(g)}">`).join('');
+}
+
+function toggleGroup(group) {
+  activeGroupFilter = activeGroupFilter === group ? null : group;
+  renderTable();
+}
+
+function updateStats() {
+  document.getElementById('statTotal').textContent = tags.length;
+  document.getElementById('statRead').textContent = tags.filter(t => t.mode === 'R').length;
+  document.getElementById('statWrite').textContent = tags.filter(t => t.mode === 'W').length;
+  document.getElementById('statRW').textContent = tags.filter(t => t.mode === 'RW').length;
+  document.getElementById('statGroups').textContent = getGroups().length;
+  document.getElementById('statKeys').textContent = tags.length; // 1 hash per tag
+}
+
+// === Output generation ===
+function generateRedis() {
+  if (tags.length === 0) return '<span class="comment"># Nenhuma tag configurada</span>';
+
+  const lines = ['<span class="comment"># Redis commands para configurar tags PLC</span>',
+    '<span class="comment"># Cada tag armazenada como um Redis Hash</span>', ''];
+
+  const byPrefix = {};
+  tags.forEach(t => {
+    if (!byPrefix[t.redisPrefix]) byPrefix[t.redisPrefix] = [];
+    byPrefix[t.redisPrefix].push(t);
+  });
+
+  for (const [prefix, ptags] of Object.entries(byPrefix)) {
+    lines.push(`<span class="comment"># --- Prefix: ${esc(prefix)} (${ptags.length} tags) ---</span>`);
+
+    ptags.forEach(t => {
+      const key = `${prefix}:${t.name}`;
+      const fields = [
+        `address <span class="str">"${esc(t.address)}"</span>`,
+        `type <span class="str">"${t.type}"</span>`,
+        `mode <span class="str">"${t.mode}"</span>`,
+        `scan_rate <span class="num">${t.scanRate}</span>`,
+      ];
+      if (t.group) fields.push(`group <span class="str">"${esc(t.group)}"</span>`);
+      if (t.unit) fields.push(`unit <span class="str">"${esc(t.unit)}"</span>`);
+      if (t.description) fields.push(`description <span class="str">"${esc(t.description)}"</span>`);
+      if (t.scaling) {
+        fields.push(`scaling_raw_min <span class="num">${t.scaling.rawMin}</span>`);
+        fields.push(`scaling_raw_max <span class="num">${t.scaling.rawMax}</span>`);
+        fields.push(`scaling_eng_min <span class="num">${t.scaling.engMin}</span>`);
+        fields.push(`scaling_eng_max <span class="num">${t.scaling.engMax}</span>`);
+      }
+
+      lines.push(`<span class="kw">HSET</span> ${esc(key)} \\`);
+      fields.forEach((f, i) => {
+        lines.push(`  ${f}${i < fields.length - 1 ? ' \\' : ''}`);
+      });
+      lines.push('');
+    });
+
+    // Add to tag index set
+    lines.push(`<span class="comment"># Index set para ${esc(prefix)}</span>`);
+    ptags.forEach(t => {
+      lines.push(`<span class="kw">SADD</span> ${esc(prefix)}:_index <span class="str">"${esc(t.name)}"</span>`);
+    });
+
+    // Group sets
+    const groups = [...new Set(ptags.map(t => t.group).filter(Boolean))];
+    if (groups.length) {
+      lines.push('');
+      lines.push(`<span class="comment"># Group sets</span>`);
+      groups.forEach(g => {
+        const members = ptags.filter(t => t.group === g);
+        members.forEach(t => {
+          lines.push(`<span class="kw">SADD</span> ${esc(prefix)}:_group:${esc(g)} <span class="str">"${esc(t.name)}"</span>`);
+        });
+      });
+    }
+    lines.push('');
+  }
+
+  return lines.join('\n');
+}
+
+function generateJSON() {
+  if (tags.length === 0) return '<span class="comment">// Nenhuma tag configurada</span>';
+
+  const config = {
+    redis: { host: 'localhost', port: 6379, db: 0 },
+    tags: tags.map(t => {
+      const obj = {
+        name: t.name,
+        address: t.address,
+        type: t.type,
+        mode: t.mode,
+        scan_rate_ms: t.scanRate,
+        redis_key: `${t.redisPrefix}:${t.name}`,
+      };
+      if (t.group) obj.group = t.group;
+      if (t.unit) obj.unit = t.unit;
+      if (t.description) obj.description = t.description;
+      if (t.scaling) obj.scaling = {
+        raw_min: t.scaling.rawMin, raw_max: t.scaling.rawMax,
+        eng_min: t.scaling.engMin, eng_max: t.scaling.engMax
+      };
+      return obj;
+    })
+  };
+
+  return syntaxHighlightJSON(JSON.stringify(config, null, 2));
+}
+
+function generatePython() {
+  if (tags.length === 0) return '<span class="comment"># Nenhuma tag configurada</span>';
+
+  const lines = [
+    '<span class="kw">import</span> redis',
+    '<span class="kw">import</span> json',
+    '',
+    '<span class="comment"># Conexao Redis</span>',
+    'r = redis.Redis(<span class="key">host</span>=<span class="str">\'localhost\'</span>, <span class="key">port</span>=<span class="num">6379</span>, <span class="key">db</span>=<span class="num">0</span>, <span class="key">decode_responses</span>=<span class="kw">True</span>)',
+    '',
+    '<span class="comment"># Configuracao das tags PLC</span>',
+    'tags = ['
+  ];
+
+  tags.forEach((t, i) => {
+    const fields = [
+      `    <span class="str">"name"</span>: <span class="str">"${esc(t.name)}"</span>`,
+      `    <span class="str">"address"</span>: <span class="str">"${esc(t.address)}"</span>`,
+      `    <span class="str">"type"</span>: <span class="str">"${t.type}"</span>`,
+      `    <span class="str">"mode"</span>: <span class="str">"${t.mode}"</span>`,
+      `    <span class="str">"scan_rate_ms"</span>: <span class="num">${t.scanRate}</span>`,
+    ];
+    if (t.group) fields.push(`    <span class="str">"group"</span>: <span class="str">"${esc(t.group)}"</span>`);
+    if (t.unit) fields.push(`    <span class="str">"unit"</span>: <span class="str">"${esc(t.unit)}"</span>`);
+    if (t.scaling) {
+      fields.push(`    <span class="str">"scaling"</span>: {<span class="str">"raw_min"</span>: <span class="num">${t.scaling.rawMin}</span>, <span class="str">"raw_max"</span>: <span class="num">${t.scaling.rawMax}</span>, <span class="str">"eng_min"</span>: <span class="num">${t.scaling.engMin}</span>, <span class="str">"eng_max"</span>: <span class="num">${t.scaling.engMax}</span>}`);
+    }
+    lines.push(`  {`);
+    lines.push(fields.join(',\n'));
+    lines.push(`  }${i < tags.length - 1 ? ',' : ''}`);
+  });
+
+  lines.push(']', '');
+  lines.push('<span class="comment"># Registrar tags no Redis</span>');
+  lines.push('<span class="kw">def</span> <span class="key">register_tags</span>():');
+  lines.push('    pipe = r.pipeline()');
+  lines.push('    <span class="kw">for</span> tag <span class="kw">in</span> tags:');
+  lines.push('        key = <span class="kw">f</span><span class="str">"{tag.get(\'redis_prefix\', \'plc:tags\')}:{tag[\'name\']}"</span>');
+  lines.push('        pipe.hset(key, mapping=tag)');
+  lines.push('        pipe.sadd(<span class="kw">f</span><span class="str">"{tag.get(\'redis_prefix\', \'plc:tags\')}:_index"</span>, tag[<span class="str">\'name\'</span>])');
+  lines.push('        <span class="kw">if</span> tag.get(<span class="str">\'group\'</span>):');
+  lines.push('            pipe.sadd(<span class="kw">f</span><span class="str">"{tag.get(\'redis_prefix\', \'plc:tags\')}:_group:{tag[\'group\']}"</span>, tag[<span class="str">\'name\'</span>])');
+  lines.push('    pipe.execute()');
+  lines.push('    <span class="kw">print</span>(<span class="kw">f</span><span class="str">"Registradas {len(tags)} tags no Redis"</span>)');
+  lines.push('');
+  lines.push('<span class="kw">if</span> __name__ == <span class="str">"__main__"</span>:');
+  lines.push('    register_tags()');
+
+  return lines.join('\n');
+}
+
+function generatePrompt() {
+  if (tags.length === 0) return 'Nenhuma tag configurada. Use o painel esquerdo ou carregue um preset para comecar.';
+
+  const groups = getGroups();
+  const prefixes = [...new Set(tags.map(t => t.redisPrefix))];
+  const types = [...new Set(tags.map(t => t.type))];
+  const withScaling = tags.filter(t => t.scaling);
+  const writable = tags.filter(t => t.mode === 'W' || t.mode === 'RW');
+  const fastest = Math.min(...tags.map(t => t.scanRate));
+
+  const parts = [
+    `Preciso de um servico que leia/escreva ${tags.length} tags PLC e armazene os valores em Redis.`,
+    '',
+    `Tags organizadas em ${groups.length} grupo(s): ${groups.join(', ')}.`,
+    `Tipos de dados: ${types.join(', ')}.`,
+    `Prefixo(s) Redis: ${prefixes.join(', ')}.`,
+  ];
+
+  if (withScaling.length) {
+    parts.push(`${withScaling.length} tag(s) com escalonamento linear (raw -> engenharia).`);
+  }
+
+  if (writable.length) {
+    parts.push(`${writable.length} tag(s) sao escriveis (modo W ou RW).`);
+  }
+
+  parts.push(`Taxa de scan mais rapida: ${fastest}ms.`);
+  parts.push('');
+  parts.push('Estrutura Redis por tag (Hash):');
+  parts.push('  Chave: {prefix}:{tag_name}');
+  parts.push('  Campos: address, type, mode, scan_rate, group, unit, value, timestamp, scaling_*');
+  parts.push('  Indice: SET {prefix}:_index com todos os nomes de tags');
+  parts.push('  Grupos: SET {prefix}:_group:{name} com tags do grupo');
+  parts.push('');
+  parts.push('Lista completa de tags:');
+
+  tags.forEach(t => {
+    let line = `  - ${t.name}: ${t.address} (${t.type}, ${t.mode}, ${t.scanRate}ms)`;
+    if (t.group) line += ` [${t.group}]`;
+    if (t.unit) line += ` em ${t.unit}`;
+    if (t.scaling) line += ` scaling ${t.scaling.rawMin}-${t.scaling.rawMax} -> ${t.scaling.engMin}-${t.scaling.engMax}`;
+    parts.push(line);
+  });
+
+  return parts.join('\n');
+}
+
+function syntaxHighlightJSON(json) {
+  return json
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"([^"]+)":/g, '<span class="key">"$1"</span>:')
+    .replace(/: "([^"]*)"/g, ': <span class="str">"$1"</span>')
+    .replace(/: (\d+\.?\d*)/g, ': <span class="num">$1</span>')
+    .replace(/: (true|false|null)/g, ': <span class="kw">$1</span>');
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// === Tab switching ===
+function switchTab(tab) {
+  activeTab = tab;
+  document.querySelectorAll('.output-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  document.querySelectorAll('.output-code').forEach(c => c.classList.remove('active'));
+  document.getElementById('out-' + tab).classList.add('active');
+}
+
+// === Copy ===
+function copyOutput() {
+  const el = document.getElementById('out-' + activeTab);
+  const text = el.textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = 'Copiado!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copiar'; btn.classList.remove('copied'); }, 1500);
+  });
+}
+
+// === Import / Export ===
+function exportJSON() {
+  const blob = new Blob([JSON.stringify(tags, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'plc-tags.json';
+  a.click();
+}
+
+function importJSON(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (Array.isArray(data)) {
+        tags = data;
+        updateAll();
+      }
+    } catch (err) {
+      alert('Arquivo JSON invalido');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+// === Presets ===
+function loadPreset(name) {
+  if (name === 'empty') {
+    tags = [];
+  } else {
+    tags = JSON.parse(JSON.stringify(PRESETS[name] || []));
+  }
+  resetForm();
+  activeGroupFilter = null;
+  updateAll();
+}
+
+// === Master update ===
+function updateAll() {
+  renderTable();
+  updateStats();
+  document.getElementById('out-redis').innerHTML = generateRedis();
+  document.getElementById('out-json').innerHTML = generateJSON();
+  document.getElementById('out-python').innerHTML = generatePython();
+  document.getElementById('out-prompt').textContent = generatePrompt();
+}
+
+// === Init ===
+updateAll();
+</script>
+</body>
+</html>

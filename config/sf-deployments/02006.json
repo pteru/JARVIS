@@ -1,0 +1,115 @@
+{
+  "deployment_id": "02006",
+  "name": "SpotFusion Hyundai",
+  "product": "spotfusion",
+  "profile": "estamparia",
+  "enabled": true,
+  "heartbeat_interval_minutes": 60,
+  "analysis_enabled": false,
+  "analysis_interval_minutes": 240,
+  "nodes": {
+    "sf01": {
+      "host": "192.168.100.1",
+      "user": "spotfusion",
+      "ssh_port": 22,
+      "role": "server",
+      "has_gpu": false,
+      "services": [
+        "sparkeyes-back-end",
+        "sparkeyes-front-end",
+        "database-write",
+        "tag-monitor-siemens",
+        "bos-connector",
+        "default-module-sheets",
+        "plc-monitor-114-1",
+        "plc-monitor-114-2",
+        "plc-monitor-115-3",
+        "plc-monitor-115-4",
+        "get-data-114-1",
+        "get-data-115-3",
+        "get-data-115-4",
+        "pg-server",
+        "message-broker",
+        "sparkeyes-plc-cache",
+        "sparkeyes-global-cache",
+        "sparkeyes-server-log",
+        "grafana",
+        "prometheus",
+        "node-exporter",
+        "cadvisor",
+        "portainer",
+        "pgadmin",
+        "sparkeyes-global-cache-insight"
+      ]
+    }
+  },
+  "ports": {
+    "ssh": 22,
+    "frontend": 80,
+    "frontend_https": 443,
+    "backend": 5000,
+    "bos_connector": 5006,
+    "postgresql": 2345,
+    "pgadmin": 5050,
+    "rabbitmq_amqp": 5672,
+    "rabbitmq_ui": 15672,
+    "redis_plc_cache": 6000,
+    "redis_global_cache": 3000,
+    "redis_server_log": 3015,
+    "redis_insight": 8000,
+    "portainer": 8080,
+    "portainer_https": 9443,
+    "grafana": 8100,
+    "prometheus": 8110,
+    "node_exporter": 8111,
+    "cadvisor": 8112,
+    "intel_gpu_exporter": 8113
+  },
+  "thresholds": {
+    "disk_warning_pct": 75,
+    "disk_critical_pct": 90,
+    "ram_warning_pct": 85,
+    "ram_critical_pct": 95,
+    "queue_warning": 5000,
+    "queue_critical": 10000,
+    "restart_warning": 3,
+    "restart_critical": 10,
+    "alert_cooldown_minutes": 60
+  },
+  "redis_instances": {
+    "plc_cache": {
+      "container": "sparkeyes-plc-cache",
+      "port": 6000,
+      "description": "PLC state data from Siemens PLCs"
+    },
+    "global_cache": {
+      "container": "sparkeyes-global-cache",
+      "port": 3000,
+      "description": "Global application cache"
+    },
+    "server_log": {
+      "container": "sparkeyes-server-log",
+      "port": 3015,
+      "description": "Server logging data"
+    }
+  },
+  "rabbitmq_user": "guest",
+  "postgresql": {
+    "container": "pg-server",
+    "db": "sparkeyes",
+    "user": "strokmatic",
+    "port": 2345
+  },
+  "gui_checks": {
+    "sf01": [
+      ":80",
+      ":443",
+      ":5000",
+      ":8000",
+      ":8080",
+      ":8100",
+      ":15672",
+      ":5050"
+    ]
+  }
+}
