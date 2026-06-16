@@ -27,21 +27,21 @@ else
   echo "  No dispatch log found."
 fi
 
-# Backlog summary
+# Backlog summary — scan the CURATED backlogs (jarvis = orchestrator self-improvement,
+# strokmatic = per-product). The old BACKLOG_DIR (backlogs/products) is BacklogPreloader's
+# auto-sync staging area, not the curated source of truth, so it is not read here.
 echo ""
 echo "-- Pending Backlog Tasks --"
 found=0
-if [[ -d "$BACKLOG_DIR" ]]; then
-  for f in "${BACKLOG_DIR}"/*.md; do
-    [[ -f "$f" ]] || continue
-    ws_name="$(basename "$f" .md)"
-    count="$(grep -cE '^\s*-\s*\[ \]' "$f" 2>/dev/null || echo 0)"
-    if [[ "$count" -gt 0 ]]; then
-      echo "  ${ws_name}: ${count} pending"
-      found=1
-    fi
-  done
-fi
+for f in "${ORCHESTRATOR_HOME}"/backlogs/jarvis/*.md "${ORCHESTRATOR_HOME}"/backlogs/strokmatic/*.md; do
+  [[ -f "$f" ]] || continue
+  name="$(basename "$f" .md)"
+  count="$(grep -cE '^\s*-\s*\[ \]' "$f" 2>/dev/null || echo 0)"
+  if [[ "$count" -gt 0 ]]; then
+    echo "  ${name}: ${count} pending"
+    found=1
+  fi
+done
 [[ "$found" -eq 0 ]] && echo "  (none)"
 
 # Hook matcher validation

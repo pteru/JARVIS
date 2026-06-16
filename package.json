@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "test": "node --test tests/",
     "sg3:bootstrap": "node scripts/sg3-monitor/bootstrap.mjs",
     "sg3:run": "bash scripts/sg3-monitor/run.sh",
     "sg3:collect-only": "node scripts/sg3-monitor/run-collectors.mjs",

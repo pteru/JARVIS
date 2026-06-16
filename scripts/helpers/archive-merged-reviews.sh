@@ -14,6 +14,7 @@ log_info() { echo -e "${GREEN}[INFO]${NC} $1"; }
 log_warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 
 ORCHESTRATOR_HOME="${ORCHESTRATOR_HOME:-$HOME/JARVIS}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REVIEWS_DIR="$ORCHESTRATOR_HOME/reports/pr-reviews"
 ARCHIVE_DIR="$REVIEWS_DIR/archived"
 INBOX_FILE="$ORCHESTRATOR_HOME/reports/pr-inbox.json"
