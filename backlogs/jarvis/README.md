@@ -1,4 +1,9 @@
-# Claude Orchestrator - Self-Improvement Backlog
+# Claude Orchestrator - Self-Improvement Index (historical)
+
+> **Open work moved to GitHub Issues 2026-06-16.** Source of truth:
+> **[pteru/JARVIS · open `backlog` issues](https://github.com/pteru/JARVIS/issues?q=is%3Aopen+label%3Abacklog)** (#5–#15).
+> This file is now a **historical index** of what shipped — do not track new open work here; open a
+> GitHub issue instead. The retired task list is [backlog.md](backlog.md); specs live in this directory.
 
 Ideas for new features, skills, and integrations. Full specs live in this directory.
 
@@ -90,3 +95,11 @@ Ideas for new features, skills, and integrations. Full specs live in this direct
 | [jarvis-restructuring.md](plans/jarvis-restructuring.md) | — | Planned |
 | [document-templates-plugin.md](plans/document-templates-plugin.md) | — | Planned |
 | [document-templates-plugin-impl.md](../../docs/superpowers/plans/2026-04-01-document-templates-plugin.md) | — | Planned |
+
+---
+
+## Operational notes / small follow-ups
+
+| Date | Item | Notes |
+|------|------|-------|
+| 2026-06-16 | pr-review CLAUDE.md trim regression on deploy | PR #65 trimmed `services/pr-review/config/claude-md/visionking.md` from 4.9 KB → 2.2 KB. `deploy.sh` Step 2 silently overwrites it from `~/JARVIS/workspaces/strokmatic/visionking/.claude/CLAUDE.md` (still 4.9 KB). Cost: ~$2/month extra Sonnet input tokens. Fix options: (A) trim source CLAUDE.md (impacts other tools); (B) patch deploy.sh to preserve local override; (C) accept regression. |

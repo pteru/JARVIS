@@ -1,7 +1,14 @@
 # Strokmatic Integrated Workflow: ClickUp + GitHub + Google Drive + Claude
 
 **Date:** 2026-03-24
-**Status:** Draft v1 — iterating
+**Status:** Reference design — §9 roadmap resolved 2026-06-16
+
+> **Note (2026-06-16):** This is a *reference design document*, not a task backlog. Its §9
+> implementation roadmap has been resolved — see [§9](#9-implementation-roadmap-resolved-2026-06-16).
+> The two marketplace-plugin tasks moved to GitHub Issues
+> (**[strokmatic/sdk-agent-standards · `backlog`](https://github.com/strokmatic/sdk-agent-standards/issues?q=is%3Aopen+label%3Abacklog)** — #6/#7);
+> the remaining items are manual ClickUp/Google-Workspace/team-admin actions tracked as an ops
+> checklist (not GitHub issues, not dispatchable tasks).
 
 ---
 
@@ -377,37 +384,36 @@ The `project-management` plugin is the highest priority addition — it would br
 
 ---
 
-## 9. Implementation Roadmap
+## 9. Implementation Roadmap (resolved 2026-06-16)
 
-### Phase 1: Foundation (Week 1)
+The original four-phase roadmap is resolved. Outcomes below; nothing here is a dispatchable
+task (no `- [ ]` checkboxes remain).
 
-- [ ] Configure ClickUp-GitHub native integration (OAuth, per-org)
-- [ ] Configure ClickUp-Google Drive native integration
-- [ ] Add custom fields to ClickUp spaces (`Project Code`, `Drive Folder`, `GitHub Issue`, `Deliverable`, `Task Lane`)
-- [ ] Create ClickUp Automations (PR merge → Complete, branch create → In Progress)
-- [ ] Install Markdown Viewer add-on org-wide in Google Workspace
-- [ ] Document branch naming convention (`feat/CU-<id>-<desc>`)
+### ✅ Shipped / resolved
 
-### Phase 2: Drive Indexing (Week 2)
+- ClickUp ↔ GitHub native integration configured (OAuth, per-org)
+- ClickUp custom fields defined (`Project Code`, `Drive Folder`, `GitHub Issue`, `Deliverable`, `Task Lane`)
+- Branch naming convention documented (`feat/CU-<id>-<desc>`)
+- Drive indexing via `/gdrive <code> index` shipped; PMO projects indexed
+- ClickUp connector MCP deployed to live JARVIS; `config/orchestrator/clickup.json` created; `/clickup` skill validated end-to-end
+- Non-Claude workflow documented (this document, §5)
 
-- [ ] Run `/gdrive <code> index` for all 23 PMO projects
-- [ ] Upload `drive-index.md` to each project's Drive folder
-- [ ] Set up recurring Drive index refresh (weekly or on-demand)
-- [ ] Populate `Drive Folder` custom field in existing ClickUp tasks
+### 🔀 Migrated to GitHub Issues — `strokmatic/sdk-agent-standards`
 
-### Phase 3: Claude Integration (Week 3)
+| Task | Issue |
+|---|---|
+| Build `project-management` plugin for marketplace | #6 |
+| Publish `project-management` plugin to marketplace | #7 |
 
-- [ ] Deploy ClickUp connector MCP server to live JARVIS (from FORGE)
-- [ ] Create `config/orchestrator/clickup.json` with discovered IDs
-- [ ] Test `/clickup` skill end-to-end (create task, update status, link Drive)
-- [ ] Build `project-management` plugin for marketplace (Cowork users)
+### 🛠 Ops checklist (manual — ClickUp / Google-Workspace / team admin; not dispatched)
 
-### Phase 4: Team Rollout (Week 4)
-
-- [ ] Document workflow for non-Claude users (ClickUp + GitHub + Drive only)
-- [ ] Train team on branch naming convention and ClickUp custom fields
-- [ ] Publish `project-management` plugin to marketplace
-- [ ] Test Cowork plugin install on Windows (engineering team) and macOS
+| Action | System | Owner |
+|---|---|---|
+| Configure ClickUp ↔ Google Drive native integration | ClickUp admin | — |
+| Create ClickUp Automations (PR merge → Complete, branch create → In Progress) | ClickUp admin | — |
+| Install Markdown Viewer add-on org-wide | Google Workspace admin | — |
+| Back-fill `Drive Folder` custom field on existing ClickUp tasks | ClickUp | — |
+| Train team on branch naming + ClickUp custom fields; test Cowork plugin install (Win/macOS) | Team | — |
 
 ---
 

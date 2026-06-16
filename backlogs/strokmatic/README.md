@@ -1,16 +1,19 @@
 # Strokmatic Product Backlogs
 
-Source of truth for product task tracking. Items here mirror ClickUp (primary system) and are synced to product monorepos via backlog-manager MCP.
+> **Retired 2026-06-16 — these task lists moved to GitHub Issues.** GitHub is now the source of
+> truth for product task tracking. The per-product `.md` files below are pointer stubs (kept for
+> history); do not add tasks to them. Migration evidence:
+> [`reports/backlog-reconciliation-2026-06-16.md`](../../reports/backlog-reconciliation-2026-06-16.md).
 
-## Task Backlogs (Summary)
+## Task Backlogs → GitHub Issues
 
-| Product | File | Pending | High Priority |
-|---------|------|---------|---------------|
-| DieMaster | [diemaster.md](diemaster.md) | 21 | FEAT-04 (inference), SEC-01 (credentials) |
-| SpotFusion | [spotfusion.md](spotfusion.md) | 19 | SEC-01 (credentials), OPT-01 (repo cleanup) |
-| VisionKing | [visionking.md](visionking.md) | 40 | SEALER-* suite, SEC-01 (credentials) |
-| SDK | [sdk.md](sdk.md) | 12 | FEAT-01 (EIP connector), sdk-reorganization |
-| General | [general.md](general.md) | 1 | CICD-01 (Cloud Build links) |
+| Product | Open `backlog` issues | Stub |
+|---------|------------------------|------|
+| DieMaster | [strokmatic/diemaster](https://github.com/strokmatic/diemaster/issues?q=is%3Aopen+label%3Abacklog) (#216–#226) | [diemaster.md](diemaster.md) |
+| SpotFusion | [strokmatic/spotfusion](https://github.com/strokmatic/spotfusion/issues?q=is%3Aopen+label%3Abacklog) (#74–#84) | [spotfusion.md](spotfusion.md) |
+| VisionKing | [strokmatic/visionking](https://github.com/strokmatic/visionking/issues?q=is%3Aopen+label%3Abacklog) (#93–#112) | [visionking.md](visionking.md) |
+| SDK | [strokmatic/sdk](https://github.com/strokmatic/sdk/issues?q=is%3Aopen+label%3Abacklog) (epic #1) + family repos | [sdk.md](sdk.md) |
+| General | [strokmatic/infra](https://github.com/strokmatic/infra/issues?q=is%3Aopen+label%3Abacklog) (#66–#69) | [general.md](general.md) |
 
 ## Strategic Documents
 
@@ -58,5 +61,9 @@ Source of truth for product task tracking. Items here mirror ClickUp (primary sy
 
 ## Sync
 
-- **ClickUp → here:** Manual (run `scripts/sync-clickup-to-backlogs.sh` when needed)
-- **Here → monorepos:** Automatic via `backlog-manager` MCP `sync_backlog` tool (baseline tracking)
+> **Superseded 2026-06-16.** Task tracking now lives in GitHub Issues per repo (see table above).
+> The legacy sync machinery below is inert against these retired stubs and will be removed when the
+> orchestrator is rewired to read/write GitHub Issues (Phase 2).
+
+- ~~**ClickUp → here:** Manual (`scripts/sync-clickup-to-backlogs.sh`)~~
+- ~~**Here → monorepos:** Automatic via `backlog-manager` MCP `sync_backlog` tool~~

@@ -1,45 +1,23 @@
-# JARVIS Orchestrator Backlog
+# JARVIS Orchestrator Backlog — RETIRED 2026-06-16
 
-> Full specs in `specs/`. Implementation plans in `plans/`. Completed specs in `completed/`.
-> Master index with status tracking: [README.md](README.md)
+> **Superseded by GitHub Issues.** Source of truth:
+> **[pteru/JARVIS · open `backlog` issues](https://github.com/pteru/JARVIS/issues?q=is%3Aopen+label%3Abacklog)**
+>
+> Do **not** add tasks here — open a GitHub issue in `pteru/JARVIS` instead.
+> This file is intentionally free of `- [ ]` lines so the `process_backlogs` dispatch loop
+> and the dashboard summary treat it as empty.
+>
+> The curated feature index ([README.md](README.md)) is preserved as a historical record of
+> what shipped; it is no longer the place to track open work.
 
-## High Priority
-- [ ] [complex] Sandbox Dev Environment — Docker-based sandbox for autonomous Claude Code task execution. Spec: `specs/sandbox-dev-environment.md` — **In Progress**
-- [ ] [medium] PR review skip by commit SHA — Store reviewed commit SHA in sidecar file, compare against headRefOid (avoids re-review after posting)
-- [ ] [medium] PR inbox dashboard widget — PR inbox visualization in JARVIS dashboard. Read from `reports/pr-inbox.json`
+## Migration record
 
-## Medium Priority
-- [ ] [complex] PMO Dashboard — Web UI for project tracking. FastAPI + Vue 3 + SQLite. Spec: `specs/pmo-dashboard.md`
-- [ ] [complex] Dashboard Modular Sidenav — Restructure dashboard into modular sidenav. Spec: `specs/dashboard-modules.md`
-- [ ] [medium] `/cleanup` Skill — Post-task cleanup ritual. Spec: `specs/cleanup-skill.md`
-- [ ] [complex] Google Drive ↔ PMO Integration — Browse/read Drive files in-place. Spec: `specs/gdrive-pmo-sync.md`
-- [ ] [medium] Meeting Minutes Cron (GDrive) — Auto-organize meeting minutes via Calendar + Drive. Spec: `specs/meeting-minutes-cron.md`
-- [ ] [medium] GWorkspace Tools Package — Package google-workspace MCP as distributable artifact. Spec: `specs/gworkspace-tools-package.md`
-- [ ] [complex] SDK Monorepo Reorganization — Restructure SDK into categorized subfolders. Spec: `specs/sdk-reorganization.md`
-- [ ] [medium] Gmail API Migration — Add Gmail tools to Google Workspace MCP. Spec: `specs/gmail-api-migration.md`
-- [ ] [complex] Telegram Command Intake Pipeline — Telegram bot → NLP intent → action router. Spec: `specs/telegram-command-intake.md`
-- [ ] [complex] PR Review Service v2 — Smart re-review, auto-post, labels, build checks. Plan: `plans/pr-review-v2.md`
-- [ ] [complex] JARVIS Restructuring + Marketplace — Shared libs cleanup + marketplace plan. Plan: `plans/jarvis-restructuring.md`
-- [ ] [complex] Document Templates Plugin — Strokmatic plugin for doc templates. Plan: `plans/document-templates-plugin.md`
-- [ ] [COMPLEX] Blender Python (bpy) toolkit — Vision simulation: camera placement, reflection calibration, synthetic data, lighting optimization. Based on underbody-blender-syndata.
-- [ ] [COMPLEX] NX Open API investigation — Research Siemens NX programming API for CAD/CAM automation. Evaluate MCP server feasibility.
+23 open tasks were triaged on 2026-06-16 (full evidence: [`reports/backlog-reconciliation-2026-06-16.md`](../../reports/backlog-reconciliation-2026-06-16.md)):
 
-## Low Priority
-- [ ] [complex] JARVIS Voice Interface — Wake word → STT → Claude → TTS. Energy orb visual. Spec: `specs/voice-interface.md`
-- [ ] [complex] JARVIS Distribution — Strokmatic — Non-personal distribution for colleagues. Spec: `specs/jarvis-dist-strokmatic.md`
-- [ ] [complex] JARVIS Distribution — Generic — Fully sanitized distribution. Spec: `specs/jarvis-dist-generic.md`
-- [ ] [complex] Multi-User Network Interface — Web-based multi-user Claude Code gateway. Spec: `specs/multi-user-interface.md`
-- [ ] [complex] Android JARVIS App — Wake word → on-device STT → JARVIS API. Spec: `specs/android-jarvis-app.md`
-- [ ] [medium] Voice Interface — Session Tracker — Real-time session tracking overlay. Spec: `specs/voice-interface.md`
-- [ ] [low] Evaluate `gws` CLI — googleworkspace/cli as potential replacement for custom google-workspace MCP. Watch for v1.0 release. Blockers: pre-v1.0, DWD untested.
+| Outcome | Count | Detail |
+|---|---:|---|
+| **Migrated** | 11 | → `pteru/JARVIS` #5–#15 |
+| **Done** | 11 | PMO Dashboard, Sandbox, `/cleanup`, GDrive↔PMO, Gmail API migration, Document Templates plugin, PR-inbox widget, knowledge-hub `works_at`, Blender toolkit, FORGE distribution, `gws` CLI eval |
+| **Resolved on review** | 1 | GWorkspace Tools Package / SDK reorg / PR-review-v2 split — kept the live remainder, dropped the shipped parts |
 
-## Completed
-- [x] Knowledge Base Phase 1 — 128-page PT-BR KB at `teruelskm/knowledge-base` (2026-04-03)
-- [x] Knowledge Base Phase 2 — Auto-update: git monitor + dispatch hook + staleness report (2026-04-03)
-- [x] Knowledge Base Phase 3 — Google Chat @JARVIS bot with RAG + Q&A logging (2026-04-03)
-- [x] Telegram Bot Manager — Multi-bot notification routing, v1.3.0 (2026-02-22)
-- [x] `/backlog-add` Skill — Unified backlog item creator with duplicate detection (2026-02-22)
-- [x] `/system-update` Skill — Consolidated system update (2026-03-05)
-- [x] Backlog Reorganization — Consolidated from 8 locations to 2 domains: `backlogs/strokmatic/` + `backlogs/jarvis/` (2026-04-03)
-- [x] Modified Third-Party Libs Repo — **Superseded** by SDK Reorganization
-- [x] ClickUp Connector, Changelog Reviewer, Dashboard, PR Inbox, Mechanical Tool, Email Organizer, Google Workspace, Meeting Assistant — See `completed/` directory
+The full original task list is preserved in git history prior to this commit.
