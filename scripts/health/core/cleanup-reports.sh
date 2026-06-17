@@ -36,35 +36,38 @@ CONSOLIDATED_RETENTION_DAYS="${CONSOLIDATED_RETENTION_DAYS:-30}"
 CONSOLIDATION_STATE="$REPORT_DIR/consolidation-state.json"
 
 # ---------------------------------------------------------------------------
-# Gate: consolidation must have run before we delete per-run analysis files
+# Gate: consolidation must have run before we delete ANYTHING
+# (matches original behavior: exit early if state absent or last_consolidated empty)
 # ---------------------------------------------------------------------------
 if [[ ! -f "$CONSOLIDATION_STATE" ]]; then
-  log "WARN: No consolidation-state.json found — skipping per-run analysis cleanup (consolidation must run first)"
-else
-  LAST_CONSOLIDATED=$(jq -r '.last_consolidated // empty' "$CONSOLIDATION_STATE" 2>/dev/null)
-  if [[ -z "$LAST_CONSOLIDATED" ]]; then
-    log "WARN: Could not read last_consolidated timestamp — skipping analysis cleanup"
-  else
-    log "Last consolidation: $LAST_CONSOLIDATED"
+  log "WARN: No consolidation-state.json found — skipping cleanup (consolidation must run first)"
+  exit 0
+fi
 
-    # -------------------------------------------------------------------------
-    # Delete per-run analysis files older than ANALYSIS_RETENTION_DAYS
-    # -------------------------------------------------------------------------
-    DELETED=0
-    while IFS= read -r file; do
-      [[ -z "$file" ]] && continue
-      if find "$file" -mtime +"${ANALYSIS_RETENTION_DAYS}" -print -quit 2>/dev/null | grep -q .; then
-        rm "$file"
-        DELETED=$((DELETED + 1))
-      fi
-    done < <(find "$REPORT_DIR" -maxdepth 1 -name 'analysis-*.md' -type f 2>/dev/null)
+LAST_CONSOLIDATED=$(jq -r '.last_consolidated // empty' "$CONSOLIDATION_STATE" 2>/dev/null)
+if [[ -z "$LAST_CONSOLIDATED" ]]; then
+  log "WARN: Could not read last_consolidated timestamp — skipping"
+  exit 0
+fi
 
-    if [[ "$DELETED" -gt 0 ]]; then
-      log "Deleted $DELETED per-run analysis file(s) older than ${ANALYSIS_RETENTION_DAYS} days"
-    else
-      log "No per-run analysis files to clean up"
-    fi
+log "Last consolidation: $LAST_CONSOLIDATED"
+
+# ---------------------------------------------------------------------------
+# Delete per-run analysis files older than ANALYSIS_RETENTION_DAYS
+# ---------------------------------------------------------------------------
+DELETED=0
+while IFS= read -r file; do
+  [[ -z "$file" ]] && continue
+  if find "$file" -mtime +"${ANALYSIS_RETENTION_DAYS}" -print -quit 2>/dev/null | grep -q .; then
+    rm "$file"
+    DELETED=$((DELETED + 1))
   fi
+done < <(find "$REPORT_DIR" -maxdepth 1 -name 'analysis-*.md' -type f 2>/dev/null)
+
+if [[ "$DELETED" -gt 0 ]]; then
+  log "Deleted $DELETED per-run analysis file(s) older than ${ANALYSIS_RETENTION_DAYS} days"
+else
+  log "No per-run analysis files to clean up"
 fi
 
 # ---------------------------------------------------------------------------
