@@ -31,8 +31,10 @@ load_health_config() {
   local data_root reports_root
   data_root="$(jq -r '.data_root' "$CONFIG_FILE")"
   reports_root="$(jq -r '.reports_root' "$CONFIG_FILE")"
-  export DATA_DIR="$ORCHESTRATOR_HOME/$data_root/$deployment"
-  export REPORT_DIR="$ORCHESTRATOR_HOME/$reports_root/$deployment"
+  export DATA_DIR
+  DATA_DIR="$ORCHESTRATOR_HOME/$data_root/$deployment"
+  export REPORT_DIR
+  REPORT_DIR="$ORCHESTRATOR_HOME/$reports_root/$deployment"
 
   # Assembler and model
   export ASSEMBLER
@@ -50,14 +52,16 @@ load_health_config() {
   local ssh_path rabbit_path
   ssh_path="$(jq -r '.secrets.ssh' "$CONFIG_FILE")"
   rabbit_path="$(jq -r '.secrets.rabbit' "$CONFIG_FILE")"
-  export HEALTH_SSH_SECRET="${ssh_path/#\~/$HOME}"
-  export HEALTH_RABBIT_SECRET="${rabbit_path/#\~/$HOME}"
+  export HEALTH_SSH_SECRET
+  HEALTH_SSH_SECRET="${ssh_path/#\~/$HOME}"
+  export HEALTH_RABBIT_SECRET
+  HEALTH_RABBIT_SECRET="${rabbit_path/#\~/$HOME}"
 
   # Timing / throttle
   export THROTTLE_MINUTES
   THROTTLE_MINUTES="$(jq -r '.throttle_minutes // 240' "$CONFIG_FILE")"
   export ALERT_COOLDOWN_MINUTES
-  ALERT_COOLDOWN_MINUTES="$(jq -r '.alert_cooldown_minutes' "$CONFIG_FILE")"
+  ALERT_COOLDOWN_MINUTES="$(jq -r '.alert_cooldown_minutes // 60' "$CONFIG_FILE")"
   export HEARTBEAT_INTERVAL_MINUTES
   HEARTBEAT_INTERVAL_MINUTES="$(jq -r '.heartbeat_interval_minutes // 60' "$CONFIG_FILE")"
 
