@@ -19,16 +19,16 @@ function runHook() {
   }
 }
 
-describe('DashboardSummary hook — backlog summary (regression: dead BACKLOG_DIR)', () => {
-  it('renders the Pending Backlog Tasks section', () => {
+describe('DashboardSummary hook — backlog summary (GitHub Issues cache)', () => {
+  it('renders the Pending Backlog Issues section', () => {
     const out = runHook();
-    assert.match(out, /-- Pending Backlog Tasks --/);
+    assert.match(out, /-- Pending Backlog Issues \(GitHub\) --/);
   });
 
-  it('reports real pending counts from the curated backlogs, not an empty (none)', () => {
+  it('reports per-repo counts from the cache, or a refresh hint when empty', () => {
     const out = runHook();
-    const section = out.split('-- Pending Backlog Tasks --')[1] || '';
-    // backlogs/jarvis + backlogs/strokmatic hold 100+ open "- [ ]" tasks, so counts must show
-    assert.match(section, /\d+ pending/, `expected "<n> pending" lines, got:\n${section.slice(0, 400)}`);
+    const section = out.split('-- Pending Backlog Issues (GitHub) --')[1] || '';
+    assert.match(section, /open|refresh-backlog-cache/,
+      `expected counts or a refresh hint, got:\n${section.slice(0, 400)}`);
   });
 });

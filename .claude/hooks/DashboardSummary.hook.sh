@@ -27,22 +27,27 @@ else
   echo "  No dispatch log found."
 fi
 
-# Backlog summary — scan the CURATED backlogs (jarvis = orchestrator self-improvement,
-# strokmatic = per-product). The old BACKLOG_DIR (backlogs/products) is BacklogPreloader's
-# auto-sync staging area, not the curated source of truth, so it is not read here.
+# Backlog summary — read the GitHub Issues cache (data/backlog-cache/*.json).
+# GitHub is the source of truth; the cron `refresh-backlog-cache` keeps the cache fresh.
 echo ""
-echo "-- Pending Backlog Tasks --"
-found=0
-for f in "${ORCHESTRATOR_HOME}"/backlogs/jarvis/*.md "${ORCHESTRATOR_HOME}"/backlogs/strokmatic/*.md; do
-  [[ -f "$f" ]] || continue
-  name="$(basename "$f" .md)"
-  count="$(grep -cE '^\s*-\s*\[ \]' "$f" 2>/dev/null || echo 0)"
-  if [[ "$count" -gt 0 ]]; then
-    echo "  ${name}: ${count} pending"
-    found=1
+echo "-- Pending Backlog Issues (GitHub) --"
+cache_dir="${ORCHESTRATOR_HOME}/data/backlog-cache"
+if compgen -G "${cache_dir}/*.json" > /dev/null; then
+  newest=0
+  for f in "${cache_dir}"/*.json; do
+    repo="$(jq -r '.repo // "?"' "$f" 2>/dev/null)"
+    count="$(jq -r '[.issues[] | select((.state // "open") == "open")] | length' "$f" 2>/dev/null || echo 0)"
+    [[ "$count" -gt 0 ]] && echo "  ${repo}: ${count} open"
+    mtime="$(date -r "$f" +%s 2>/dev/null || echo 0)"
+    [[ "$mtime" -gt "$newest" ]] && newest="$mtime"
+  done
+  if [[ "$newest" -gt 0 ]]; then
+    age_h=$(( ( $(date +%s) - newest ) / 3600 ))
+    echo "  (cache age: ${age_h}h — run \`orchestrator.sh refresh-backlog-cache\` to update)"
   fi
-done
-[[ "$found" -eq 0 ]] && echo "  (none)"
+else
+  echo "  (no cache — run \`orchestrator.sh refresh-backlog-cache\`)"
+fi
 
 # Hook matcher validation
 SETTINGS_FILE="${SCRIPT_DIR}/../settings.local.json"
