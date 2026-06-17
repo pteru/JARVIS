@@ -1,0 +1,22 @@
+{
+  "product": "vk",
+  "deployment": "03002",
+  "name": "ArcelorMittal TL1 (03002)",
+  "data_root": "data/vk-health",
+  "reports_root": "reports/vk-health",
+  "assembler": "scripts/health/assemblers/vk.py",
+  "claude_model": "claude-opus-4-6",
+  "connectivity": {
+    "label": "VisionKing nodes",
+    "nodes": ["vk01", "vk02", "vk03"]
+  },
+  "secrets": {
+    "ssh": "~/.secrets/vk-ssh-password",
+    "rabbit": "~/.secrets/vk-rabbit-password"
+  },
+  "checks": [],
+  "throttle_minutes": 240,
+  "alert_cooldown_minutes": 60,
+  "heartbeat_interval_minutes": 60,
+  "enabled": true
+}

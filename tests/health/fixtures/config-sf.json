@@ -1,0 +1,22 @@
+{
+  "product": "sf",
+  "deployment": "02006",
+  "name": "SpotFusion Hyundai (02006)",
+  "data_root": "data/sf-health",
+  "reports_root": "reports/sf-health",
+  "assembler": "scripts/health/assemblers/sf.py",
+  "claude_model": "claude-opus-4-6",
+  "connectivity": {
+    "label": "SpotFusion server",
+    "nodes": ["sf01"]
+  },
+  "secrets": {
+    "ssh": "~/.secrets/sf-ssh-password",
+    "rabbit": "~/.secrets/sf-rabbit-password"
+  },
+  "checks": [],
+  "throttle_minutes": 240,
+  "alert_cooldown_minutes": 60,
+  "heartbeat_interval_minutes": 60,
+  "enabled": true
+}
