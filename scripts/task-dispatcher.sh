@@ -64,14 +64,30 @@ log_info "Model: $MODEL"
 log_info "Complexity: $COMPLEXITY"
 log_info "Task: $TASK"
 
-# Build prompt from template if available
+# Build prompt from template if available.
+# Use awk with literal index/substr replacement (not sed): $TASK is often
+# multi-line and may contain |, &, #, \ etc. — sed's s||| breaks on newlines and
+# awk's gsub() would reinterpret & and \ in the replacement. We read the whole
+# template as one record (RS that won't appear) and splice placeholders literally.
 PROMPT_TEMPLATE="$ORCHESTRATOR_HOME/prompts/templates/task-prompt.md"
 if [[ -f "$PROMPT_TEMPLATE" ]]; then
-    FULL_PROMPT=$(sed \
-        -e "s|{{WORKSPACE_NAME}}|$WORKSPACE|g" \
-        -e "s|{{TASK_DESCRIPTION}}|$TASK|g" \
-        -e "s|{{COMPLEXITY}}|$COMPLEXITY|g" \
-        "$PROMPT_TEMPLATE")
+    FULL_PROMPT=$(WORKSPACE_NAME="$WORKSPACE" TASK_DESCRIPTION="$TASK" COMPLEXITY="$COMPLEXITY" \
+        awk '
+        function lit(s, ph, repl,   out, i) {
+            out = ""
+            while ((i = index(s, ph)) > 0) {
+                out = out substr(s, 1, i - 1) repl
+                s = substr(s, i + length(ph))
+            }
+            return out s
+        }
+        BEGIN { RS = "\0" }
+        {
+            $0 = lit($0, "{{WORKSPACE_NAME}}",   ENVIRON["WORKSPACE_NAME"])
+            $0 = lit($0, "{{TASK_DESCRIPTION}}", ENVIRON["TASK_DESCRIPTION"])
+            $0 = lit($0, "{{COMPLEXITY}}",       ENVIRON["COMPLEXITY"])
+            printf "%s", $0
+        }' "$PROMPT_TEMPLATE")
 else
     FULL_PROMPT="$TASK"
 fi

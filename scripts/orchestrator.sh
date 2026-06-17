@@ -61,13 +61,15 @@ dispatch_issue() {
     fi
 
     # Resolve a workspace key + repo slug from the target.
+    # `|| true` keeps set -e from killing the script when the resolver exits
+    # non-zero (exit 2 = not found); the empty-guard below reports it cleanly.
     local workspace repo
     if [[ "$target" == */* ]]; then
         repo="$target"
-        workspace="$(node "$SCRIPT_DIR/lib/backlog-source.mjs" resolve-workspace "$repo" 2>/dev/null)"
+        workspace="$(node "$SCRIPT_DIR/lib/backlog-source.mjs" resolve-workspace "$repo" 2>/dev/null)" || true
     else
         workspace="$target"
-        repo="$(node "$SCRIPT_DIR/lib/backlog-source.mjs" resolve-repo "$workspace" 2>/dev/null)"
+        repo="$(node "$SCRIPT_DIR/lib/backlog-source.mjs" resolve-repo "$workspace" 2>/dev/null)" || true
     fi
     if [[ -z "$workspace" || -z "$repo" ]]; then
         log_error "Could not resolve workspace/repo for '$target'"
@@ -82,10 +84,10 @@ dispatch_issue() {
     }
 
     local title body url complexity
-    title="$(echo "$issue_json" | jq -r '.title')"
-    body="$(echo "$issue_json" | jq -r '.body')"
-    url="$(echo "$issue_json" | jq -r '.url')"
-    complexity="$(echo "$issue_json" | jq -r '[.labels[].name] | map(select(. == "simple" or . == "medium" or . == "complex")) | (.[0] // "medium")')"
+    title="$(echo "$issue_json" | jq -r '.title // ""')"
+    body="$(echo "$issue_json" | jq -r '.body // ""')"
+    url="$(echo "$issue_json" | jq -r '.url // ""')"
+    complexity="$(echo "$issue_json" | jq -r '[(.labels // [])[].name] | map(select(. == "simple" or . == "medium" or . == "complex")) | (.[0] // "medium")')"
 
     local prompt="GitHub issue ${url}
 
