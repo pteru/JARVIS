@@ -14,30 +14,6 @@ log_section() { echo -e "\n${BLUE}═══ $1 ═══${NC}\n"; }
 
 ORCHESTRATOR_HOME="${ORCHESTRATOR_HOME:-$HOME/JARVIS}"
 
-# Resolve workspace key to backlog file path
-# "orchestrator" → backlogs/jarvis/backlog.md
-# "strokmatic.diemaster" → backlogs/strokmatic/diemaster.md
-resolve_backlog_path() {
-  local ws="$1"
-  if [[ "$ws" == "orchestrator" ]]; then
-    echo "$ORCHESTRATOR_HOME/backlogs/jarvis/backlog.md"
-  else
-    local domain="${ws%%.*}"        # "strokmatic"
-    local product="${ws#*.}"        # "diemaster" or "sdk" or "general"
-    local new_path="$ORCHESTRATOR_HOME/backlogs/$domain/$product.md"
-    if [[ -f "$new_path" ]]; then
-      echo "$new_path"
-    else
-      # Fallback to legacy path
-      local legacy="$ORCHESTRATOR_HOME/backlogs/products/${ws}.md"
-      if [[ -f "$legacy" ]]; then
-        echo "$legacy"
-      else
-        echo "$new_path"
-      fi
-    fi
-  fi
-}
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 MODE="${1:-refresh-backlog-cache}"
@@ -159,11 +135,8 @@ generate_daily_report() {
         echo "| Product | Pending |"
         echo "|---------|---------|"
         for product in diemaster spotfusion visionking sdk; do
-            BACKLOG_FILE="$(resolve_backlog_path "strokmatic.${product}")"
-            if [[ -f "$BACKLOG_FILE" ]]; then
-                COUNT=$(grep -c '^\- \[ \]' "$BACKLOG_FILE" 2>/dev/null || echo 0)
-                echo "| $product | $COUNT |"
-            fi
+            COUNT=$(node "$SCRIPT_DIR/lib/backlog-source.mjs" list "strokmatic/${product}" --json 2>/dev/null | jq 'length' 2>/dev/null || echo 0)
+            echo "| $product | ${COUNT:-0} |"
         done
     } > "$REPORT_FILE"
 
@@ -262,11 +235,8 @@ generate_weekly_report() {
         echo "| Product | Pending |"
         echo "|---------|---------|"
         for product in diemaster spotfusion visionking sdk; do
-            BACKLOG_FILE="$(resolve_backlog_path "strokmatic.${product}")"
-            if [[ -f "$BACKLOG_FILE" ]]; then
-                COUNT=$(grep -c '^\- \[ \]' "$BACKLOG_FILE" 2>/dev/null || echo 0)
-                echo "| $product | $COUNT |"
-            fi
+            COUNT=$(node "$SCRIPT_DIR/lib/backlog-source.mjs" list "strokmatic/${product}" --json 2>/dev/null | jq 'length' 2>/dev/null || echo 0)
+            echo "| $product | ${COUNT:-0} |"
         done
     } > "$REPORT_FILE"
 
@@ -276,17 +246,11 @@ generate_weekly_report() {
 suggest_weekly_goals() {
     log_section "Suggesting Weekly Goals"
 
-    for ws in $WORKSPACES; do
-        log_info "Workspace: $ws"
-
-        BACKLOG="$(resolve_backlog_path "$ws")"
-        if [[ -f "$BACKLOG" ]]; then
-            PENDING=$(grep -c '^\- \[ \]' "$BACKLOG" 2>/dev/null || echo 0)
-            log_info "  Pending tasks: $PENDING"
-        fi
+    for repo in $(jq -r '.repos[]' "$ORCHESTRATOR_HOME/config/orchestrator/issue-repos.json" 2>/dev/null); do
+        PENDING=$(node "$SCRIPT_DIR/lib/backlog-source.mjs" list "$repo" --json 2>/dev/null | jq 'length' 2>/dev/null || echo 0)
+        log_info "  ${repo}: ${PENDING:-0} pending"
     done
-
-    log_info "Review backlogs and add new goals for the week."
+    log_info "Review GitHub Issues (label:backlog) and add new goals for the week."
 }
 
 run_manual() {
