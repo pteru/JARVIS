@@ -116,7 +116,7 @@ refresh_backlog_cache() {
         return 1
     fi
     # Pull open backlog issues for every configured repo into data/backlog-cache/.
-    node "$ORCHESTRATOR_HOME/scripts/lib/backlog-source.mjs" refresh || {
+    node "$SCRIPT_DIR/lib/backlog-source.mjs" refresh || {
         log_warn "Backlog cache refresh reported errors (see above) — keeping existing cache"
     }
     log_info "Backlog cache refreshed. Dispatch is manual: orchestrator.sh dispatch-issue <workspace|repo> <issue#>"
