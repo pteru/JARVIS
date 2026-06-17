@@ -6,6 +6,11 @@
   "reports_root": "reports/vk-health",
   "assembler": "scripts/health/assemblers/vk.py",
   "claude_model": "claude-opus-4-6",
+  "nodes": {
+    "vk01": {"host": "10.244.70.26", "user": "vk01", "ssh_port": 8050},
+    "vk02": {"host": "10.244.70.50", "user": "vk02", "ssh_port": 8050},
+    "vk03": {"host": "10.244.70.25", "user": "vk03", "ssh_port": 8050}
+  },
   "connectivity": {
     "label": "VisionKing nodes",
     "nodes": ["vk01", "vk02", "vk03"]
