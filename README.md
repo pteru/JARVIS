@@ -119,10 +119,9 @@ JARVIS/
 ├── .claude/
 │   ├── CLAUDE.md                    # Master system prompt (coding principles, checklist, lessons learned)
 │   ├── settings.local.json          # Hook registrations + tool permissions
-│   ├── hooks/                       # 5 lifecycle hooks (bash scripts)
+│   ├── hooks/                       # 4 lifecycle hooks (bash scripts)
 │   │   ├── DashboardSummary.hook.sh
 │   │   ├── PreDispatchValidator.hook.sh
-│   │   ├── BacklogPreloader.hook.sh
 │   │   ├── CompletionNotifier.hook.sh
 │   │   ├── ChangelogVerifier.hook.sh
 │   │   └── lib/utils.sh            # Shared hook utilities
@@ -229,18 +228,17 @@ JARVIS/
 
 All MCP servers use the `@modelcontextprotocol/sdk` with stdio transport. They read `ORCHESTRATOR_HOME` from the environment.
 
-### backlog-manager (v1.1.0)
+### backlog-manager (v2.0.0)
 
-Manages markdown-formatted task backlogs with three-way merge synchronization between central and workspace-local copies.
+Manages per-workspace task backlogs backed by GitHub Issues. GitHub Issues are the source of truth; reads are served from a local JSON cache refreshed by `orchestrator.sh refresh-backlog-cache`.
 
 | Tool | Description |
 |------|-------------|
-| `list_backlog_tasks` | List pending tasks for a workspace, filterable by priority |
-| `add_backlog_task` | Add a task with priority and complexity tag |
-| `complete_backlog_task` | Mark a task complete via substring match, stamp completion date |
-| `sync_backlog` | Three-way merge (baseline vs central vs workspace-local) |
+| `list_backlog_tasks` | List open backlog GitHub issues for a workspace (cached) |
+| `add_backlog_task` | Create a backlog GitHub issue via `gh` |
+| `complete_backlog_task` | Close a backlog issue by number or unique title substring |
 
-Backlogs are stored at `backlogs/products/<workspace>.md` and mirrored to `<workspace-path>/.claude/backlog.md`. A baseline snapshot enables conflict detection and merge.
+Cache lives at `data/backlog-cache/` and is refreshed by `orchestrator.sh refresh-backlog-cache`.
 
 ### changelog-writer (v1.0.0)
 
@@ -425,7 +423,6 @@ All hooks source `lib/utils.sh` for shared path constants and helper functions. 
 |------|---------|----------|
 | `DashboardSummary` | `SessionStart` | Print dispatch summary and pending backlog counts at session start |
 | `PreDispatchValidator` | `PreToolUse: dispatch_task` | Block dispatch if workspace not found or path not accessible |
-| `BacklogPreloader` | `PreToolUse: dispatch_task, list_backlog_tasks` | Sync workspace-local backlog to central if local is newer |
 | `CompletionNotifier` | `PostToolUse: update_task_status` | Log task completion/failure with ID and error details |
 | `ChangelogVerifier` | `PostToolUse: complete_backlog_task` | Warn if no changelog entry exists for workspace dated today |
 
@@ -508,13 +505,14 @@ Runs as a systemd user service (`orchestrator-dashboard.service`).
 Main entry point with 7 operation modes:
 
 ```bash
-./scripts/orchestrator.sh process-backlogs   # Process pending tasks (1 per workspace, priority-ordered)
-./scripts/orchestrator.sh daily-report       # Generate daily activity report
-./scripts/orchestrator.sh weekly-report      # Generate weekly summary
-./scripts/orchestrator.sh suggest-goals      # Suggest weekly goals
-./scripts/orchestrator.sh fetch-remotes      # Fetch all git remotes
-./scripts/orchestrator.sh update-access      # Update GitHub access matrix
-./scripts/orchestrator.sh manual             # Interactive manual dispatch
+./scripts/orchestrator.sh refresh-backlog-cache              # Refresh GitHub Issues cache for all workspaces
+./scripts/orchestrator.sh dispatch-issue <workspace|repo> <issue#>  # Dispatch a specific backlog issue
+./scripts/orchestrator.sh daily-report                       # Generate daily activity report
+./scripts/orchestrator.sh weekly-report                      # Generate weekly summary
+./scripts/orchestrator.sh suggest-goals                      # Suggest weekly goals
+./scripts/orchestrator.sh fetch-remotes                      # Fetch all git remotes
+./scripts/orchestrator.sh update-access                      # Update GitHub access matrix
+./scripts/orchestrator.sh manual                             # Interactive manual dispatch
 ```
 
 ### morning-report.sh
@@ -546,7 +544,7 @@ Ready when you are, sir.
 | 06:00 daily | Update GitHub access matrix |
 | 07:30 daily | Fetch all git remotes across workspaces |
 | 07:45 daily | JARVIS morning briefing → Telegram |
-| 09:00 daily | Process backlogs (1 task/workspace, priority-ordered) |
+| 09:00 daily | Refresh backlog cache (GitHub Issues → `data/backlog-cache/`) |
 | 17:00 daily | Generate daily report |
 | 16:00 Friday | Generate weekly report |
 | 08:00 Monday | Suggest weekly goals |
@@ -648,7 +646,7 @@ Task backlogs are markdown files with prioritized, tagged task lists:
 - [x] [simple] FEAT-03: Add health check endpoint <!--completed:2026-02-16-->
 ```
 
-**Three-way merge**: When both the orchestrator and a workspace agent modify the same backlog, the `sync_backlog` tool performs a three-way merge using a baseline snapshot to detect and resolve conflicts at the task-line level.
+GitHub Issues are the source of truth for backlogs. The local JSON cache at `data/backlog-cache/` is refreshed by `orchestrator.sh refresh-backlog-cache`. Dispatch individual issues explicitly via `orchestrator.sh dispatch-issue <workspace|repo> <issue#>`.
 
 ### Changelogs
 

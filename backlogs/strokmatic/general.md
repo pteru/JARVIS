@@ -4,8 +4,6 @@
 > **[strokmatic/infra · open `backlog` issues](https://github.com/strokmatic/infra/issues?q=is%3Aopen+label%3Abacklog)**
 >
 > Do **not** add tasks here — open a GitHub issue in `strokmatic/infra` instead.
-> This file is intentionally free of `- [ ]` lines so the `process_backlogs` dispatch loop
-> and the dashboard summary treat it as empty.
 
 ## Migration record
 

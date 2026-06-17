@@ -1,18 +1,17 @@
 # Claude Orchestrator - MCP Server Skills
 
 ## backlog-manager
-Manages per-workspace task backlogs in markdown format.
+Manages per-workspace task backlogs backed by GitHub Issues (local JSON cache at `data/backlog-cache/`).
 
 ### Tools
 | Tool | Description | Required Args |
 |------|-------------|---------------|
-| `list_backlog_tasks` | List tasks from a workspace backlog | `workspace` |
-| `add_backlog_task` | Add a task with priority and complexity | `workspace`, `task`, `priority` |
-| `complete_backlog_task` | Mark a task as complete by pattern match | `workspace`, `task_pattern` |
+| `list_backlog_tasks` | List open backlog GitHub issues for a workspace (cached) | `workspace` |
+| `add_backlog_task` | Create a backlog GitHub issue (complexity + priority labels) via `gh` | `workspace`, `task`, `priority` |
+| `complete_backlog_task` | Close a backlog issue by number or unique title substring via `gh` | `workspace`, `task_pattern` (issue # or title substring) |
 
 ### Data Format
-Backlogs stored at `backlogs/<workspace>-backlog.md` with `## High/Medium/Low Priority` sections.
-Tasks: `- [ ] [COMPLEXITY] description`
+Issues on GitHub with `backlog` label. Cache at `data/backlog-cache/<workspace>.json`, refreshed by `orchestrator.sh refresh-backlog-cache`.
 
 ---
 

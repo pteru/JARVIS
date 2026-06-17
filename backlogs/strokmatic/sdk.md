@@ -4,8 +4,6 @@
 > Primary source of truth: **[strokmatic/sdk · open `backlog` issues](https://github.com/strokmatic/sdk/issues?q=is%3Aopen+label%3Abacklog)**
 >
 > Do **not** add tasks here — open a GitHub issue in the relevant SDK repo instead.
-> This file is intentionally free of `- [ ]` lines so the `process_backlogs` dispatch loop
-> and the dashboard summary treat it as empty.
 
 ## Migration record
 

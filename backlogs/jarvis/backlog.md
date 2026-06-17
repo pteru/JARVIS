@@ -4,8 +4,6 @@
 > **[pteru/JARVIS · open `backlog` issues](https://github.com/pteru/JARVIS/issues?q=is%3Aopen+label%3Abacklog)**
 >
 > Do **not** add tasks here — open a GitHub issue in `pteru/JARVIS` instead.
-> This file is intentionally free of `- [ ]` lines so the `process_backlogs` dispatch loop
-> and the dashboard summary treat it as empty.
 >
 > The curated feature index ([README.md](README.md)) is preserved as a historical record of
 > what shipped; it is no longer the place to track open work.

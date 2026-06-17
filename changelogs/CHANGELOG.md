@@ -4,6 +4,19 @@ All notable changes to the JARVIS orchestrator system.
 
 Format: [Keep a Changelog](https://keepachangelog.com/)
 
+## 2026-06-16
+
+### Changed
+- Backlog source of truth moved from local `backlogs/**/*.md` to GitHub Issues. New
+  `scripts/lib/backlog-source.mjs` (gh + JSON cache at `data/backlog-cache/`) backs the
+  `backlog-manager` MCP, the dashboard hook, and the daily/weekly reports.
+- `orchestrator.sh process-backlogs` renamed to `refresh-backlog-cache`; the cron no longer
+  auto-dispatches. Dispatch is now explicit via `orchestrator.sh dispatch-issue <workspace|repo> <issue#>`.
+
+### Removed
+- `backlog-manager` `sync_backlog` tool and the `BacklogPreloader` hook (local `.md` three-way
+  sync is obsolete under GitHub source of truth).
+
 ## 2026-02-17
 
 ### Added (email-organizer v1.0.0)
