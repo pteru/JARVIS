@@ -100,6 +100,38 @@ export async function refreshCache(repos, { label = DEFAULT_LABEL } = {}) {
   return out;
 }
 
+/** Best-effort: ensure a label exists without resetting its color (ignore "already exists"). */
+async function ensureLabel(slug, label) {
+  try {
+    await execFileAsync('gh', ['label', 'create', label, '--repo', slug]);
+  } catch {
+    /* already exists or insufficient perms — non-fatal */
+  }
+}
+
+export async function createIssue(workspace, { title, body = '', labels = [] }) {
+  const r = await resolveRepo(workspace);
+  if (!r) throw new Error(`Cannot resolve repo for workspace "${workspace}"`);
+  for (const lbl of labels) await ensureLabel(r.slug, lbl);
+  const args = ['issue', 'create', '--repo', r.slug, '--title', title, '--body', body];
+  for (const lbl of labels) args.push('--label', lbl);
+  const { stdout } = await execFileAsync('gh', args);
+  const url = stdout.trim().split('\n').filter(Boolean).pop();
+  const number = Number(url.match(/\/(\d+)$/)?.[1]) || null;
+  await refreshCache([r.slug]);
+  return { number, url };
+}
+
+export async function closeIssue(workspace, { number, comment } = {}) {
+  const r = await resolveRepo(workspace);
+  if (!r) throw new Error(`Cannot resolve repo for workspace "${workspace}"`);
+  const args = ['issue', 'close', String(number), '--repo', r.slug];
+  if (comment) args.push('--comment', comment);
+  await execFileAsync('gh', args);
+  await refreshCache([r.slug]);
+  return { number: Number(number), url: `https://github.com/${r.slug}/issues/${number}` };
+}
+
 /**
  * List cached issues for a workspace/repo.
  * refresh: 'if-stale' (default) refreshes when cache older than TTL and gh is reachable;

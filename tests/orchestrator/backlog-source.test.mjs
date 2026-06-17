@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { parseRemote, resolveRepo, configuredRepos, resolveWorkspaceByRepo } from '../../scripts/lib/backlog-source.mjs';
-import { refreshCache, listIssues } from '../../scripts/lib/backlog-source.mjs';
+import { refreshCache, listIssues, createIssue, closeIssue } from '../../scripts/lib/backlog-source.mjs';
 import { installGhStub } from './helpers/gh-stub.mjs';
 
 describe('backlog-source · repo resolution', () => {
@@ -113,6 +113,51 @@ describe('backlog-source · cache + listIssues', () => {
       delete process.env.GH_STUB_LOG;
       delete process.env.GH_STUB_EXIT; gh.cleanup();
       fs.rmSync(home, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('backlog-source · createIssue/closeIssue', () => {
+  it('ensures labels then creates an issue and returns number+url', async () => {
+    const home = withTempHome();
+    const gh = installGhStub();
+    const prev = { home: process.env.ORCHESTRATOR_HOME, path: process.env.PATH };
+    process.env.ORCHESTRATOR_HOME = home;
+    process.env.PATH = gh.env.PATH;
+    process.env.GH_STUB_LOG = gh.env.GH_STUB_LOG;
+    process.env.GH_STUB_CREATE_URL = 'https://github.com/o/r/issues/42';
+    try {
+      const res = await createIssue('o/r', { title: 'T', body: 'B', labels: ['backlog', 'medium'] });
+      assert.deepEqual(res, { number: 42, url: 'https://github.com/o/r/issues/42' });
+      const argv = gh.readArgs();
+      assert.ok(argv.some(a => a[0] === 'label' && a[1] === 'create' && a.includes('backlog')));
+      const create = argv.find(a => a[0] === 'issue' && a[1] === 'create');
+      assert.ok(create.includes('--title') && create.includes('T') && create.includes('--label') && create.includes('backlog'));
+    } finally {
+      if (prev.home === undefined) delete process.env.ORCHESTRATOR_HOME; else process.env.ORCHESTRATOR_HOME = prev.home;
+      if (prev.path === undefined) delete process.env.PATH; else process.env.PATH = prev.path;
+      delete process.env.GH_STUB_LOG; delete process.env.GH_STUB_CREATE_URL;
+      gh.cleanup(); fs.rmSync(home, { recursive: true, force: true });
+    }
+  });
+
+  it('closes an issue with a comment', async () => {
+    const home = withTempHome();
+    const gh = installGhStub();
+    const prev = { home: process.env.ORCHESTRATOR_HOME, path: process.env.PATH };
+    process.env.ORCHESTRATOR_HOME = home;
+    process.env.PATH = gh.env.PATH;
+    process.env.GH_STUB_LOG = gh.env.GH_STUB_LOG;
+    try {
+      const res = await closeIssue('o/r', { number: 7, comment: 'done' });
+      assert.equal(res.number, 7);
+      const close = gh.readArgs().find(a => a[0] === 'issue' && a[1] === 'close');
+      assert.ok(close.includes('7') && close.includes('--comment') && close.includes('done'));
+    } finally {
+      if (prev.home === undefined) delete process.env.ORCHESTRATOR_HOME; else process.env.ORCHESTRATOR_HOME = prev.home;
+      if (prev.path === undefined) delete process.env.PATH; else process.env.PATH = prev.path;
+      delete process.env.GH_STUB_LOG;
+      gh.cleanup(); fs.rmSync(home, { recursive: true, force: true });
     }
   });
 });
