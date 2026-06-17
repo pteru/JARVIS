@@ -1,0 +1,15 @@
+{
+  "repos": [
+    "strokmatic/visionking",
+    "strokmatic/spotfusion",
+    "strokmatic/diemaster",
+    "strokmatic/sdk",
+    "strokmatic/sdk-observability-stack",
+    "strokmatic/sdk-message-poster",
+    "strokmatic/strokmatic-eip",
+    "strokmatic/infra",
+    "strokmatic/sdk-agent-standards",
+    "pteru/JARVIS"
+  ],
+  "default_label": "backlog"
+}
