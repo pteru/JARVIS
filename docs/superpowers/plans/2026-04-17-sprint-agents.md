@@ -1020,7 +1020,7 @@ Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>"
 
 ```bash
 cd /home/teruel/worktrees/infra-sprint-agents/services/sprint-agents
-SSHPASS='<skm-password>' bash deploy.sh
+SSHPASS="$(cat ~/.secrets/vk-ssh-password)" bash deploy.sh
 ```
 
 ### Task 7.2: Test fields mode
@@ -1028,7 +1028,7 @@ SSHPASS='<skm-password>' bash deploy.sh
 - [ ] **Step 1: Dry-run fields**
 
 ```bash
-SSHPASS='<skm-password>' sshpass -e ssh strokmatic@192.168.15.2 ". /home/strokmatic/.nvm/nvm.sh && cd /opt/jarvis-sprint-agents && HM_DRY_RUN=1 bash run.sh fields"
+SSHPASS="$(cat ~/.secrets/vk-ssh-password)" sshpass -e ssh strokmatic@192.168.15.2 ". /home/strokmatic/.nvm/nvm.sh && cd /opt/jarvis-sprint-agents && HM_DRY_RUN=1 bash run.sh fields"
 ```
 
 ### Task 7.3: Test followup mode
@@ -1036,7 +1036,7 @@ SSHPASS='<skm-password>' sshpass -e ssh strokmatic@192.168.15.2 ". /home/strokma
 - [ ] **Step 1: Dry-run followup**
 
 ```bash
-SSHPASS='<skm-password>' sshpass -e ssh strokmatic@192.168.15.2 ". /home/strokmatic/.nvm/nvm.sh && cd /opt/jarvis-sprint-agents && HM_DRY_RUN=1 bash run.sh followup"
+SSHPASS="$(cat ~/.secrets/vk-ssh-password)" sshpass -e ssh strokmatic@192.168.15.2 ". /home/strokmatic/.nvm/nvm.sh && cd /opt/jarvis-sprint-agents && HM_DRY_RUN=1 bash run.sh followup"
 ```
 
 ### Task 7.4: Test planning mode
@@ -1044,7 +1044,7 @@ SSHPASS='<skm-password>' sshpass -e ssh strokmatic@192.168.15.2 ". /home/strokma
 - [ ] **Step 1: Dry-run planning for diemaster**
 
 ```bash
-SSHPASS='<skm-password>' sshpass -e ssh strokmatic@192.168.15.2 ". /home/strokmatic/.nvm/nvm.sh && cd /opt/jarvis-sprint-agents && HM_DRY_RUN=1 bash run.sh plan diemaster"
+SSHPASS="$(cat ~/.secrets/vk-ssh-password)" sshpass -e ssh strokmatic@192.168.15.2 ". /home/strokmatic/.nvm/nvm.sh && cd /opt/jarvis-sprint-agents && HM_DRY_RUN=1 bash run.sh plan diemaster"
 ```
 
 ---

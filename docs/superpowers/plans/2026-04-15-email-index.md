@@ -1785,7 +1785,7 @@ git push origin master
 - [ ] **Step 1: Check shared libs exist**
 
 ```bash
-SSHPASS='<skm-password>' sshpass -e ssh strokmatic@192.168.15.2 "ls /opt/_shared/google-auth.mjs /opt/_shared/pmo-git.mjs 2>&1 || echo MISSING"
+SSHPASS="$(cat ~/.secrets/vk-ssh-password)" sshpass -e ssh strokmatic@192.168.15.2 "ls /opt/_shared/google-auth.mjs /opt/_shared/pmo-git.mjs 2>&1 || echo MISSING"
 ```
 
 If MISSING, STOP — must run gdrive-index deploy first (gdrive-index plan Phase 9).
@@ -1793,7 +1793,7 @@ If MISSING, STOP — must run gdrive-index deploy first (gdrive-index plan Phase
 - [ ] **Step 2: Check GCP key**
 
 ```bash
-SSHPASS='<skm-password>' sshpass -e ssh strokmatic@192.168.15.2 "ls -la /home/strokmatic/.secrets/gcp-service-account.json"
+SSHPASS="$(cat ~/.secrets/vk-ssh-password)" sshpass -e ssh strokmatic@192.168.15.2 "ls -la /home/strokmatic/.secrets/gcp-service-account.json"
 ```
 
 ### Task 11.2: Deploy + dry-run
@@ -1802,13 +1802,13 @@ SSHPASS='<skm-password>' sshpass -e ssh strokmatic@192.168.15.2 "ls -la /home/st
 
 ```bash
 cd /home/teruel/worktrees/infra-email-index/services/email-index
-SSHPASS='<skm-password>' bash deploy.sh
+SSHPASS="$(cat ~/.secrets/vk-ssh-password)" bash deploy.sh
 ```
 
 - [ ] **Step 2: Dry-run all projects**
 
 ```bash
-SSHPASS='<skm-password>' sshpass -e ssh strokmatic@192.168.15.2 ". /home/strokmatic/.nvm/nvm.sh && cd /opt/jarvis-email-index && HM_DRY_RUN=1 node index.mjs 2>&1 | tail -30"
+SSHPASS="$(cat ~/.secrets/vk-ssh-password)" sshpass -e ssh strokmatic@192.168.15.2 ". /home/strokmatic/.nvm/nvm.sh && cd /opt/jarvis-email-index && HM_DRY_RUN=1 node index.mjs 2>&1 | tail -30"
 ```
 
 Expected: per-project "+N" or "no changes" lines, final exit 0.
@@ -1816,7 +1816,7 @@ Expected: per-project "+N" or "no changes" lines, final exit 0.
 - [ ] **Step 3: Check state.json after dry-run**
 
 ```bash
-SSHPASS='<skm-password>' sshpass -e ssh strokmatic@192.168.15.2 "cat /opt/jarvis-email-index/data/state.json | python3 -m json.tool"
+SSHPASS="$(cat ~/.secrets/vk-ssh-password)" sshpass -e ssh strokmatic@192.168.15.2 "cat /opt/jarvis-email-index/data/state.json | python3 -m json.tool"
 ```
 
 Expected: `projects_email_enabled: 8`, `projects_email_disabled: 17`, `projects_synced_ok: 8`.
@@ -1830,7 +1830,7 @@ Expected: `projects_email_enabled: 8`, `projects_email_disabled: 17`, `projects_
 - [ ] **Step 1: Real run (no DRY_RUN)**
 
 ```bash
-SSHPASS='<skm-password>' sshpass -e ssh strokmatic@192.168.15.2 ". /home/strokmatic/.nvm/nvm.sh && cd /opt/jarvis-email-index && HM_ONLY_PROJECT=01001 node index.mjs 2>&1 | tail -20"
+SSHPASS="$(cat ~/.secrets/vk-ssh-password)" sshpass -e ssh strokmatic@192.168.15.2 ". /home/strokmatic/.nvm/nvm.sh && cd /opt/jarvis-email-index && HM_ONLY_PROJECT=01001 node index.mjs 2>&1 | tail -20"
 ```
 
 - [ ] **Step 2: Verify commit + push**
@@ -1858,7 +1858,7 @@ Expected: entries match schema; analyze fields (`category`, `analysis`, `analyze
 - [ ] **Step 1: Confirm cron installed**
 
 ```bash
-SSHPASS='<skm-password>' sshpass -e ssh strokmatic@192.168.15.2 "crontab -l | grep email-index"
+SSHPASS="$(cat ~/.secrets/vk-ssh-password)" sshpass -e ssh strokmatic@192.168.15.2 "crontab -l | grep email-index"
 ```
 
 Expected: `0 * * * * . /home/strokmatic/.nvm/nvm.sh && cd /opt/jarvis-email-index && bash run.sh ...`
@@ -1867,14 +1867,14 @@ Expected: `0 * * * * . /home/strokmatic/.nvm/nvm.sh && cd /opt/jarvis-email-inde
 
 Trigger:
 ```bash
-SSHPASS='<skm-password>' sshpass -e ssh strokmatic@192.168.15.2 ". /home/strokmatic/.nvm/nvm.sh && cd /opt/jarvis-email-index && bash run.sh"
+SSHPASS="$(cat ~/.secrets/vk-ssh-password)" sshpass -e ssh strokmatic@192.168.15.2 ". /home/strokmatic/.nvm/nvm.sh && cd /opt/jarvis-email-index && bash run.sh"
 ```
 
 - [ ] **Step 3: Check logs + state**
 
 ```bash
-SSHPASS='<skm-password>' sshpass -e ssh strokmatic@192.168.15.2 "tail -30 /opt/jarvis-email-index/logs/run-\$(date -u +%Y-%m-%d).log"
-SSHPASS='<skm-password>' sshpass -e ssh strokmatic@192.168.15.2 "cat /opt/jarvis-email-index/data/state.json | python3 -m json.tool"
+SSHPASS="$(cat ~/.secrets/vk-ssh-password)" sshpass -e ssh strokmatic@192.168.15.2 "tail -30 /opt/jarvis-email-index/logs/run-\$(date -u +%Y-%m-%d).log"
+SSHPASS="$(cat ~/.secrets/vk-ssh-password)" sshpass -e ssh strokmatic@192.168.15.2 "cat /opt/jarvis-email-index/data/state.json | python3 -m json.tool"
 ```
 
 Expected: `last_status: success` (or `partial` if misconfigured), no `failed`.
@@ -1907,7 +1907,7 @@ Staleness 75min = 1h15 (cron is hourly, 15min buffer).
 - [ ] **Step 2: Sync + commit**
 
 ```bash
-SSHPASS='<skm-password>' sshpass -e rsync services/health-monitor/config/services.json strokmatic@192.168.15.2:/opt/jarvis-health-monitor/config/services.json
+SSHPASS="$(cat ~/.secrets/vk-ssh-password)" sshpass -e rsync services/health-monitor/config/services.json strokmatic@192.168.15.2:/opt/jarvis-health-monitor/config/services.json
 git add services/health-monitor/config/services.json
 git commit -m "feat(health-monitor): register email-index service
 
@@ -1923,7 +1923,7 @@ Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>"
 - [ ] **Step 2: Sync + commit**
 
 ```bash
-SSHPASS='<skm-password>' sshpass -e rsync services/health-monitor/config/services.json strokmatic@192.168.15.2:/opt/jarvis-health-monitor/config/services.json
+SSHPASS="$(cat ~/.secrets/vk-ssh-password)" sshpass -e rsync services/health-monitor/config/services.json strokmatic@192.168.15.2:/opt/jarvis-health-monitor/config/services.json
 git add services/health-monitor/config/services.json
 git commit -m "chore(health-monitor): activate email-index monitoring
 

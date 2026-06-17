@@ -1304,13 +1304,13 @@ If missing, complete gdrive-index Phase 9 first.
 
 ```bash
 cd /home/teruel/worktrees/infra-meeting-index/services/meeting-index
-SSHPASS='<skm-password>' bash deploy.sh
+SSHPASS="$(cat ~/.secrets/vk-ssh-password)" bash deploy.sh
 ```
 
 - [ ] **Step 2: Dry-run**
 
 ```bash
-SSHPASS='<skm-password>' sshpass -e ssh strokmatic@192.168.15.2 ". /home/strokmatic/.nvm/nvm.sh && cd /opt/jarvis-meeting-index && HM_DRY_RUN=1 HM_SKIP_MOVE=1 node index.mjs 2>&1 | tail -50"
+SSHPASS="$(cat ~/.secrets/vk-ssh-password)" sshpass -e ssh strokmatic@192.168.15.2 ". /home/strokmatic/.nvm/nvm.sh && cd /opt/jarvis-meeting-index && HM_DRY_RUN=1 HM_SKIP_MOVE=1 node index.mjs 2>&1 | tail -50"
 ```
 
 Expected: scanned Meet Recordings count, per-file classification output (product + type) or "unclassified".
@@ -1337,20 +1337,20 @@ VK has most stable naming (per spec §9 Fase 3).
 Set `visionking.target_folder_id` to real ID; leave others null.
 
 ```bash
-SSHPASS='<skm-password>' sshpass -e ssh strokmatic@192.168.15.2 "vi /opt/jarvis-meeting-index/config/products.json"
+SSHPASS="$(cat ~/.secrets/vk-ssh-password)" sshpass -e ssh strokmatic@192.168.15.2 "vi /opt/jarvis-meeting-index/config/products.json"
 ```
 
 Alternatively sync from local after edit:
 ```bash
 cd /home/teruel/worktrees/infra-meeting-index
 # Edit services/meeting-index/config/products.json locally
-SSHPASS='<skm-password>' sshpass -e rsync services/meeting-index/config/products.json strokmatic@192.168.15.2:/opt/jarvis-meeting-index/config/products.json
+SSHPASS="$(cat ~/.secrets/vk-ssh-password)" sshpass -e rsync services/meeting-index/config/products.json strokmatic@192.168.15.2:/opt/jarvis-meeting-index/config/products.json
 ```
 
 - [ ] **Step 2: Real run (no DRY)**
 
 ```bash
-SSHPASS='<skm-password>' sshpass -e ssh strokmatic@192.168.15.2 ". /home/strokmatic/.nvm/nvm.sh && cd /opt/jarvis-meeting-index && node index.mjs 2>&1 | tail -20"
+SSHPASS="$(cat ~/.secrets/vk-ssh-password)" sshpass -e ssh strokmatic@192.168.15.2 ". /home/strokmatic/.nvm/nvm.sh && cd /opt/jarvis-meeting-index && node index.mjs 2>&1 | tail -20"
 ```
 
 - [ ] **Step 3: Verify moves in Drive UI**

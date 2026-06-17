@@ -36,14 +36,14 @@
 ## Helpers (executar da máquina JARVIS)
 
 ```bash
-# Senha <skm-password> vale para vk01 (user vk01) e para .190 (user skm)
+# Senha em ~/.secrets/vk-ssh-password vale para vk01 (user vk01) e para .190 (user skm)
 PW=/home/teruel/.secrets/vk-ssh-password
 VKSSH="sshpass -f $PW ssh -p 8050 -o StrictHostKeyChecking=no -o ConnectTimeout=15 vk01@10.244.70.26"
 VKSCP="sshpass -f $PW scp -P 8050 -o StrictHostKeyChecking=no"
 SKM190="sshpass -f $PW ssh -o StrictHostKeyChecking=no -o ConnectTimeout=15 skm@192.168.15.190"
 SKMSCP="sshpass -f $PW scp -o StrictHostKeyChecking=no"
 # psql no vk01 (DB vk01):
-PSQL() { $VKSSH "docker exec -e PGPASSWORD=<skm-password> database-server psql -U strokmatic -d vk01 -tA -c \"$1\""; }
+PSQL() { $VKSSH "docker exec -e PGPASSWORD=$(cat ~/.secrets/vk-ssh-password) database-server psql -U strokmatic -d vk01 -tA -c \"$1\""; }
 ```
 
 > **Pré-requisito:** VPN Checkpoint ativa (CShell na porta 14186) — o vk01 só é alcançável por ela.
@@ -102,7 +102,7 @@ Esperado: dois arquivos em `/tmp` (compose ~4,2 KB, rules ~1,8 KB).
 - [ ] **Step 1: Exportar as 8 linhas atuais**
 
 ```bash
-$VKSSH "docker exec -e PGPASSWORD=<skm-password> database-server psql -U strokmatic -d vk01 -c \"\\copy classe_defeitos TO STDOUT WITH CSV HEADER\"" > /tmp/classe_defeitos.bak-2026-05-15.csv
+$VKSSH "docker exec -e PGPASSWORD=$(cat ~/.secrets/vk-ssh-password) database-server psql -U strokmatic -d vk01 -c \"\\copy classe_defeitos TO STDOUT WITH CSV HEADER\"" > /tmp/classe_defeitos.bak-2026-05-15.csv
 cat /tmp/classe_defeitos.bak-2026-05-15.csv
 ```
 
@@ -133,7 +133,7 @@ Esperado: `0`.
 > ⚠️ **Validar com a engenharia (Vanessa) antes de rodar:** `category_code`, `group_name` e `aggregation` afetam a lógica de agregação/aprovação de peça. Os valores abaixo são conservadores (`status='aprova'`, `stop_production_line=false`, `mode=unico` — defeito pontual que **não** reprova/para linha). Ajuste se a engenharia definir diferente.
 
 ```bash
-cat <<'SQL' | $VKSSH "docker exec -i -e PGPASSWORD=<skm-password> database-server psql -U strokmatic -d vk01"
+cat <<'SQL' | $VKSSH "docker exec -i -e PGPASSWORD=$(cat ~/.secrets/vk-ssh-password) database-server psql -U strokmatic -d vk01"
 INSERT INTO classe_defeitos
  (id, defect_class_name, category_code, id_group, group_name, status, stop_production_line, defect_class_code, aggregation)
 VALUES

@@ -1914,7 +1914,7 @@ Deploy to `192.168.15.2`. Prerequisites: GCP key already copied (if not, replica
 - [ ] **Step 1: Check if key already on server**
 
 ```bash
-SSHPASS='<skm-password>' sshpass -e ssh -o StrictHostKeyChecking=no strokmatic@192.168.15.2 "ls -la /home/strokmatic/.secrets/gcp-service-account.json 2>&1 || echo MISSING"
+SSHPASS="$(cat ~/.secrets/vk-ssh-password)" sshpass -e ssh -o StrictHostKeyChecking=no strokmatic@192.168.15.2 "ls -la /home/strokmatic/.secrets/gcp-service-account.json 2>&1 || echo MISSING"
 ```
 
 If MISSING, continue to step 2; otherwise skip to Task 9.2.
@@ -1922,15 +1922,15 @@ If MISSING, continue to step 2; otherwise skip to Task 9.2.
 - [ ] **Step 2: Copy key**
 
 ```bash
-SSHPASS='<skm-password>' sshpass -e ssh strokmatic@192.168.15.2 "mkdir -p ~/.secrets && chmod 700 ~/.secrets"
-SSHPASS='<skm-password>' sshpass -e scp -o StrictHostKeyChecking=no /home/teruel/JARVIS/config/credentials/gcp-service-account.json strokmatic@192.168.15.2:/home/strokmatic/.secrets/gcp-service-account.json
-SSHPASS='<skm-password>' sshpass -e ssh strokmatic@192.168.15.2 "chmod 600 /home/strokmatic/.secrets/gcp-service-account.json"
+SSHPASS="$(cat ~/.secrets/vk-ssh-password)" sshpass -e ssh strokmatic@192.168.15.2 "mkdir -p ~/.secrets && chmod 700 ~/.secrets"
+SSHPASS="$(cat ~/.secrets/vk-ssh-password)" sshpass -e scp -o StrictHostKeyChecking=no /home/teruel/JARVIS/config/credentials/gcp-service-account.json strokmatic@192.168.15.2:/home/strokmatic/.secrets/gcp-service-account.json
+SSHPASS="$(cat ~/.secrets/vk-ssh-password)" sshpass -e ssh strokmatic@192.168.15.2 "chmod 600 /home/strokmatic/.secrets/gcp-service-account.json"
 ```
 
 - [ ] **Step 3: Verify**
 
 ```bash
-SSHPASS='<skm-password>' sshpass -e ssh strokmatic@192.168.15.2 "ls -la /home/strokmatic/.secrets/gcp-service-account.json"
+SSHPASS="$(cat ~/.secrets/vk-ssh-password)" sshpass -e ssh strokmatic@192.168.15.2 "ls -la /home/strokmatic/.secrets/gcp-service-account.json"
 ```
 
 Expected: `-rw------- 1 strokmatic strokmatic ...`
@@ -1941,7 +1941,7 @@ Expected: `-rw------- 1 strokmatic strokmatic ...`
 
 ```bash
 cd /home/teruel/worktrees/infra-gdrive-index/services/gdrive-index
-SSHPASS='<skm-password>' bash deploy.sh
+SSHPASS="$(cat ~/.secrets/vk-ssh-password)" bash deploy.sh
 ```
 
 Expected: rsync output, npm install complete, cron entry visible.
@@ -1949,7 +1949,7 @@ Expected: rsync output, npm install complete, cron entry visible.
 - [ ] **Step 2: Run dry-run manually**
 
 ```bash
-SSHPASS='<skm-password>' sshpass -e ssh strokmatic@192.168.15.2 ". /home/strokmatic/.nvm/nvm.sh && cd /opt/jarvis-gdrive-index && HM_DRY_RUN=1 node index.mjs 2>&1 | tail -50"
+SSHPASS="$(cat ~/.secrets/vk-ssh-password)" sshpass -e ssh strokmatic@192.168.15.2 ". /home/strokmatic/.nvm/nvm.sh && cd /opt/jarvis-gdrive-index && HM_DRY_RUN=1 node index.mjs 2>&1 | tail -50"
 ```
 
 Expected: output showing projects enumerated, per-project `+N -N ~N` or `no changes`, final exit.
@@ -1957,7 +1957,7 @@ Expected: output showing projects enumerated, per-project `+N -N ~N` or `no chan
 - [ ] **Step 3: Check state.json after dry-run**
 
 ```bash
-SSHPASS='<skm-password>' sshpass -e ssh strokmatic@192.168.15.2 "cat /opt/jarvis-gdrive-index/data/state.json"
+SSHPASS="$(cat ~/.secrets/vk-ssh-password)" sshpass -e ssh strokmatic@192.168.15.2 "cat /opt/jarvis-gdrive-index/data/state.json"
 ```
 
 Expected: `last_status: success`, `projects_scanned: ~25`, `projects_indexed: ~22`.
@@ -1967,7 +1967,7 @@ Expected: `last_status: success`, `projects_scanned: ~25`, `projects_indexed: ~2
 - [ ] **Step 1: Run ONLY for 03002 (VisionKing) without dry-run**
 
 ```bash
-SSHPASS='<skm-password>' sshpass -e ssh strokmatic@192.168.15.2 ". /home/strokmatic/.nvm/nvm.sh && cd /opt/jarvis-gdrive-index && HM_ONLY_PROJECT=03002 node index.mjs 2>&1 | tail -30"
+SSHPASS="$(cat ~/.secrets/vk-ssh-password)" sshpass -e ssh strokmatic@192.168.15.2 ". /home/strokmatic/.nvm/nvm.sh && cd /opt/jarvis-gdrive-index && HM_ONLY_PROJECT=03002 node index.mjs 2>&1 | tail -30"
 ```
 
 - [ ] **Step 2: Verify commit in PMO repo**
@@ -2022,7 +2022,7 @@ Add to `services` array:
 - [ ] **Step 3: Sync to server**
 
 ```bash
-SSHPASS='<skm-password>' sshpass -e rsync -e 'ssh -o StrictHostKeyChecking=no' services/health-monitor/config/services.json strokmatic@192.168.15.2:/opt/jarvis-health-monitor/config/services.json
+SSHPASS="$(cat ~/.secrets/vk-ssh-password)" sshpass -e rsync -e 'ssh -o StrictHostKeyChecking=no' services/health-monitor/config/services.json strokmatic@192.168.15.2:/opt/jarvis-health-monitor/config/services.json
 ```
 
 - [ ] **Step 4: Commit**
@@ -2043,19 +2043,19 @@ Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>"
 
 Manual trigger:
 ```bash
-SSHPASS='<skm-password>' sshpass -e ssh strokmatic@192.168.15.2 ". /home/strokmatic/.nvm/nvm.sh && cd /opt/jarvis-gdrive-index && bash run.sh"
+SSHPASS="$(cat ~/.secrets/vk-ssh-password)" sshpass -e ssh strokmatic@192.168.15.2 ". /home/strokmatic/.nvm/nvm.sh && cd /opt/jarvis-gdrive-index && bash run.sh"
 ```
 
 - [ ] **Step 2: Check log**
 
 ```bash
-SSHPASS='<skm-password>' sshpass -e ssh strokmatic@192.168.15.2 "tail -50 /opt/jarvis-gdrive-index/logs/run-\$(date -u +%Y-%m-%d).log"
+SSHPASS="$(cat ~/.secrets/vk-ssh-password)" sshpass -e ssh strokmatic@192.168.15.2 "tail -50 /opt/jarvis-gdrive-index/logs/run-\$(date -u +%Y-%m-%d).log"
 ```
 
 - [ ] **Step 3: Check state.json**
 
 ```bash
-SSHPASS='<skm-password>' sshpass -e ssh strokmatic@192.168.15.2 "cat /opt/jarvis-gdrive-index/data/state.json | python3 -m json.tool"
+SSHPASS="$(cat ~/.secrets/vk-ssh-password)" sshpass -e ssh strokmatic@192.168.15.2 "cat /opt/jarvis-gdrive-index/data/state.json | python3 -m json.tool"
 ```
 
 Expected: `last_status: success`, all projects indexed, expected `total_files_indexed`.
@@ -2070,7 +2070,7 @@ NOW=$(date -u +%FT%TZ)
 Edit `services/health-monitor/config/services.json`: change `"added_at": null` to the timestamp.
 
 ```bash
-SSHPASS='<skm-password>' sshpass -e rsync services/health-monitor/config/services.json strokmatic@192.168.15.2:/opt/jarvis-health-monitor/config/services.json
+SSHPASS="$(cat ~/.secrets/vk-ssh-password)" sshpass -e rsync services/health-monitor/config/services.json strokmatic@192.168.15.2:/opt/jarvis-health-monitor/config/services.json
 git add services/health-monitor/config/services.json
 git commit -m "chore(health-monitor): activate gdrive-index monitoring
 

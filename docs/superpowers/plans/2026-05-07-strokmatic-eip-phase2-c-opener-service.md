@@ -1441,7 +1441,7 @@ services:
     environment:
       - REDIS_HOST=192.168.15.102
       - REDIS_PORT=6379
-      - REDIS_PASSWORD=<sparkeyes-password>
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
       - PLC_KEY=192.168.15.123
     command: ["enp4s0"]
 ```

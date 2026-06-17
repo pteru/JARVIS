@@ -1305,7 +1305,7 @@ Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>"
 
 ```bash
 cd /home/teruel/worktrees/infra-kb-generator/services/kb-generator
-SSHPASS='<skm-password>' bash deploy.sh
+SSHPASS="$(cat ~/.secrets/vk-ssh-password)" bash deploy.sh
 ```
 
 ### Task 9.2: Dry-run single project
@@ -1313,13 +1313,13 @@ SSHPASS='<skm-password>' bash deploy.sh
 - [ ] **Step 1: Run DRY_RUN for 03002**
 
 ```bash
-SSHPASS='<skm-password>' sshpass -e ssh strokmatic@192.168.15.2 ". /home/strokmatic/.nvm/nvm.sh && cd /opt/jarvis-kb-generator && HM_DRY_RUN=1 HM_ONLY_PROJECT=03002 node index.mjs 2>&1 | tail -20"
+SSHPASS="$(cat ~/.secrets/vk-ssh-password)" sshpass -e ssh strokmatic@192.168.15.2 ". /home/strokmatic/.nvm/nvm.sh && cd /opt/jarvis-kb-generator && HM_DRY_RUN=1 HM_ONLY_PROJECT=03002 node index.mjs 2>&1 | tail -20"
 ```
 
 - [ ] **Step 2: Check state.json**
 
 ```bash
-SSHPASS='<skm-password>' sshpass -e ssh strokmatic@192.168.15.2 "cat /opt/jarvis-kb-generator/data/state.json"
+SSHPASS="$(cat ~/.secrets/vk-ssh-password)" sshpass -e ssh strokmatic@192.168.15.2 "cat /opt/jarvis-kb-generator/data/state.json"
 ```
 
 ### Task 9.3: Real run single project
@@ -1327,7 +1327,7 @@ SSHPASS='<skm-password>' sshpass -e ssh strokmatic@192.168.15.2 "cat /opt/jarvis
 - [ ] **Step 1: Run for 03002 (no DRY_RUN)**
 
 ```bash
-SSHPASS='<skm-password>' sshpass -e ssh strokmatic@192.168.15.2 ". /home/strokmatic/.nvm/nvm.sh && cd /opt/jarvis-kb-generator && HM_ONLY_PROJECT=03002 node index.mjs 2>&1 | tail -20"
+SSHPASS="$(cat ~/.secrets/vk-ssh-password)" sshpass -e ssh strokmatic@192.168.15.2 ". /home/strokmatic/.nvm/nvm.sh && cd /opt/jarvis-kb-generator && HM_ONLY_PROJECT=03002 node index.mjs 2>&1 | tail -20"
 ```
 
 - [ ] **Step 2: Verify reports in PMO**
