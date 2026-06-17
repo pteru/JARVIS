@@ -78,10 +78,10 @@ UNKNOWN_COUNT=0
 
 while IFS= read -r file; do
     [[ -z "$file" ]] && continue
-    h=$(grep -c '### SEVERITY: HEALTHY$' "$file" 2>/dev/null || echo 0)
-    w=$(grep -c '### SEVERITY: WARNING$' "$file" 2>/dev/null || echo 0)
-    c=$(grep -c '### SEVERITY: CRITICAL$' "$file" 2>/dev/null || echo 0)
-    u=$(grep -c '### SEVERITY: UNKNOWN$' "$file" 2>/dev/null || echo 0)
+    h=$(grep -c '— HEALTHY$'  "$file" 2>/dev/null || true)
+    w=$(grep -c '— WARNING$'  "$file" 2>/dev/null || true)
+    c=$(grep -c '— CRITICAL$' "$file" 2>/dev/null || true)
+    u=$(grep -c '— UNKNOWN$'  "$file" 2>/dev/null || true)
     HEALTHY_COUNT=$((HEALTHY_COUNT + h))
     WARNING_COUNT=$((WARNING_COUNT + w))
     CRITICAL_COUNT=$((CRITICAL_COUNT + c))
@@ -220,7 +220,6 @@ log "Monthly report saved: $MONTHLY_FILE"
 # ---------------------------------------------------------------------------
 # Log dispatch for dashboard visibility
 # ---------------------------------------------------------------------------
-ORCHESTRATOR_HOME="${ORCHESTRATOR_HOME:-$HOME/JARVIS}"
 if [[ -x "$ORCHESTRATOR_HOME/scripts/helpers/log-dispatch.sh" ]]; then
     "$ORCHESTRATOR_HOME/scripts/helpers/log-dispatch.sh" \
         "health-monthly" \

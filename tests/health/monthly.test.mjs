@@ -50,6 +50,8 @@ const SF_CONFIG = {
 
 // ---------------------------------------------------------------------------
 // makeHome — builds a hermetic ORCHESTRATOR_HOME for monthly tests
+// Fixtures use the REAL consolidated format: "## HH:MM — SEVERITY"
+// (em-dash U+2014, matching analyze.sh output)
 // ---------------------------------------------------------------------------
 function makeHome() {
   const home = fs.mkdtempSync(path.join(os.tmpdir(), 'hm-monthly-'));
@@ -65,14 +67,17 @@ function makeHome() {
   const reportDir = path.join(home, 'reports/sf-health/02006');
   fs.mkdirSync(reportDir, { recursive: true });
 
-  // Seed two consolidated reports for 2026-05 — each with a SEVERITY line
+  // Seed two consolidated reports for 2026-05 using the REAL format:
+  //   ## HH:MM — SEVERITY   (em-dash U+2014, as emitted by analyze.sh)
+  // Day 01: one HEALTHY check
   fs.writeFileSync(
     path.join(reportDir, 'consolidated-2026-05-01.md'),
-    `# SpotFusion 02006 — Daily Report: 2026-05-01\n\n### SEVERITY: HEALTHY\n\n### Executive Summary\nAll checks passed.\n`,
+    `# SpotFusion 02006 — Daily Report: 2026-05-01\n\n## 10:00 — HEALTHY\n\nAll checks passed.\n`,
   );
+  // Day 15: one WARNING check
   fs.writeFileSync(
     path.join(reportDir, 'consolidated-2026-05-15.md'),
-    `# SpotFusion 02006 — Daily Report: 2026-05-15\n\n### SEVERITY: WARNING\n\nDisk usage elevated.\n`,
+    `# SpotFusion 02006 — Daily Report: 2026-05-15\n\n## 14:30 — WARNING\n\nDisk usage elevated.\n`,
   );
 
   return { home, reportDir };
@@ -94,6 +99,53 @@ function runMonthly(home, claudeEnv, month) {
       },
     },
   );
+}
+
+// ---------------------------------------------------------------------------
+// installStdinCapturingStub — installs a 'claude' binary that:
+//   1. Reads all of stdin into $STDIN_FILE
+//   2. Records argv (same format as cli-stub.mjs)
+//   3. Emits $CLAUDE_STUB_OUT to stdout
+//
+// Returns { dir, stdinFile, argvLog, env, cleanup() }
+// ---------------------------------------------------------------------------
+function installStdinCapturingStub() {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'claude-stdin-stub-'));
+  const stdinFile = path.join(dir, 'stdin.txt');
+  const argvLog = path.join(dir, 'argv.log');
+  const binPath = path.join(dir, 'claude');
+
+  fs.writeFileSync(
+    binPath,
+    `#!/usr/bin/env bash
+# Capture stdin
+cat > "${stdinFile}"
+# Record argv
+{ for a in "$@"; do printf '%s\\n' "$a"; done; echo '==='; } >> "${argvLog}"
+# Emit canned output
+[[ -n "\${CLAUDE_STUB_OUT:-}" ]] && printf '%s\\n' "\${CLAUDE_STUB_OUT}"
+exit "\${CLAUDE_STUB_EXIT:-0}"
+`,
+    { mode: 0o755 },
+  );
+
+  const env = {
+    PATH: `${dir}:${process.env.PATH}`,
+  };
+
+  return {
+    dir,
+    stdinFile,
+    argvLog,
+    env,
+    readStdin() {
+      if (!fs.existsSync(stdinFile)) return '';
+      return fs.readFileSync(stdinFile, 'utf-8');
+    },
+    cleanup() {
+      fs.rmSync(dir, { recursive: true, force: true });
+    },
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -179,6 +231,57 @@ test('monthly-consolidate.sh rejects invalid month format', () => {
     assert.notEqual(result.status, 0, 'should exit non-zero for invalid month format');
   } finally {
     claudeStub.cleanup();
+    fs.rmSync(home, { recursive: true, force: true });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Test 4 — severity counts in the prompt piped to claude are non-zero and correct
+//
+// Fixture: 2 files seeded:
+//   consolidated-2026-05-01.md → 1 HEALTHY line ("## 10:00 — HEALTHY")
+//   consolidated-2026-05-15.md → 1 WARNING line ("## 14:30 — WARNING")
+// Expected prompt contains:
+//   "HEALTHY checks: 1"
+//   "WARNING checks: 1"
+//   "CRITICAL checks: 0"
+//   "UNKNOWN checks: 0"
+// ---------------------------------------------------------------------------
+test('monthly-consolidate.sh passes correct non-zero severity counts via stdin to claude', () => {
+  const stub = installStdinCapturingStub();
+  const { home } = makeHome();
+
+  try {
+    stub.env['CLAUDE_STUB_OUT'] = CANNED_MONTHLY_REPORT;
+
+    const result = runMonthly(home, stub.env, '2026-05');
+    if (result.status !== 0) {
+      throw new Error(
+        `monthly-consolidate.sh exited ${result.status}\nstderr: ${result.stderr}`,
+      );
+    }
+
+    const stdin = stub.readStdin();
+    assert.ok(stdin.length > 0, 'claude must receive non-empty stdin (prompt)');
+
+    assert.ok(
+      stdin.includes('HEALTHY checks: 1'),
+      `prompt must contain "HEALTHY checks: 1" (fixture has 1 HEALTHY line).\nPrompt excerpt:\n${stdin.slice(0, 600)}`,
+    );
+    assert.ok(
+      stdin.includes('WARNING checks: 1'),
+      `prompt must contain "WARNING checks: 1" (fixture has 1 WARNING line).\nPrompt excerpt:\n${stdin.slice(0, 600)}`,
+    );
+    assert.ok(
+      stdin.includes('CRITICAL checks: 0'),
+      `prompt must contain "CRITICAL checks: 0" (no CRITICAL in fixtures).\nPrompt excerpt:\n${stdin.slice(0, 600)}`,
+    );
+    assert.ok(
+      stdin.includes('UNKNOWN checks: 0'),
+      `prompt must contain "UNKNOWN checks: 0" (no UNKNOWN in fixtures).\nPrompt excerpt:\n${stdin.slice(0, 600)}`,
+    );
+  } finally {
+    stub.cleanup();
     fs.rmSync(home, { recursive: true, force: true });
   }
 });
