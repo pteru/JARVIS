@@ -3,9 +3,12 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { parseRemote, resolveRepo, configuredRepos, resolveWorkspaceByRepo } from '../../scripts/lib/backlog-source.mjs';
-import { refreshCache, listIssues, createIssue, closeIssue } from '../../scripts/lib/backlog-source.mjs';
+import { execFileSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+import { parseRemote, resolveRepo, configuredRepos, resolveWorkspaceByRepo, refreshCache, listIssues, createIssue, closeIssue } from '../../scripts/lib/backlog-source.mjs';
 import { installGhStub } from './helpers/gh-stub.mjs';
+
+const MODULE = fileURLToPath(new URL('../../scripts/lib/backlog-source.mjs', import.meta.url));
 
 describe('backlog-source · repo resolution', () => {
   it('parses an ssh remote', () => {
@@ -158,6 +161,30 @@ describe('backlog-source · createIssue/closeIssue', () => {
       if (prev.path === undefined) delete process.env.PATH; else process.env.PATH = prev.path;
       delete process.env.GH_STUB_LOG;
       gh.cleanup(); fs.rmSync(home, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('backlog-source · CLI', () => {
+  it('resolve-repo prints the slug', () => {
+    const out = execFileSync('node', [MODULE, 'resolve-repo', 'strokmatic/visionking'], { encoding: 'utf-8' });
+    assert.equal(out.trim(), 'strokmatic/visionking');
+  });
+
+  it('list --json reads the cache and prints issues', () => {
+    const home = withTempHome();
+    const cacheDir = path.join(home, 'data', 'backlog-cache');
+    fs.mkdirSync(cacheDir, { recursive: true });
+    fs.writeFileSync(path.join(cacheDir, 'o__r.json'),
+      JSON.stringify({ fetchedAt: new Date().toISOString(), repo: 'o/r',
+        issues: [{ number: 3, title: 'cli', body: '', labels: ['backlog'], state: 'open', url: 'u', updatedAt: 'x' }] }));
+    try {
+      const out = execFileSync('node', [MODULE, 'list', 'o/r', '--json'],
+        { encoding: 'utf-8', env: { ...process.env, ORCHESTRATOR_HOME: home } });
+      const parsed = JSON.parse(out);
+      assert.equal(parsed[0].number, 3);
+    } finally {
+      fs.rmSync(home, { recursive: true, force: true });
     }
   });
 });

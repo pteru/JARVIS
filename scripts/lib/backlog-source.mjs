@@ -152,3 +152,64 @@ export async function listIssues(workspace, { label = DEFAULT_LABEL, state = 'op
   if (state && state !== 'all') issues = issues.filter((i) => i.state === state.toLowerCase());
   return issues;
 }
+
+// ---------------------------------------------------------------------------
+// CLI surface (used by shell callers). Importers never reach this.
+// ---------------------------------------------------------------------------
+function parseFlags(argv) {
+  const flags = {}; const positional = [];
+  for (let i = 0; i < argv.length; i++) {
+    if (argv[i].startsWith('--')) {
+      const key = argv[i].slice(2);
+      if (i + 1 < argv.length && !argv[i + 1].startsWith('--')) { flags[key] = argv[++i]; }
+      else flags[key] = true;
+    } else positional.push(argv[i]);
+  }
+  return { flags, positional };
+}
+
+async function cli(argv) {
+  const [cmd, ...rest] = argv;
+  const { flags, positional } = parseFlags(rest);
+  switch (cmd) {
+    case 'resolve-repo': {
+      const r = await resolveRepo(positional[0]);
+      if (!r) { console.error(`No GitHub repo for "${positional[0]}"`); process.exit(2); }
+      console.log(r.slug); break;
+    }
+    case 'refresh': {
+      const res = await refreshCache(positional.length ? positional : undefined);
+      for (const r of res) console.log(`${r.repo}: ${r.error ? 'ERROR ' + r.error : r.count + ' open'}`);
+      break;
+    }
+    case 'list': {
+      const issues = await listIssues(positional[0], {
+        label: flags.label ?? 'backlog',
+        state: flags.state ?? 'open',
+        refresh: 'never',
+      });
+      if (flags.json) console.log(JSON.stringify(issues, null, 2));
+      else for (const i of issues) console.log(`#${i.number}\t${i.title}\t[${i.labels.join(',')}]\t${i.url}`);
+      break;
+    }
+    case 'create': {
+      const res = await createIssue(positional[0], {
+        title: flags.title, body: flags.body ?? '',
+        labels: (flags.labels ? String(flags.labels).split(',') : []).filter(Boolean),
+      });
+      console.log(res.url); break;
+    }
+    case 'close': {
+      const res = await closeIssue(positional[0], { number: positional[1], comment: flags.comment });
+      console.log(res.url); break;
+    }
+    default:
+      console.error(`Usage: backlog-source <resolve-repo|refresh|list|create|close> ...`);
+      process.exit(1);
+  }
+}
+
+const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (isMain) {
+  cli(process.argv.slice(2)).catch((e) => { console.error(e.message); process.exit(1); });
+}
