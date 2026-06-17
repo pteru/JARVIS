@@ -28,7 +28,7 @@
 
 Detalhes do redis-bench:
 - Imagem: `redis:7`
-- Auth: **password obrigatória** (variável: `REDIS_BENCH_PASS="bench@@2026"`)
+- Auth: **password obrigatória** (variável: `REDIS_BENCH_PASS="<your-bench-redis-password>"`)
 - Sem persistência (`--save "" --appendonly no`) — config volátil entre reboots, intencional.
 
 ### Fixes de código aplicados durante o prep
@@ -88,7 +88,7 @@ Todos commitados localmente, **não pushados**. Push pode ser feito depois da ba
 ### Subir a stack (3 min)
 
 ```bash
-export REDIS_BENCH_PASS="bench@@2026"
+export REDIS_BENCH_PASS="<your-bench-redis-password>"
 export ADAPTER_IP="192.168.15.204"
 export CELL="BENCH01"
 export NET_IFACE="enp0s31f6"

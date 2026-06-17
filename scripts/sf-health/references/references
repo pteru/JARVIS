@@ -1,5 +1,5 @@
 acesso: spotfusion@192.168.100.1
-senha: <skm-password>
+senha: <ver ~/.secrets/sf-ssh-password>  # redacted — não versionar a senha real
 
 containers:
 

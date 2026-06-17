@@ -19,7 +19,12 @@ set -euo pipefail
 SF_HOST="192.168.100.1"
 SF_USER="spotfusion"
 SF_PORT=22
-SF_PASS="<skm-password>"
+# Credential resolved from env or the shared secret file — never hardcoded.
+SF_PASS="${SF_SSH_PASSWORD:-$(cat "$HOME/.secrets/sf-ssh-password" 2>/dev/null || true)}"
+if [[ -z "$SF_PASS" ]]; then
+    echo "ERROR: set SF_SSH_PASSWORD or create ~/.secrets/sf-ssh-password" >&2
+    exit 1
+fi
 
 OUTPUT_FILE="sf-exploration-$(date +%Y%m%d-%H%M%S).txt"
 

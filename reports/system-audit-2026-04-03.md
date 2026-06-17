@@ -26,9 +26,9 @@ Auditoria profunda de seguranca, qualidade, padronizacao, testes e gestao de bac
 
 | Produto | Arquivos Afetados | Senhas Expostas | Severidade |
 |---------|-------------------|-----------------|------------|
-| **DieMaster** | 10+ (.env, docker-compose, Python scripts) | `<skm-password>`, `<smartdie-password>`, JWT keys | CRITICO |
-| **SpotFusion** | 169 (.env em 22+ servicos, setup.env com 13 ocorrencias) | `<skm-password>`, `<sparkeyes-password>`, IPs internos | CRITICO |
-| **VisionKing** | .env.example + servicos | `<skm-password>`, `<sissurface-password>` | CRITICO |
+| **DieMaster** | 10+ (.env, docker-compose, Python scripts) | `skm@@****`, `SmartDie@@****`, JWT keys | CRITICO |
+| **SpotFusion** | 169 (.env em 22+ servicos, setup.env com 13 ocorrencias) | `skm@@****`, `SparkEyes@@****`, IPs internos | CRITICO |
+| **VisionKing** | .env.example + servicos | `skm@@****`, `SisSurface@@****` | CRITICO |
 
 **Acao imediata:** Rotacionar todas as senhas expostas no historico git. Mover para GCP Secret Manager ou vault.
 

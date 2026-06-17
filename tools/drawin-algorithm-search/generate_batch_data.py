@@ -14,6 +14,7 @@ Creates:
 import csv
 import random
 import json
+import os
 import sys
 from datetime import datetime, timedelta, timezone
 
@@ -22,7 +23,7 @@ DB_HOST = "192.168.15.2"
 DB_PORT = 2345
 DB_NAME = "smart-die-dev"
 DB_USER = "strokmatic"
-DB_PASS = "<skm-password>"
+DB_PASS = os.environ.get("DB_PASS", "")  # set DB_PASS in the environment — never hardcode
 
 DIE_ID = 1  # die 1 = 52182584 (GM SJC)
 PRESS_ID = 1

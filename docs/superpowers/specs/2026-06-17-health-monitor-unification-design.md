@@ -50,7 +50,7 @@ vs `assemble_server.py`). A parallel config structure already exists
   discovery one-off), **`references/`** → relocated under `scripts/health/`
   (`node-agents/`, `tools/`, `references/`) as **product-specific, outside the core
   pipeline** — they are remediation/debugging/docs, not the pull-based monitor.
-  `explore-server.sh`'s hardcoded `<skm-password>` is scrubbed during the move.
+  `explore-server.sh`'s hardcoded SSH password is scrubbed during the move.
 - No change to the metrics each product collects, the alert thresholds, the cron
   cadence, or the report consumers (`vk-health` / `vk-deploy-review` skills,
   dashboards). This is a **structural** refactor: same behavior, one codebase.
