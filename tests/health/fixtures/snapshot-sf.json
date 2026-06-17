@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "product": "sf",
+  "deployment": "02008",
+  "collected_at": "2026-06-17T03:05:00Z",
+  "nodes": [
+    { "name": "server", "reachable": true }
+  ],
+  "metrics": {
+    "node.server.disk.root.pct": 42,
+    "node.server.reachable": 1
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "product": "vk",
+  "deployment": "03002",
+  "name": "ArcelorMittal TL1 (03002)",
+  "data_root": "data/vk-health",
+  "reports_root": "reports/vk-health",
+  "assembler": "scripts/health/assemblers/vk.py",
+  "claude_model": "claude-opus-4-6",
+  "nodes": {
+    "vk01": {"host": "10.244.70.26", "user": "vk01", "ssh_port": 8050},
+    "vk02": {"host": "10.244.70.50", "user": "vk02", "ssh_port": 8050},
+    "vk03": {"host": "10.244.70.25", "user": "vk03", "ssh_port": 8050}
+  },
+  "connectivity": {
+    "label": "VisionKing nodes",
+    "nodes": ["vk01", "vk02", "vk03"]
+  },
+  "secrets": {
+    "ssh": "~/.secrets/vk-ssh-password",
+    "rabbit": "~/.secrets/vk-rabbit-password"
+  },
+  "checks": [
+    {"field": "disk.root.pct", "direction": "high", "warn": 90, "crit": 95, "label": "Root disk"},
+    {"field": "gpu.0.mem.pct", "direction": "high", "warn": 90, "crit": 95, "label": "GPU memory"},
+    {"field": "service.does_not_exist.up", "direction": "low", "warn": 1, "crit": 1, "label": "Nonexistent"}
+  ],
+  "throttle_minutes": 240,
+  "alert_cooldown_minutes": 60,
+  "heartbeat_interval_minutes": 60,
+  "enabled": true
+}

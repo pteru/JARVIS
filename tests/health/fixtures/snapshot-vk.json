@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "product": "vk",
+  "deployment": "03002",
+  "collected_at": "2026-06-17T03:00:00Z",
+  "nodes": [
+    { "name": "vk01", "reachable": true },
+    { "name": "vk02", "reachable": true },
+    { "name": "vk03", "reachable": false }
+  ],
+  "metrics": {
+    "node.vk01.disk.root.pct": 89,
+    "node.vk01.gpu.0.mem.pct": 91,
+    "node.vk01.reachable": 1,
+    "node.vk02.disk.root.pct": 95,
+    "node.vk02.gpu.0.mem.pct": 72,
+    "node.vk02.reachable": 1,
+    "node.vk03.reachable": 0
+  }
+}
