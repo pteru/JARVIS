@@ -44,7 +44,7 @@ if [[ ! -d "$SNAPSHOT_DIR" ]]; then
     exit 0
 fi
 
-LATEST_SNAPSHOT=$(ls -t "$SNAPSHOT_DIR"/snapshot-*.json 2>/dev/null | head -n 1 || true)
+LATEST_SNAPSHOT=$(ls -1 "$SNAPSHOT_DIR"/snapshot-*.json 2>/dev/null | sort | tail -n 1 || true)
 if [[ -z "$LATEST_SNAPSHOT" ]]; then
     log "No snapshot files in $SNAPSHOT_DIR — skipping"
     mkdir -p "$DATA_DIR"
@@ -193,8 +193,10 @@ JARVIS Health Monitor"
         for k in "${WARNING_KEYS[@]}";  do record_alert_sent "$k"; done
     else
         log "ERROR: Telegram send failed with HTTP $HTTP_CODE"
-        # Don't record — allow retry on next run
-        ALERT_COUNT=0
+        # Don't record — allow retry on next run.
+        # ALERT_COUNT is intentionally NOT reset so the real count is written to
+        # last-alert-count, preventing a false "all clear" while alerts are live
+        # but the send channel is temporarily unavailable.
     fi
 fi
 

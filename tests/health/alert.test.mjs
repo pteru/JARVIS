@@ -160,6 +160,49 @@ test('alert.sh second run within cooldown sends no new message and writes last-a
   }
 });
 
+test('alert.sh writes real last-alert-count and skips alert-state on Telegram send failure', () => {
+  const curlStub = installCliStub('curl');
+  const { home, dataDir } = makeHome();
+
+  try {
+    // Stub curl to return HTTP 500 — send_telegram returns "500" via -w %{http_code}
+    curlStub.env['CURL_STUB_OUT'] = '500';
+
+    execFileSync('bash', ['scripts/health/core/alert.sh', 'vk', '03002'], {
+      encoding: 'utf8',
+      env: {
+        ...process.env,
+        ...curlStub.env,
+        ORCHESTRATOR_HOME: home,
+      },
+    });
+
+    // --- Assert: last-alert-count must be 2 (real count, NOT 0) ---
+    const countFile = path.join(dataDir, 'last-alert-count');
+    assert.ok(fs.existsSync(countFile), 'last-alert-count file must exist');
+    const count = fs.readFileSync(countFile, 'utf8').trim();
+    assert.equal(count, '2', `last-alert-count must be 2 on send failure, got: ${count}`);
+
+    // --- Assert: alert-state.json must NOT have been updated with sent keys ---
+    // Either the file doesn't exist, or it has no entries (empty object {})
+    const stateFile = path.join(dataDir, 'alert-state.json');
+    if (fs.existsSync(stateFile)) {
+      const state = JSON.parse(fs.readFileSync(stateFile, 'utf8'));
+      const keys = Object.keys(state);
+      assert.equal(
+        keys.length,
+        0,
+        `alert-state.json must have no entries on send failure (dedup not flushed), got: ${JSON.stringify(keys)}`,
+      );
+    }
+    // else: file absent is also acceptable — alerts were never recorded as sent
+
+  } finally {
+    curlStub.cleanup();
+    fs.rmSync(home, { recursive: true, force: true });
+  }
+});
+
 test('alert.sh exits 0 cleanly when no snapshot directory exists', () => {
   const curlStub = installCliStub('curl');
   const home = fs.mkdtempSync(path.join(os.tmpdir(), 'hm-alert-nosnapshot-'));
