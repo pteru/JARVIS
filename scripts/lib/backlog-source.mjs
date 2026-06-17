@@ -177,6 +177,11 @@ async function cli(argv) {
       if (!r) { console.error(`No GitHub repo for "${positional[0]}"`); process.exit(2); }
       console.log(r.slug); break;
     }
+    case 'resolve-workspace': {
+      const ws = await resolveWorkspaceByRepo(positional[0]);
+      if (!ws) { console.error(`No workspace for "${positional[0]}"`); process.exit(2); }
+      console.log(ws); break;
+    }
     case 'refresh': {
       const res = await refreshCache(positional.length ? positional : undefined);
       for (const r of res) console.log(`${r.repo}: ${r.error ? 'ERROR ' + r.error : r.count + ' open'}`);
@@ -204,7 +209,7 @@ async function cli(argv) {
       console.log(res.url); break;
     }
     default:
-      console.error(`Usage: backlog-source <resolve-repo|refresh|list|create|close> ...`);
+      console.error(`Usage: backlog-source <resolve-repo|resolve-workspace|refresh|list|create|close> ...`);
       process.exit(1);
   }
 }

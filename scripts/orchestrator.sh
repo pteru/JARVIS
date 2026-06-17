@@ -52,6 +52,61 @@ fi
 WORKSPACE_COUNT=$(echo "$WORKSPACES" | wc -l | tr -d ' ')
 log_info "Workspaces: $WORKSPACE_COUNT (sorted by priority)"
 
+dispatch_issue() {
+    local target="$1" number="$2" dry=""
+    [[ "$3" == "--dry-run" || "$4" == "--dry-run" ]] && dry="1"
+    if [[ -z "$target" || -z "$number" ]]; then
+        log_error "Usage: orchestrator.sh dispatch-issue <workspace|owner/repo> <issue#> [--dry-run]"
+        return 1
+    fi
+
+    # Resolve a workspace key + repo slug from the target.
+    local workspace repo
+    if [[ "$target" == */* ]]; then
+        repo="$target"
+        workspace="$(node "$SCRIPT_DIR/lib/backlog-source.mjs" resolve-workspace "$repo" 2>/dev/null)"
+    else
+        workspace="$target"
+        repo="$(node "$SCRIPT_DIR/lib/backlog-source.mjs" resolve-repo "$workspace" 2>/dev/null)"
+    fi
+    if [[ -z "$workspace" || -z "$repo" ]]; then
+        log_error "Could not resolve workspace/repo for '$target'"
+        return 1
+    fi
+
+    # Fetch the issue.
+    local issue_json
+    issue_json="$(gh issue view "$number" --repo "$repo" --json title,body,labels,url 2>/dev/null)" || {
+        log_error "Failed to fetch issue #$number from $repo"
+        return 1
+    }
+
+    local title body url complexity
+    title="$(echo "$issue_json" | jq -r '.title')"
+    body="$(echo "$issue_json" | jq -r '.body')"
+    url="$(echo "$issue_json" | jq -r '.url')"
+    complexity="$(echo "$issue_json" | jq -r '[.labels[].name] | map(select(. == "simple" or . == "medium" or . == "complex")) | (.[0] // "medium")')"
+
+    local prompt="GitHub issue ${url}
+
+# ${title}
+
+${body}
+
+Reference this issue (${url}) in your branch name, commit message, and PR. Do not close the issue automatically."
+
+    if [[ -n "$dry" ]]; then
+        echo "workspace: $workspace"
+        echo "repo: $repo"
+        echo "complexity: $complexity"
+        echo "would run: task-dispatcher.sh \"$workspace\" <prompt for ${url}> \"$complexity\""
+        return 0
+    fi
+
+    log_info "Dispatching ${url} → $workspace ($complexity)"
+    "$SCRIPT_DIR/task-dispatcher.sh" "$workspace" "$prompt" "$complexity"
+}
+
 refresh_backlog_cache() {
     log_section "Refreshing Backlog Cache (GitHub Issues)"
     if ! command -v gh >/dev/null 2>&1; then
@@ -304,11 +359,12 @@ case "$MODE" in
         "$SCRIPT_DIR/vk-health/run.sh" "${2:-03002}"
         ;;
     manual)           run_manual "$@" ;;
+    dispatch-issue)   dispatch_issue "$2" "$3" "$4" "$5" ;;
     # Legacy aliases
     daily)            refresh_backlog_cache ;;
     weekly)           generate_weekly_report ;;
     *)
-        echo "Usage: orchestrator.sh <refresh-backlog-cache|daily-report|weekly-report|suggest-goals|fetch-remotes|update-access|pr-inbox|vk-health|manual> [args...]"
+        echo "Usage: orchestrator.sh <refresh-backlog-cache|daily-report|weekly-report|suggest-goals|fetch-remotes|update-access|pr-inbox|vk-health|manual|dispatch-issue <ws|repo> <issue#>> [args...]"
         exit 1
         ;;
 esac
