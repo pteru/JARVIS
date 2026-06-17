@@ -88,10 +88,11 @@ send_telegram_alert() {
     esac
 
     local message="${emoji} ${severity}: ${title}"
-    if [[ -n "${HEALTH_NAME:-}" ]]; then
-        message="${message}
-Deployment: ${HEALTH_NAME}"
-    fi
+    local _label
+    _label="${HEALTH_NAME:-${HEALTH_PRODUCT:-health} ${HEALTH_DEPLOYMENT:-}}"
+    _label="${_label% }"   # trim trailing space when HEALTH_DEPLOYMENT is unset
+    message="${message}
+Deployment: ${_label}"
     message="${message}
 
 ${details}

@@ -7,19 +7,33 @@ import path from 'node:path';
 import { installCliStub } from './helpers/cli-stub.mjs';
 
 /**
- * Set up a temporary ORCHESTRATOR_HOME with the VK fixture config in
+ * Set up a temporary ORCHESTRATOR_HOME with a self-contained VK config in
  * the expected path: config/health/vk/03002.json
+ *
+ * Rather than copying the shared fixture verbatim (whose secrets.ssh points at
+ * the real ~/.secrets/vk-ssh-password), we read the fixture, override
+ * secrets.ssh to an absolute path inside the temp home, and write the patched
+ * config there.  This makes the test fully hermetic — no real ~/.secrets file
+ * is needed.
  */
 function makeHome() {
   const home = fs.mkdtempSync(path.join(os.tmpdir(), 'hm-ssh-'));
   fs.mkdirSync(path.join(home, 'config/health/vk'), { recursive: true });
-  fs.copyFileSync(
-    'tests/health/fixtures/config-vk.json',
-    path.join(home, 'config/health/vk/03002.json'),
-  );
-  // Create a fake SSH password secret file
+
+  // Write a dummy SSH secret that load_health_config will resolve
   const secretFile = path.join(home, 'ssh-secret');
   fs.writeFileSync(secretFile, 'test-ssh-password\n', { mode: 0o600 });
+
+  // Patch the fixture: override secrets.ssh so config.sh never reads ~/.secrets
+  const fixture = JSON.parse(
+    fs.readFileSync('tests/health/fixtures/config-vk.json', 'utf8'),
+  );
+  fixture.secrets = { ...fixture.secrets, ssh: secretFile };
+  fs.writeFileSync(
+    path.join(home, 'config/health/vk/03002.json'),
+    JSON.stringify(fixture, null, 2),
+  );
+
   return { home, secretFile };
 }
 
