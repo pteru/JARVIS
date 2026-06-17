@@ -17,7 +17,7 @@ export function validateSnapshot(o) {
   for (const n of o?.nodes ?? [])
     if (n.reachable === false)
       for (const k of Object.keys(o.metrics ?? {}))
-        if (k.startsWith(`node.${n.name}.`) && !k.endsWith('.reachable'))
+        if (k.startsWith(`node.${n.name}.`) && k !== `node.${n.name}.reachable`)
           p.push(`unreachable ${n.name} has ${k}`);
   return p;
 }

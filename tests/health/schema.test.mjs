@@ -22,6 +22,25 @@ test('snapshot-sf.json validates clean', () => {
   assert.deepEqual(problems, [], `Expected no problems, got: ${JSON.stringify(problems)}`);
 });
 
+test('unreachable node with nested .reachable sub-key is flagged', () => {
+  const snap = {
+    schema: 1,
+    product: 'vk',
+    deployment: '03002',
+    collected_at: '2026-06-17T00:00:00Z',
+    nodes: [{ name: 'vk03', reachable: false }],
+    metrics: {
+      'node.vk03.reachable': 0,
+      'node.vk03.subsystem.reachable': 1,
+    },
+  };
+  const problems = validateSnapshot(snap);
+  assert.ok(
+    problems.includes('unreachable vk03 has node.vk03.subsystem.reachable'),
+    `Expected nested .reachable sub-key to be flagged, got: ${JSON.stringify(problems)}`,
+  );
+});
+
 test('broken object returns non-empty problem list', () => {
   const broken = {
     schema: 1,
