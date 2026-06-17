@@ -3,9 +3,8 @@
     "daily": [
       {
         "time": "09:00",
-        "task": "process_backlogs",
-        "workspaces": ["all"],
-        "max_tasks_per_workspace": 1
+        "task": "refresh_backlog_cache",
+        "workspaces": ["all"]
       },
       {
         "time": "17:00",
