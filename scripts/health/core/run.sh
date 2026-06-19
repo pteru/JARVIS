@@ -202,9 +202,10 @@ fi
 
 # ---------------------------------------------------------------------------
 # Gate 7 — Heartbeat "all clear"
-# Send only when: last-alert-count == 0 AND alert stage exited 0
-# Never when alerts are live OR alert send failed (alert.sh writes real count
-# even on telegram failure, so last-alert-count>0 blocks a false all-clear).
+# Send only when: last-alert-count == 0 AND alert stage exited 0 AND the whole
+# pipeline ran clean (EXIT_STATUS == 0). A partial pipeline (collector failure,
+# analyze failure) can't certify health — an "ALL CLEAR" in that state would
+# silently mask trouble.
 # ---------------------------------------------------------------------------
 HEARTBEAT_STATE_FILE="$DATA_DIR/heartbeat-state.json"
 LAST_ALERT_COUNT_FILE="$DATA_DIR/last-alert-count"
@@ -214,7 +215,7 @@ if [[ -f "$LAST_ALERT_COUNT_FILE" ]]; then
     ALERTS_SENT=$(cat "$LAST_ALERT_COUNT_FILE" 2>/dev/null || echo 0)
 fi
 
-if [[ "$ALERTS_SENT" -eq 0 && "$ALERT_EXIT" -eq 0 ]]; then
+if [[ "$ALERTS_SENT" -eq 0 && "$ALERT_EXIT" -eq 0 && "$EXIT_STATUS" -eq 0 ]]; then
     SEND_HEARTBEAT=false
     NOW_EPOCH=$(date +%s)
     HB_COOLDOWN=$((HEARTBEAT_INTERVAL_MINUTES * 60))

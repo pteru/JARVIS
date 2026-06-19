@@ -284,6 +284,60 @@ test('(c) happy path: pings succeed → collector, analyze, alert called in orde
 });
 
 // ---------------------------------------------------------------------------
+// (e) Regression: collector failure must suppress heartbeat "ALL CLEAR"
+//
+// Bug: when collection failed (EXIT_STATUS=1) but alert.sh exited 0 with
+// alertCount=0, the Gate 7 condition (ALERTS_SENT==0 && ALERT_EXIT==0) was
+// satisfied and a false "ALL CLEAR" heartbeat was sent. Fix: also require
+// EXIT_STATUS==0 before sending heartbeat — partial pipeline can't certify
+// health.
+// ---------------------------------------------------------------------------
+test('(e) heartbeat suppressed when collection fails (EXIT_STATUS=1)', () => {
+  const pingStub = installCliStub('ping');
+  const curlStub = installCliStub('curl');
+  const { home } = makeHome();
+  // alert.sh succeeds with 0 alerts (collector failure means analyze is
+  // skipped, so alert just sees an empty state and exits clean)
+  const { coreDir, orderFile } = makeCoreStubs(home, { alertCount: 0, alertExit: 0 });
+  // collector fails
+  const { collectorDir } = makeCollectorStub(orderFile, { collectorExit: 1 });
+
+  try {
+    const env = mergeEnvs(
+      process.env,
+      pingStub.env,
+      curlStub.env,
+      {
+        PING_STUB_EXIT: '0',
+        CURL_STUB_OUT: '200',
+        ORCHESTRATOR_HOME: home,
+        HEALTH_COLLECTOR_DIR: collectorDir,
+        HEALTH_CORE_DIR: coreDir,
+      },
+    );
+
+    const result = runScript(env);
+
+    assert.notEqual(
+      result.status,
+      0,
+      `run.sh must exit non-zero when collector fails\nstderr: ${result.stderr}`,
+    );
+
+    const curlBodies = curlStub.readArgs().flat().join('\n');
+    assert.ok(
+      !curlBodies.includes('ALL CLEAR'),
+      `Heartbeat "ALL CLEAR" must NOT be sent when EXIT_STATUS != 0\nActual curl args:\n${curlBodies}`,
+    );
+  } finally {
+    pingStub.cleanup();
+    curlStub.cleanup();
+    fs.rmSync(home, { recursive: true, force: true });
+    fs.rmSync(coreDir, { recursive: true, force: true });
+  }
+});
+
+// ---------------------------------------------------------------------------
 // (d) Lock: while lock is held, concurrent run.sh exits 0 without collecting
 // ---------------------------------------------------------------------------
 test('(d) lock: second run exits 0 without invoking collector when lock is held', async () => {
