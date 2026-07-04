@@ -62,3 +62,24 @@ def test_dry_run_writes_nothing(tmp_path):
                          check=True, capture_output=True, text=True).stdout
     assert "d.md" in out
     assert page.read_text(encoding="utf-8") == "# D\n\ncorpo\n"
+
+
+def test_first_paragraph_skips_fenced_code(tmp_path):
+    from inject_kb_frontmatter import build_frontmatter
+    page = ("# T\n\n```bash\nsudo rm -rf /var/lib/thing  # not a description\n```\n\n"
+            "A primeira frase de verdade.\n")
+    fm = build_frontmatter(("operacoes", "x.md"), page)
+    assert 'description: "A primeira frase de verdade."' in fm
+
+
+def test_reserved_counted_in_summary(tmp_path):
+    import subprocess, sys
+    from pathlib import Path
+    root = tmp_path / "kb"
+    root.mkdir()
+    (root / "README.md").write_text("# readme\n", encoding="utf-8")
+    (root / "page.md").write_text("# P\n\ncorpo\n", encoding="utf-8")
+    script = Path(__file__).parents[1] / "inject_kb_frontmatter.py"
+    out = subprocess.run([sys.executable, str(script), "--root", str(root)],
+                         check=True, capture_output=True, text=True).stdout
+    assert "1 changed" in out and "1 reserved skipped" in out

@@ -26,9 +26,15 @@ DATE_RE = re.compile(
 
 
 def _first_paragraph(text):
+    in_fence = False
     for line in text.split("\n"):
         s = line.strip()
-        if not s or s.startswith(("#", ">", "|", "-", "*", "```", "!")):
+        if s.startswith("```"):
+            in_fence = not in_fence
+            continue
+        if in_fence:
+            continue
+        if not s or s.startswith(("#", ">", "|", "-", "*", "!")):
             continue
         if len(s) > 160:
             s = s[:157].rsplit(" ", 1)[0] + "..."
@@ -74,9 +80,12 @@ def main(argv=None):
     parser.add_argument("--apply", action="store_true")
     args = parser.parse_args(argv)
     root = Path(args.root)
-    changed = skipped = 0
+    changed = skipped = reserved = 0
     for path in sorted(root.rglob("*.md")):
-        if ".git" in path.parts or path.name in RESERVED:
+        if ".git" in path.parts:
+            continue
+        if path.name in RESERVED:
+            reserved += 1
             continue
         rel = path.relative_to(root)
         text = path.read_text(encoding="utf-8")
@@ -89,7 +98,7 @@ def main(argv=None):
         if args.apply:
             path.write_text(fm + text, encoding="utf-8")
     print(f"{'applied' if args.apply else 'dry-run'}: {changed} changed, "
-          f"{skipped} already conformant")
+          f"{skipped} already conformant, {reserved} reserved skipped")
     return 0
 
 
