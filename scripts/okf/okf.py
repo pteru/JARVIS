@@ -280,6 +280,9 @@ def regenerate_index(dir_path):
 
 def cmd_lint(args):
     bundles = load_catalog(args.catalog)
+    if not bundles:
+        print("no bundles in catalog", file=sys.stderr)
+        return 2
     if args.bundle:
         bundles = [b for b in bundles if b.name == args.bundle]
         if not bundles:

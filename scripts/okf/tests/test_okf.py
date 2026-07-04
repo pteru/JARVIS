@@ -263,3 +263,15 @@ def test_search_scores_and_filters(tmp_path):
     assert not search_pages(bundles, ["cameras"], project="03008")
     assert not search_pages(bundles, ["profinet"], tag="cameras")
     assert search_pages(bundles, ["profinet"], type_="Reference")
+
+
+def test_lint_empty_catalog_exits_2(tmp_path, capsys):
+    """A catalog with no parseable bundle rows must not report 100% (exit 2)."""
+    from okf import main
+    catalog = tmp_path / "knowledge" / "index.md"
+    catalog.parent.mkdir()
+    catalog.write_text("---\ntype: Reference\n---\n\n# Empty\n\nno table here\n",
+                       encoding="utf-8")
+    rc = main(["--catalog", str(catalog), "lint", "--pct-only"])
+    assert rc == 2
+    assert capsys.readouterr().out.strip() != "100"

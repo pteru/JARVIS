@@ -4,14 +4,14 @@ title: OKF Adoption — Federated Knowledge Bundles
 description: Adopt the Open Knowledge Format (OKF v0.1) across all four JARVIS knowledge stores, federated as independent bundles under a single root catalog.
 tags: [jarvis, knowledge, okf, pmo, knowledge-base]
 timestamp: 2026-07-04
-status: draft
+status: active
 language: en
 ---
 
 # OKF Adoption — Federated Knowledge Bundles
 
 **Date:** 2026-07-04
-**Status:** Draft — awaiting review
+**Status:** Active — implemented 2026-07-04 (see plan amendments)
 **References:**
 - [OKF v0.1 SPEC](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md)
 - [cole-medin-ai-coding](https://github.com/coleam00/cole-medin-ai-coding) (worked example: concepts layer + stdlib CLI)
