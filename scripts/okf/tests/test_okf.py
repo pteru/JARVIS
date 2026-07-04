@@ -72,8 +72,8 @@ okf_version: "0.1"
 
 
 def make_catalog(tmp_path):
-    (tmp_path / "alpha").mkdir()
-    (tmp_path / "beta").mkdir()
+    (tmp_path / "alpha").mkdir(exist_ok=True)
+    (tmp_path / "beta").mkdir(exist_ok=True)
     catalog = tmp_path / "knowledge" / "index.md"
     catalog.parent.mkdir()
     catalog.write_text(CATALOG_MD.format(root=tmp_path), encoding="utf-8")
@@ -126,3 +126,58 @@ def test_iter_pages_reserved_and_scope(tmp_path):
                scope=["projects/*/knowledge/**"], description="")
     rels = [rel for _, rel in iter_pages(b)]
     assert rels == ["projects/03002/knowledge/contexto.md"]
+
+
+def make_bundle(tmp_path):
+    """alpha bundle: 1 conformant page, 1 missing type, 1 no frontmatter,
+    an index.md that lists a dead link and omits good.md."""
+    a = tmp_path / "alpha"
+    a.mkdir()
+    (a / "good.md").write_text(
+        "---\ntype: Reference\ntitle: Good\n---\n\nSee [dead](/missing.md).\n",
+        encoding="utf-8")
+    (a / "no-type.md").write_text("---\ntitle: X\n---\nbody\n", encoding="utf-8")
+    (a / "bare.md").write_text("# bare\n", encoding="utf-8")
+    (a / "index.md").write_text(
+        "---\ntype: Reference\ntitle: Alpha\n---\n\n# Alpha\n\n"
+        "- [NoType](no-type.md) — page\n- [Gone](gone.md) — dead\n",
+        encoding="utf-8")
+    return make_catalog(tmp_path)
+
+
+def test_lint_counts_and_warnings(tmp_path):
+    from okf import load_catalog, lint_bundle
+    catalog = make_bundle(tmp_path)
+    alpha = load_catalog(catalog)[0]
+    r = lint_bundle(alpha)
+    assert r["total"] == 3
+    assert r["conformant"] == 1
+    assert len(r["problems"]) == 2                      # no-type.md, bare.md
+    assert any("gone.md" in w for w in r["warnings"])    # dead index link
+    assert any("good.md" in w for w in r["warnings"])    # missing index entry
+    assert any("/missing.md" in w for w in r["warnings"])  # dead body link
+
+
+def test_lint_pct_only_and_strict(tmp_path, capsys):
+    from okf import main
+    catalog = make_bundle(tmp_path)
+    rc = main(["--catalog", str(catalog), "lint", "--pct-only"])
+    out = capsys.readouterr().out.strip()
+    assert rc == 0
+    assert out == "33"  # 1 of 3 pages conformant (beta bundle is empty)
+    rc = main(["--catalog", str(catalog), "lint", "--strict"])
+    assert rc == 1
+
+
+def test_lint_scope_respected(tmp_path):
+    from okf import load_catalog, lint_bundle
+    catalog = make_catalog(tmp_path)
+    b = tmp_path / "beta"
+    (b / "projects" / "03002" / "knowledge").mkdir(parents=True)
+    (b / "projects" / "03002" / "knowledge" / "contexto.md").write_text(
+        "---\ntype: Project Context\n---\nok\n", encoding="utf-8")
+    (b / "projects" / "03002" / "raw-notes.md").write_text("no fm\n", encoding="utf-8")
+    beta = load_catalog(catalog)[1]
+    r = lint_bundle(beta)
+    assert r["total"] == 1          # raw-notes.md is outside lint scope
+    assert r["conformant"] == 1

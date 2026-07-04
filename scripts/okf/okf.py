@@ -140,14 +140,96 @@ def cmd_catalog(args):
     return 0
 
 
+LINK_RE = re.compile(r"\[[^\]]*\]\(([^)#\s]+\.md)\)")
+
+
+def _resolve_link(target, file_path, bundle):
+    if target.startswith(("http://", "https://")):
+        return None  # cross-bundle / external: not resolved in v1
+    if target.startswith("/"):
+        return bundle.path / target.lstrip("/")
+    return (file_path.parent / target).resolve()
+
+
+def _check_links(text, file_path, rel, bundle, warnings):
+    for target in LINK_RE.findall(text):
+        resolved = _resolve_link(target, file_path, bundle)
+        if resolved is not None and not resolved.exists():
+            warnings.append(f"{bundle.name}:{rel}: dead link -> {target}")
+
+
+def lint_bundle(bundle):
+    total = conformant = 0
+    problems, warnings = [], []
+    pages_by_dir = {}
+    for path, rel in iter_pages(bundle):
+        total += 1
+        text = path.read_text(encoding="utf-8")
+        meta, _ = parse_frontmatter(text)
+        if meta is None:
+            problems.append(f"{bundle.name}:{rel}: no parseable frontmatter")
+        elif not str(meta.get("type", "")).strip():
+            problems.append(f"{bundle.name}:{rel}: missing/empty 'type'")
+        else:
+            conformant += 1
+            _check_links(text, path, rel, bundle, warnings)
+        pages_by_dir.setdefault(path.parent, []).append(path.name)
+
+    for directory, names in pages_by_dir.items():
+        index = directory / "index.md"
+        if not index.exists():
+            continue
+        itext = index.read_text(encoding="utf-8")
+        rel_index = index.relative_to(bundle.path).as_posix()
+        for name in names:
+            if f"({name})" not in itext and f"(./{name})" not in itext \
+                    and not re.search(r"\([^)]*/" + re.escape(name) + r"\)", itext):
+                warnings.append(f"{bundle.name}:{rel_index}: missing entry for {name}")
+        _check_links(itext, index, rel_index, bundle, warnings)
+    return {"total": total, "conformant": conformant,
+            "problems": problems, "warnings": warnings}
+
+
+def cmd_lint(args):
+    bundles = load_catalog(args.catalog)
+    if args.bundle:
+        bundles = [b for b in bundles if b.name == args.bundle]
+        if not bundles:
+            print(f"unknown bundle: {args.bundle}", file=sys.stderr)
+            return 2
+    results = [(b, lint_bundle(b)) for b in bundles]
+    grand_total = sum(r["total"] for _, r in results)
+    grand_conf = sum(r["conformant"] for _, r in results)
+    pct = (grand_conf * 100 // grand_total) if grand_total else 100
+    if args.pct_only:
+        print(pct)
+    else:
+        print(f"{'Bundle':18s} {'Pages':>6s} {'Conformant':>11s} {'%':>5s}")
+        for b, r in results:
+            bp = (r["conformant"] * 100 // r["total"]) if r["total"] else 100
+            print(f"{b.name:18s} {r['total']:6d} {r['conformant']:11d} {bp:4d}%")
+        print(f"{'TOTAL':18s} {grand_total:6d} {grand_conf:11d} {pct:4d}%")
+        for _, r in results:
+            for line in r["problems"] + r["warnings"]:
+                print(f"  ! {line}")
+    has_issues = any(r["problems"] or r["warnings"] for _, r in results)
+    return 1 if (args.strict and has_issues) else 0
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(prog="okf", description=__doc__)
     parser.add_argument("--catalog", default=None, help="path to root catalog index.md")
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("catalog", help="list bundles from the root catalog")
+    p_lint = sub.add_parser("lint", help="conformance report (ratchet metric)")
+    p_lint.add_argument("bundle", nargs="?", default=None)
+    p_lint.add_argument("--pct-only", action="store_true")
+    p_lint.add_argument("--strict", action="store_true")
     args = parser.parse_args(argv)
     if args.command == "catalog":
         return cmd_catalog(args)
+    if args.command == "lint":
+        return cmd_lint(args)
     return 2
 
 
