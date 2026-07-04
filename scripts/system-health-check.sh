@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # JARVIS — System Health Check
-# Runs 13 automated checks and produces a scored report.
+# Runs 14 automated checks and produces a scored report.
 # Usage: system-health-check.sh [--quiet]
 #   --quiet: only output the report path (for cron usage)
 set -euo pipefail
@@ -18,7 +18,7 @@ NOW=$(date '+%Y-%m-%d')
 REPORT_FILE="${REPORT_DIR}/health-${NOW}.md"
 
 # Scoring
-TOTAL_CHECKS=13
+TOTAL_CHECKS=14
 PASSED=0
 WARNINGS=0
 FAILURES=0
@@ -331,6 +331,23 @@ else
     warn "CHECK_13 CRON_DRIFT: ${DRIFT} line(s) differ between live crontab and template" \
       "Review \`diff <(crontab -l) config/cron/orchestrator.cron\`; regenerate the template if the live schedule is correct"
   fi
+fi
+
+# ---------------------------------------------------------------------------
+# CHECK 14: OKF conformance — knowledge bundle frontmatter coverage (ratchet)
+# ---------------------------------------------------------------------------
+OKF_PCT=$(python3 "${ORCHESTRATOR_HOME}/scripts/okf/okf.py" lint --pct-only 2>/dev/null || echo "ERR")
+if [[ "$OKF_PCT" == "ERR" ]]; then
+  warn "CHECK_14 OKF_CONFORMANCE: okf lint failed to run" \
+    "Run: \`python3 scripts/okf/okf.py lint\` and inspect the error"
+elif [[ "$OKF_PCT" -ge 80 ]]; then
+  pass "CHECK_14 OKF_CONFORMANCE: ${OKF_PCT}% of knowledge pages conformant"
+elif [[ "$OKF_PCT" -ge 40 ]]; then
+  warn "CHECK_14 OKF_CONFORMANCE: ${OKF_PCT}% conformant (ratchet target: 80%)" \
+    "Run: \`python3 scripts/okf/okf.py lint\` and add frontmatter to reported files"
+else
+  fail "CHECK_14 OKF_CONFORMANCE: ${OKF_PCT}% conformant (ratchet target: 80%)" \
+    "Run: \`python3 scripts/okf/okf.py lint\` and add frontmatter to reported files"
 fi
 
 # ---------------------------------------------------------------------------
