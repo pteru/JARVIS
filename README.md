@@ -159,8 +159,7 @@ JARVIS/
 │   │   ├── main.py
 │   │   └── requirements.txt
 │   ├── mech-tool.py                 # Mechanical file tool (DXF, STEP, STL, etc.)
-│   ├── xlsx-tool.py                 # Excel file tool
-│   └── .venv/                       # Shared venv for mech-tool + xlsx-tool
+│   └── .venv/                       # Shared venv for mech/cad/cae tools
 │
 ├── tools/orchestrator-dashboard/     # Express.js observability dashboard (port 3000)
 │   ├── server.js
@@ -460,19 +459,11 @@ $MECH convert model.step -o out.stl   # Format conversion
 $MECH validate part.stl            # Integrity checks
 ```
 
-### Excel Tool (`tools/xlsx-tool.py`)
+### Office File Tools (docx / pptx / xlsx)
 
-Excel file operations using `openpyxl`.
-
-```bash
-XLSX="tools/.venv/bin/python tools/xlsx-tool.py"
-
-$XLSX read file.xlsx                       # Print data as table
-$XLSX read file.xlsx --with-styles --format json   # Include colors, fonts, borders
-$XLSX create output.xlsx -i data.json      # Create from JSON
-$XLSX edit file.xlsx --set A1=Hello        # Edit cells
-$XLSX info file.xlsx                       # List sheets, dimensions, headers
-```
+Provided by the `office-suite` plugin from the `strokmatic-plugins` marketplace
+(`/plugin marketplace add strokmatic/sdk-agent-standards`). The plugin's skills
+bootstrap their own venv on first use — no local tool copies in this repo.
 
 ---
 
