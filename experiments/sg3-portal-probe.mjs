@@ -429,7 +429,140 @@ async function inspectAfterFilter() {
   await browser.close();
 }
 
-const handlers = { 'inspect-login': inspectLogin, 'login': attemptLogin, 'gm': enterGm, 'inspect-page': inspectPage, 'export-excel': tryExportExcel, 'inspect-after-filter': inspectAfterFilter };
+async function findDocumentLinks() {
+  const credKey = process.argv[3] ?? 'gm-lume';
+  const browser = await chromium.launch({ headless: false, args: ['--start-maximized'] });
+  const context = await browser.newContext({ storageState: storagePath(credKey), viewport: null });
+  const page = await context.newPage();
+  await page.goto('https://sg3.executiva.adm.br/gm/index.php?r=instancia-documento%2Findex', { waitUntil: 'domcontentloaded', timeout: 60_000 });
+  await page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => {});
+  await dismissPopups(page);
+  await page.waitForTimeout(800);
+  await dismissPopups(page);
+
+  // Click Buscar
+  const btnHandle = await page.evaluateHandle(() => {
+    for (const b of document.querySelectorAll('button[type=submit], input[type=submit]')) {
+      const t = (b.innerText || b.value || '').trim().toLowerCase();
+      if (/^buscar|^pesquisar|^filtrar/.test(t)) return b;
+    }
+    return null;
+  });
+  if (await btnHandle.evaluate(b => !!b)) {
+    await Promise.all([
+      page.waitForLoadState('domcontentloaded', { timeout: 30_000 }).catch(() => {}),
+      btnHandle.evaluate(b => b.click()),
+    ]);
+    await page.waitForTimeout(5000);
+    await dismissPopups(page);
+    await page.waitForTimeout(2000);
+  }
+
+  // Wait longer for AJAX
+  await page.waitForTimeout(5000);
+
+  // Capture every link/button anywhere with instancia-documento in href/onclick
+  const samples = await page.evaluate(() => {
+    const out = { docLinks: [], docButtons: [], rowCount: document.querySelectorAll('tbody tr').length, firstRowHtml: '' };
+    document.querySelectorAll('a').forEach(a => {
+      if (a.href && /instancia-documento|download|baixar|view/i.test(a.href + ' ' + (a.title||'') + ' ' + (a.innerText||''))) {
+        out.docLinks.push({ href: a.href, text: (a.innerText || '').trim().slice(0, 60), title: a.title || '' });
+      }
+    });
+    document.querySelectorAll('button, a').forEach(el => {
+      const onclick = el.getAttribute?.('onclick') || '';
+      if (/download|baixar|view|instancia-documento/i.test(onclick)) {
+        out.docButtons.push({ tag: el.tagName, onclick: onclick.slice(0, 200), text: (el.innerText || '').trim().slice(0, 60) });
+      }
+    });
+    const firstRow = document.querySelector('tbody tr');
+    if (firstRow) out.firstRowHtml = firstRow.outerHTML.slice(0, 2000);
+    return out;
+  });
+  console.log(JSON.stringify(samples, null, 2));
+  writeFileSync(resolve(SPIKE_OUT, 'document-links.json'), JSON.stringify(samples, null, 2));
+  await page.waitForTimeout(60_000);
+  await browser.close();
+}
+
+async function exportAfterSearch() {
+  const route = process.argv[3];
+  const credKey = process.argv[4] ?? 'gm-lume';
+  if (!route) { console.error('Usage: probe.mjs export-after-search <route> [credKey]'); process.exit(1); }
+  const baseRoute = route.replace(/\/index$/, '');
+
+  const browser = await chromium.launch({ headless: false, args: ['--start-maximized'] });
+  const context = await browser.newContext({ storageState: storagePath(credKey), viewport: null, acceptDownloads: true });
+  const page = await context.newPage();
+  const indexUrl = `https://sg3.executiva.adm.br/gm/index.php?r=${encodeURIComponent(route)}`;
+  console.log(`[spike] Loading ${indexUrl}`);
+  await page.goto(indexUrl, { waitUntil: 'domcontentloaded', timeout: 60_000 });
+  await page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => {});
+  await dismissPopups(page);
+  await page.waitForTimeout(800);
+  await dismissPopups(page);
+
+  // Click Buscar to populate results
+  console.log('[spike] Clicking Buscar...');
+  const buscarBtn = await page.evaluateHandle(() => {
+    for (const b of document.querySelectorAll('button[type=submit], input[type=submit]')) {
+      const t = (b.innerText || b.value || '').trim().toLowerCase();
+      if (/^buscar|^pesquisar|^filtrar|^consultar/.test(t)) return b;
+    }
+    return null;
+  });
+  if (await buscarBtn.evaluate(b => !!b)) {
+    await Promise.all([
+      page.waitForLoadState('domcontentloaded', { timeout: 30_000 }).catch(() => {}),
+      buscarBtn.evaluate(b => b.click()),
+    ]);
+    await page.waitForTimeout(2500);
+  } else {
+    console.log('[spike] no Buscar button found, continuing');
+  }
+  await dismissPopups(page);
+
+  // Find export form on results page
+  const formInfo = await page.evaluate(({ route, baseRoute }) => {
+    for (const f of document.querySelectorAll('form')) {
+      if (!f.action) continue;
+      if (f.action.includes(`r=${route}/export-excel`) || f.action.includes(`r=${route}%2Fexport-excel`) || f.action.includes(`r=${baseRoute}/export-excel`) || f.action.includes(`r=${baseRoute}%2Fexport-excel`)) {
+        const inputs = Array.from(f.querySelectorAll('input,select,textarea')).map(i => ({ name: i.name, type: i.type, value: (i.value || '').slice(0, 80) }));
+        return { id: f.id, action: f.action, method: f.method, inputs };
+      }
+    }
+    return null;
+  }, { route, baseRoute });
+  if (!formInfo) {
+    console.error('[spike] export form not found after Buscar');
+    await page.waitForTimeout(60_000);
+    await browser.close();
+    return;
+  }
+  console.log('[spike] Found export form:', JSON.stringify(formInfo, null, 2));
+
+  console.log('[spike] Submitting export...');
+  const dl = page.waitForEvent('download', { timeout: 60_000 });
+  await page.evaluate(({ route, baseRoute }) => {
+    for (const f of document.querySelectorAll('form')) {
+      if (!f.action) continue;
+      if (f.action.includes(`r=${route}/export-excel`) || f.action.includes(`r=${route}%2Fexport-excel`) || f.action.includes(`r=${baseRoute}/export-excel`) || f.action.includes(`r=${baseRoute}%2Fexport-excel`)) {
+        f.submit();
+        return;
+      }
+    }
+  }, { route, baseRoute });
+  let download;
+  try { download = await dl; } catch (err) { console.error('[spike] no download:', err.message); await browser.close(); return; }
+  const filename = download.suggestedFilename();
+  const dest = resolve(SPIKE_OUT, `export-${baseRoute.replace(/[^a-z0-9]/gi,'_')}-${Date.now()}-${filename}`);
+  await download.saveAs(dest);
+  console.log(`[spike] Saved → ${dest}`);
+  await page.waitForTimeout(3000);
+  await browser.close();
+}
+
+const handlers = { 'inspect-login': inspectLogin, 'login': attemptLogin, 'gm': enterGm, 'inspect-page': inspectPage, 'export-excel': tryExportExcel, 'inspect-after-filter': inspectAfterFilter, 'export-after-search': exportAfterSearch, 'find-doc-links': findDocumentLinks };
 const fn = handlers[command];
 if (!fn) {
   console.error(`Unknown command: ${command}. Use: inspect-login | login [key] | gm [key] | inspect-page <url> [key]`);
