@@ -6,6 +6,7 @@ Session ID *.txt
 
 # Logs
 logs/*.log
+logs/crontab-backup-*.txt
 !logs/.gitkeep
 
 # Changelogs — tracked
@@ -117,16 +118,17 @@ sensor-shots/
 data/03008-blender-capture/
 data/03008-hyundai-cad/
 data/03008-hyundai-croqui/
-data/03010-dimensionamento/
-data/03010-ko-apresentacao/
-data/03010-mobilizacao/
-data/03010-stl-analysis/
+data/03010-*/
 data/clickup-export/
 data/clickup-roadmap-migration/
 data/email-attachments/
 data/hikrobot/
 data/sf-health/
 data/backlog-cache/
+data/drivers/
+data/vk-backups/
+data/vk-health-scan-*/
+data/vk01-forensics-*/
 
 # Generated spec render exports (markdown is the source of truth)
 docs/superpowers/**/img-audit/
@@ -148,6 +150,7 @@ reports/md/
 reports/sf-health/
 reports/system-health/health-*.md
 reports/vk-health/*/monthly-*.md
+reports/vk-hardening/
 
 # External reference clones (their own git repos)
 references/claude-code/

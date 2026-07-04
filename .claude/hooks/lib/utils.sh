@@ -12,10 +12,11 @@ DISPATCHES_LOG="${ORCHESTRATOR_HOME}/logs/dispatches.json"
 BACKLOG_DIR="${ORCHESTRATOR_HOME}/backlogs/products"
 CHANGELOG_DIR="${ORCHESTRATOR_HOME}/changelogs"
 
-# Check that jq is available; fail-open if missing
+# Check that jq is available; fail-open if missing, but warn visibly
+# (systemMessage surfaces in the session so the degradation is not silent).
 require_jq() {
   if ! command -v jq &>/dev/null; then
-    echo '{"decision":"allow"}' # fail-open for PreToolUse
+    echo '{"decision":"allow","systemMessage":"⚠️ HOOK DEGRADED: jq not found on PATH — hook validation was SKIPPED, not passed. Install jq or fix PATH."}'
     echo "WARN: jq not found, skipping hook logic" >&2
     exit 0
   fi
