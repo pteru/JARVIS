@@ -12,35 +12,43 @@ Load a Strokmatic PMO project into context. The argument is a 5-digit project co
 
 1. Look up the project code in `/home/teruel/JARVIS/workspaces/strokmatic/pmo/config/project-codes.json` to get the project name and language.
 
-2. Read the project context file:
+2. Read the OKF knowledge layer (preferred, if it exists):
+   ```
+   /home/teruel/JARVIS/workspaces/strokmatic/pmo/projects/{code}/knowledge/index.md
+   ```
+   Follow its links and read every listed page (small curated concept pages with
+   YAML frontmatter). If this index exists, SKIP step 3 — the legacy context file
+   is a pointer stub for migrated projects.
+
+3. Otherwise, read the legacy project context file:
    ```
    /home/teruel/JARVIS/workspaces/strokmatic/pmo/projects/{code}/.claude/context.md
    ```
 
-3. Read the email index (if it exists):
+4. Read the email index (if it exists):
    ```
    /home/teruel/JARVIS/workspaces/strokmatic/pmo/projects/{code}/emails/index.json
    ```
    Summarize: total emails, breakdown by category, date range, top senders.
 
-4. Read the technical report (if it exists):
+5. Read the technical report (if it exists):
    ```
    /home/teruel/JARVIS/workspaces/strokmatic/pmo/projects/{code}/technical_report.md
    ```
 
-5. Read the timeline (if it exists):
+6. Read the timeline (if it exists):
    ```
    /home/teruel/JARVIS/workspaces/strokmatic/pmo/projects/{code}/timeline.json
    ```
    Summarize: total events, date range, key milestones.
 
-6. List other key files in the project folder:
+7. List other key files in the project folder:
    ```
    /home/teruel/JARVIS/workspaces/strokmatic/pmo/projects/{code}/
    ```
    Show: meetings/, reports/md/, reference/, and any top-level files.
 
-7. If the project has a `drive` section in `config/project-codes.json`, load Google Drive context:
+8. If the project has a `drive` section in `config/project-codes.json`, load Google Drive context:
    a. Check if `drive-index.json` exists at `workspaces/strokmatic/pmo/projects/{code}/drive-index.json`
    b. If it exists, read it and summarize:
       - Number of linked Drive folders and their roles

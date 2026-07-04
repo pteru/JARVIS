@@ -457,6 +457,10 @@ ${techStack.map(t => `- ${t}`).join("\n")}
 ## Related Workspaces
 <!-- Other workspaces this one depends on or interacts with -->
 - (none yet -- add related workspaces here)
+
+## Knowledge
+
+- Root OKF catalog: ~/JARVIS/knowledge/index.md — search: python3 ~/JARVIS/scripts/okf/okf.py search <terms>
 `;
 
     await fs.mkdir(contextDir, { recursive: true });
