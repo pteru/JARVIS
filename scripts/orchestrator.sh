@@ -356,9 +356,7 @@ case "$MODE" in
     pr-inbox)         run_pr_inbox ;;
     vk-health)
         log_section "Running VK Health Check"
-        VK_SSH_PASSWORD="$(cat ~/.secrets/vk-ssh-password 2>/dev/null)" \
-        VK_RABBIT_PASSWORD="$(cat ~/.secrets/vk-rabbit-password 2>/dev/null)" \
-        "$SCRIPT_DIR/vk-health/run.sh" "${2:-03002}"
+        "$SCRIPT_DIR/health/health.sh" vk "${2:-03002}" run
         ;;
     manual)           run_manual "$@" ;;
     dispatch-issue)   dispatch_issue "$2" "$3" "$4" "$5" ;;

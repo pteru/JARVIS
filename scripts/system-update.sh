@@ -87,7 +87,7 @@ register "access-matrix"  "data" "Update GitHub access matrix"     "bash ${SCRIP
 # register "email-sync"     "data" "Sync emails via Gmail API"       "NODE_PATH=${ORCHESTRATOR_HOME}/mcp-servers/node_modules node ${SCRIPT_DIR}/email-sync.mjs"
 register "fetch-prs"      "data" "Fetch open pull requests"        "bash ${SCRIPT_DIR}/fetch-open-prs.sh"
 register "context-update" "data" "Update context.md & ws types"    "node ${SCRIPT_DIR}/populate-workspace-metadata.mjs"
-register "vk-health"      "data" "VK health snapshot (03002)"      "bash ${SCRIPT_DIR}/vk-health/run.sh 03002"
+register "vk-health"      "data" "VK health snapshot (03002)"      "bash ${SCRIPT_DIR}/health/health.sh vk 03002 run"
 register "system-health"  "data" "System health check (12 checks)" "bash ${SCRIPT_DIR}/system-health-check.sh --quiet"
 
 # --- libs group ---

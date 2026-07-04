@@ -84,10 +84,10 @@ if [[ "$VK_ANALYSIS_COUNT" -le 50 ]]; then
   pass "CHECK_03 REPORT_ACCUMULATION: ${VK_ANALYSIS_COUNT} VK analysis files (threshold: 50)"
 elif [[ "$VK_ANALYSIS_COUNT" -le 100 ]]; then
   warn "CHECK_03 REPORT_ACCUMULATION: ${VK_ANALYSIS_COUNT} VK analysis files accumulating" \
-    "Run cleanup: \`scripts/vk-health/cleanup-reports.sh\`"
+    "Run cleanup: \`scripts/health/health.sh vk 03002 cleanup-reports\`"
 else
   fail "CHECK_03 REPORT_ACCUMULATION: ${VK_ANALYSIS_COUNT} VK analysis files — cleanup overdue" \
-    "Run cleanup: \`scripts/vk-health/cleanup-reports.sh\`"
+    "Run cleanup: \`scripts/health/health.sh vk 03002 cleanup-reports\`"
 fi
 
 # ---------------------------------------------------------------------------
@@ -286,7 +286,7 @@ if $CONSOLIDATION_OK; then
   pass "CHECK_11 CONSOLIDATION_LAG: VK consolidation is current"
 else
   warn "CHECK_11 CONSOLIDATION_LAG: Analysis files older than 7 days not consolidated" \
-    "Run: \`scripts/vk-health/cleanup-reports.sh\`"
+    "Run: \`scripts/health/health.sh vk 03002 cleanup-reports\`"
 fi
 
 # ---------------------------------------------------------------------------

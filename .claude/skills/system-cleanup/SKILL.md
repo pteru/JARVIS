@@ -51,7 +51,7 @@ bash /home/teruel/JARVIS/scripts/system-health-check.sh --quiet
 Review the report. For any FAIL or WARN items, the report includes specific remediation commands. Common fixes:
 
 - **Stale paths**: `grep -rl 'claude-orchestrator' scripts/ mcp-servers/` then update
-- **Report accumulation**: `scripts/vk-health/cleanup-reports.sh`
+- **Report accumulation**: `scripts/health/health.sh vk 03002 cleanup-reports`
 - **Context stubs**: `node scripts/populate-workspace-metadata.mjs`
 - **Workspace types**: `node scripts/populate-workspace-metadata.mjs`
 - **CLAUDE.md bloat**: Extract to MEMORY.md and `docs/lessons-learned.md`
