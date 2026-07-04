@@ -81,3 +81,70 @@ def parse_frontmatter(text):
             return None, text
     body = "\n".join(lines[end + 1:])
     return meta, body
+
+
+Bundle = namedtuple("Bundle", "name path remote entry scope description")
+
+
+def orchestrator_home():
+    return Path(os.environ.get("ORCHESTRATOR_HOME", str(Path.home() / "JARVIS")))
+
+
+def default_catalog_path():
+    return orchestrator_home() / "knowledge" / "index.md"
+
+
+def load_catalog(catalog_path=None):
+    catalog_path = Path(catalog_path or default_catalog_path())
+    text = catalog_path.read_text(encoding="utf-8")
+    bundles = []
+    for line in text.split("\n"):
+        line = line.strip()
+        if not line.startswith("|"):
+            continue
+        cells = [c.strip() for c in line.strip("|").split("|")]
+        if len(cells) != 6 or cells[0] in ("Bundle", "") or set(cells[0]) <= {"-"}:
+            continue
+        name, path, remote, entry, scope, description = cells
+        bundles.append(Bundle(
+            name=name,
+            path=Path(os.path.expanduser(path)).resolve(),
+            remote=remote,
+            entry=entry,
+            scope=[g.strip() for g in scope.split(",") if g.strip()],
+            description=description,
+        ))
+    return bundles
+
+
+def iter_pages(bundle):
+    """Yield (abs_path, rel_posix) for non-reserved .md files in lint scope."""
+    for p in sorted(bundle.path.rglob("*.md")):
+        if any(part in SKIP_DIRS for part in p.parts):
+            continue
+        if p.name in RESERVED:
+            continue
+        rel = p.relative_to(bundle.path).as_posix()
+        if any(fnmatch(rel, pat) for pat in bundle.scope):
+            yield p, rel
+
+
+def cmd_catalog(args):
+    for b in load_catalog(args.catalog):
+        print(f"{b.name:18s} {str(b.path):60s} {b.entry:14s} {b.description}")
+    return 0
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(prog="okf", description=__doc__)
+    parser.add_argument("--catalog", default=None, help="path to root catalog index.md")
+    sub = parser.add_subparsers(dest="command", required=True)
+    sub.add_parser("catalog", help="list bundles from the root catalog")
+    args = parser.parse_args(argv)
+    if args.command == "catalog":
+        return cmd_catalog(args)
+    return 2
+
+
+if __name__ == "__main__":
+    sys.exit(main())

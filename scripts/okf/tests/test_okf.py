@@ -53,3 +53,46 @@ def test_unterminated_frontmatter_returns_none():
 def test_reserved_names():
     assert {"index.md", "log.md", "README.md", "CHANGELOG.md",
             "MEMORY.md", "INDEX.md"} <= RESERVED
+
+
+CATALOG_MD = """---
+type: Reference
+title: Test Catalog
+description: Catalog fixture.
+okf_version: "0.1"
+---
+
+# Catalog
+
+| Bundle | Local path | Remote | Entry point | Lint scope | Description |
+|--------|-----------|--------|-------------|------------|-------------|
+| alpha | {root}/alpha | https://github.com/x/alpha | index.md | ** | Alpha bundle |
+| beta | {root}/beta | (local only) | MEMORY.md | index.md,projects/*/knowledge/** | Beta bundle |
+"""
+
+
+def make_catalog(tmp_path):
+    (tmp_path / "alpha").mkdir()
+    (tmp_path / "beta").mkdir()
+    catalog = tmp_path / "knowledge" / "index.md"
+    catalog.parent.mkdir()
+    catalog.write_text(CATALOG_MD.format(root=tmp_path), encoding="utf-8")
+    return catalog
+
+
+def test_load_catalog(tmp_path):
+    from okf import load_catalog
+    bundles = load_catalog(make_catalog(tmp_path))
+    assert [b.name for b in bundles] == ["alpha", "beta"]
+    assert bundles[0].path == tmp_path / "alpha"
+    assert bundles[0].scope == ["**"]
+    assert bundles[1].scope == ["index.md", "projects/*/knowledge/**"]
+    assert bundles[1].remote == "(local only)"
+    assert bundles[1].entry == "MEMORY.md"
+
+
+def test_cmd_catalog_prints_table(tmp_path, capsys):
+    from okf import main
+    main(["--catalog", str(make_catalog(tmp_path)), "catalog"])
+    out = capsys.readouterr().out
+    assert "alpha" in out and "beta" in out and "Alpha bundle" in out
