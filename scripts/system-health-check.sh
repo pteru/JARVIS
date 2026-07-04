@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # JARVIS — System Health Check
-# Runs 12 automated checks and produces a scored report.
+# Runs 13 automated checks and produces a scored report.
 # Usage: system-health-check.sh [--quiet]
 #   --quiet: only output the report path (for cron usage)
 set -euo pipefail
@@ -18,7 +18,7 @@ NOW=$(date '+%Y-%m-%d')
 REPORT_FILE="${REPORT_DIR}/health-${NOW}.md"
 
 # Scoring
-TOTAL_CHECKS=12
+TOTAL_CHECKS=13
 PASSED=0
 WARNINGS=0
 FAILURES=0
@@ -297,12 +297,13 @@ INVALID_HOOKS=""
 if [[ -f "$SETTINGS_FILE" ]]; then
   MATCHERS=$(jq -r '[.hooks // {} | to_entries[] | .value[] | .matcher // empty] | unique | .[]' "$SETTINGS_FILE" 2>/dev/null)
   for matcher in $MATCHERS; do
-    SERVER_DIR=$(echo "$matcher" | sed -n 's/^mcp__\(.*\)__[^_]*$/\1/p' | tr '_' '-')
-    if [[ -n "$SERVER_DIR" ]]; then
-      MCP_PATH="${ORCHESTRATOR_HOME}/mcp-servers/${SERVER_DIR}/index.js"
-      if [[ ! -f "$MCP_PATH" ]]; then
-        INVALID_HOOKS="${INVALID_HOOKS} ${matcher}"
-      fi
+    # mcp__<server>__<tool>: server = segment before the FIRST __ after the prefix
+    [[ "$matcher" == mcp__*__* ]] || continue
+    SERVER_DIR="${matcher#mcp__}"
+    SERVER_DIR="${SERVER_DIR%%__*}"
+    # Entrypoint layout varies (index.js, dist/src/index.js) — check the dir
+    if [[ ! -d "${ORCHESTRATOR_HOME}/mcp-servers/${SERVER_DIR}" ]]; then
+      INVALID_HOOKS="${INVALID_HOOKS} ${matcher}"
     fi
   done
 fi
@@ -312,6 +313,24 @@ if [[ -z "$INVALID_HOOKS" ]]; then
 else
   fail "CHECK_12 HOOK_MATCHERS: Invalid matchers:${INVALID_HOOKS}" \
     "Fix hook matchers in .claude/settings.local.json"
+fi
+
+# ---------------------------------------------------------------------------
+# CHECK 13: Cron template drift — live crontab vs config/cron/orchestrator.cron
+# ---------------------------------------------------------------------------
+CRON_TEMPLATE="${ORCHESTRATOR_HOME}/config/cron/orchestrator.cron"
+normalize_cron() { grep -vE '^\s*#|^\s*$' | sed 's/[[:space:]]\+/ /g'; }
+if [[ ! -f "$CRON_TEMPLATE" ]]; then
+  fail "CHECK_13 CRON_DRIFT: template ${CRON_TEMPLATE} missing" \
+    "Regenerate: \`crontab -l > config/cron/orchestrator.cron\` (keep header comment)"
+else
+  DRIFT=$(diff <(crontab -l 2>/dev/null | normalize_cron) <(normalize_cron < "$CRON_TEMPLATE") | grep -c '^[<>]' || true)
+  if [[ "$DRIFT" -eq 0 ]]; then
+    pass "CHECK_13 CRON_DRIFT: live crontab matches committed template"
+  else
+    warn "CHECK_13 CRON_DRIFT: ${DRIFT} line(s) differ between live crontab and template" \
+      "Review \`diff <(crontab -l) config/cron/orchestrator.cron\`; regenerate the template if the live schedule is correct"
+  fi
 fi
 
 # ---------------------------------------------------------------------------
