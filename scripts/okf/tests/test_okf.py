@@ -221,3 +221,25 @@ def test_regenerate_index_creates_missing(tmp_path):
     meta, _ = __import__("okf").parse_frontmatter(text)
     assert meta["type"] == "Reference"
     assert "- [X](x.md) — Uma decisão." in text
+
+
+def test_regenerate_index_preserves_sections_between_entries(tmp_path):
+    """Headings/prose between and after entries must survive regeneration."""
+    from okf import regenerate_index
+    d = tmp_path / "sec"
+    d.mkdir()
+    (d / "g1.md").write_text("---\ntype: Reference\ntitle: G1\n---\nx\n", encoding="utf-8")
+    (d / "r1.md").write_text("---\ntype: Reference\ntitle: R1\n---\nx\n", encoding="utf-8")
+    (d / "new.md").write_text("---\ntype: Reference\ntitle: New\n"
+                              "description: Nova.\n---\nx\n", encoding="utf-8")
+    (d / "index.md").write_text(
+        "---\ntype: Reference\ntitle: S\n---\n\n# S\n\n## Guides\n\n- [G1](g1.md)\n\n"
+        "## References\n\n- [R1](r1.md)\n\nSee also: trailing note.\n",
+        encoding="utf-8")
+    result = regenerate_index(d)
+    text = (d / "index.md").read_text(encoding="utf-8")
+    assert "## Guides" in text and "## References" in text
+    assert "See also: trailing note." in text
+    assert "- [New](new.md) — Nova." in text
+    assert result["added"] == ["new.md"]
+    assert text.index("(r1.md)") < text.index("(new.md)")  # appended after last entry

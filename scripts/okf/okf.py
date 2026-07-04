@@ -199,7 +199,11 @@ def _entry_targets(dir_path):
             continue
         if child.is_file() and child.suffix == ".md" and child.name not in RESERVED:
             targets.append(child.name)
-        elif child.is_dir() and any(child.rglob("*.md")):
+        elif child.is_dir() and any(
+            not any(part in SKIP_DIRS or part.startswith(".")
+                    for part in f.relative_to(child).parts)
+            for f in child.rglob("*.md")
+        ):
             targets.append(f"{child.name}/index.md")
     return targets
 
@@ -216,40 +220,61 @@ def _title_desc(dir_path, target):
 
 
 def regenerate_index(dir_path):
+    """Regenerate index.md for one directory.
+
+    All non-entry lines (headings, prose, blanks) are preserved in place.
+    Entry lines whose target still exists are kept byte-for-byte; dead or
+    duplicate entries are dropped. New targets are appended right after the
+    last kept entry (or at end of file when the index had no entries).
+    """
     dir_path = Path(dir_path)
     index = dir_path / "index.md"
-    existing = {}   # target -> original line
-    head = None
+    targets = _entry_targets(dir_path)
+    added, kept, removed = [], [], []
+
     if index.exists():
-        lines = index.read_text(encoding="utf-8").split("\n")
-        head_lines = []
-        for line in lines:
+        out_lines = []
+        seen = set()
+        last_entry_i = -1
+        for line in index.read_text(encoding="utf-8").split("\n"):
             m = ENTRY_RE.match(line.strip())
             if m:
-                existing[m.group(1)] = line
+                target = m.group(1)
+                if target in targets and target not in seen:
+                    seen.add(target)
+                    kept.append(target)
+                    out_lines.append(line)
+                    last_entry_i = len(out_lines) - 1
+                else:
+                    removed.append(target)
             else:
-                if not existing:      # still above the first entry
-                    head_lines.append(line)
-        head = "\n".join(head_lines).rstrip() + "\n\n"
-    if head is None:
-        name = dir_path.name
-        head = (f"---\ntype: Reference\ntitle: {name}\n"
-                f"description: Índice de {name}.\ntimestamp: {date.today()}\n---\n\n"
-                f"# {name}\n\n")
-
-    targets = _entry_targets(dir_path)
-    added, kept, entry_lines = [], [], []
-    for target in targets:
-        if target in existing:
-            kept.append(target)
-            entry_lines.append(existing[target])
-        else:
+                out_lines.append(line)
+        new_lines = []
+        for target in targets:
+            if target in seen:
+                continue
+            added.append(target)
+            title, desc = _title_desc(dir_path, target)
+            suffix = f" — {desc}" if desc else ""
+            new_lines.append(f"- [{title}]({target}){suffix}")
+        insert_at = last_entry_i + 1 if last_entry_i >= 0 else len(out_lines)
+        out_lines[insert_at:insert_at] = new_lines
+        text = "\n".join(out_lines)
+        if not text.endswith("\n"):
+            text += "\n"
+        index.write_text(text, encoding="utf-8")
+    else:
+        head = (f"---\ntype: Reference\ntitle: {dir_path.name}\n"
+                f"description: Índice de {dir_path.name}.\ntimestamp: {date.today()}\n---\n\n"
+                f"# {dir_path.name}\n\n")
+        entry_lines = []
+        for target in targets:
             added.append(target)
             title, desc = _title_desc(dir_path, target)
             suffix = f" — {desc}" if desc else ""
             entry_lines.append(f"- [{title}]({target}){suffix}")
-    removed = [t for t in existing if t not in targets]
-    index.write_text(head + "\n".join(entry_lines) + "\n", encoding="utf-8")
+        index.write_text(head + "\n".join(entry_lines) + "\n", encoding="utf-8")
+
     return {"added": added, "kept": kept, "removed": removed}
 
 
