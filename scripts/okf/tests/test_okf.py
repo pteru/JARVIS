@@ -181,3 +181,43 @@ def test_lint_scope_respected(tmp_path):
     r = lint_bundle(beta)
     assert r["total"] == 1          # raw-notes.md is outside lint scope
     assert r["conformant"] == 1
+
+
+def test_regenerate_index_preserves_descriptions(tmp_path):
+    from okf import regenerate_index
+    d = tmp_path / "kb"
+    d.mkdir()
+    (d / "a.md").write_text("---\ntype: Reference\ntitle: Page A\n"
+                            "description: Auto desc A.\n---\nbody\n", encoding="utf-8")
+    (d / "b.md").write_text("---\ntype: Reference\ntitle: Page B\n---\nbody\n",
+                            encoding="utf-8")
+    (d / "sub").mkdir()
+    (d / "sub" / "c.md").write_text("---\ntype: Reference\n---\nbody\n",
+                                    encoding="utf-8")
+    (d / "index.md").write_text(
+        "---\ntype: Reference\ntitle: KB\n---\n\n# KB\n\nIntro prose kept.\n\n"
+        "- [Page A](a.md) — HAND-WRITTEN description, must survive\n"
+        "- [Old](old.md) — target gone, must be removed\n",
+        encoding="utf-8")
+    result = regenerate_index(d)
+    text = (d / "index.md").read_text(encoding="utf-8")
+    assert "HAND-WRITTEN description, must survive" in text
+    assert "old.md" not in text
+    assert "- [Page B](b.md)" in text
+    assert "(sub/index.md)" in text          # subdir entry
+    assert "Intro prose kept." in text
+    assert result["removed"] == ["old.md"]
+    assert "b.md" in result["added"] and "sub/index.md" in result["added"]
+
+
+def test_regenerate_index_creates_missing(tmp_path):
+    from okf import regenerate_index
+    d = tmp_path / "fresh"
+    d.mkdir()
+    (d / "x.md").write_text("---\ntype: Decision\ntitle: X\n"
+                            "description: Uma decisão.\n---\nbody\n", encoding="utf-8")
+    regenerate_index(d)
+    text = (d / "index.md").read_text(encoding="utf-8")
+    meta, _ = __import__("okf").parse_frontmatter(text)
+    assert meta["type"] == "Reference"
+    assert "- [X](x.md) — Uma decisão." in text

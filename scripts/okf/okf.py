@@ -141,6 +141,7 @@ def cmd_catalog(args):
 
 
 LINK_RE = re.compile(r"\[[^\]]*\]\(([^)#\s]+\.md)\)")
+ENTRY_RE = re.compile(r"^- \[[^\]]*\]\(([^)]+)\)")
 
 
 def _resolve_link(target, file_path, bundle):
@@ -190,6 +191,68 @@ def lint_bundle(bundle):
             "problems": problems, "warnings": warnings}
 
 
+def _entry_targets(dir_path):
+    """Targets that SHOULD be listed: non-reserved .md files + subdirs with .md."""
+    targets = []
+    for child in sorted(dir_path.iterdir()):
+        if child.name.startswith(".") or child.name in SKIP_DIRS:
+            continue
+        if child.is_file() and child.suffix == ".md" and child.name not in RESERVED:
+            targets.append(child.name)
+        elif child.is_dir() and any(child.rglob("*.md")):
+            targets.append(f"{child.name}/index.md")
+    return targets
+
+
+def _title_desc(dir_path, target):
+    path = dir_path / target
+    if not path.exists():
+        return Path(target).parent.name or Path(target).stem, ""
+    meta, _ = parse_frontmatter(path.read_text(encoding="utf-8"))
+    meta = meta or {}
+    fallback = Path(target).parent.name if target.endswith("/index.md") \
+        else Path(target).stem
+    return meta.get("title") or fallback, meta.get("description") or ""
+
+
+def regenerate_index(dir_path):
+    dir_path = Path(dir_path)
+    index = dir_path / "index.md"
+    existing = {}   # target -> original line
+    head = None
+    if index.exists():
+        lines = index.read_text(encoding="utf-8").split("\n")
+        head_lines = []
+        for line in lines:
+            m = ENTRY_RE.match(line.strip())
+            if m:
+                existing[m.group(1)] = line
+            else:
+                if not existing:      # still above the first entry
+                    head_lines.append(line)
+        head = "\n".join(head_lines).rstrip() + "\n\n"
+    if head is None:
+        name = dir_path.name
+        head = (f"---\ntype: Reference\ntitle: {name}\n"
+                f"description: Índice de {name}.\ntimestamp: {date.today()}\n---\n\n"
+                f"# {name}\n\n")
+
+    targets = _entry_targets(dir_path)
+    added, kept, entry_lines = [], [], []
+    for target in targets:
+        if target in existing:
+            kept.append(target)
+            entry_lines.append(existing[target])
+        else:
+            added.append(target)
+            title, desc = _title_desc(dir_path, target)
+            suffix = f" — {desc}" if desc else ""
+            entry_lines.append(f"- [{title}]({target}){suffix}")
+    removed = [t for t in existing if t not in targets]
+    index.write_text(head + "\n".join(entry_lines) + "\n", encoding="utf-8")
+    return {"added": added, "kept": kept, "removed": removed}
+
+
 def cmd_lint(args):
     bundles = load_catalog(args.catalog)
     if args.bundle:
@@ -216,6 +279,12 @@ def cmd_lint(args):
     return 1 if (args.strict and has_issues) else 0
 
 
+def cmd_index(args):
+    r = regenerate_index(Path(args.directory))
+    print(f"index.md: +{len(r['added'])} kept {len(r['kept'])} -{len(r['removed'])}")
+    return 0
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(prog="okf", description=__doc__)
     parser.add_argument("--catalog", default=None, help="path to root catalog index.md")
@@ -225,11 +294,15 @@ def main(argv=None):
     p_lint.add_argument("bundle", nargs="?", default=None)
     p_lint.add_argument("--pct-only", action="store_true")
     p_lint.add_argument("--strict", action="store_true")
+    p_index = sub.add_parser("index", help="regenerate a directory index.md")
+    p_index.add_argument("directory")
     args = parser.parse_args(argv)
     if args.command == "catalog":
         return cmd_catalog(args)
     if args.command == "lint":
         return cmd_lint(args)
+    if args.command == "index":
+        return cmd_index(args)
     return 2
 
 
