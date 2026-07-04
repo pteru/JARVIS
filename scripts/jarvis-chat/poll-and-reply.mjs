@@ -3,6 +3,7 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
 
 import { listRecentMessages, sendReply } from '../helpers/chat-client.mjs';
+import { pollSpaces } from '../lib/chat-bot/poll-harness.mjs';
 import { loadRegistry, lookupSpace } from './lib/space-registry.mjs';
 import { appendMessage } from './lib/transcript-store.mjs';
 import { loadThreads, saveThreads, getThread, upsertThread, pruneExpired } from './lib/thread-tracker.mjs';
@@ -48,27 +49,25 @@ async function main() {
 
   pruneExpired(threads, nowIso, config);
 
-  const mappedSpaceIds = Object.keys(registry.spaces || {});
-  let processed = 0;
+  // Bot replies posted via the impersonating MCP look HUMAN — the only
+  // reliable self-detection signal is the message id recorded at send time.
+  const sentIdsBySpace = new Map();
+  for (const [spaceId, s] of Object.entries(state.spaces_state || {})) {
+    sentIdsBySpace.set(spaceId, new Set(s.sent_ids || []));
+  }
+  const sentIdsFor = spaceId => {
+    if (!sentIdsBySpace.has(spaceId)) sentIdsBySpace.set(spaceId, new Set());
+    return sentIdsBySpace.get(spaceId);
+  };
 
-  for (const spaceId of mappedSpaceIds) {
-    const mapping = lookupSpace(registry, spaceId);
-    const lastTs = state.spaces_state?.[spaceId]?.last_message_ts || null;
-
-    let messages;
-    try {
-      messages = await listRecentMessages(spaceId, lastTs);
-    } catch (err) {
-      console.error(`[jarvis-chat] listRecentMessages failed for ${spaceId}: ${err.message}`);
-      continue;
-    }
-
-    const sentIds = new Set(state.spaces_state?.[spaceId]?.sent_ids || []);
-    for (const raw of messages) {
-      // The google-workspace MCP impersonates the operator user, so bot replies
-      // appear with sender.type === 'HUMAN' and the operator's user id. The only
-      // reliable bot-detection signal is the message id we recorded when sending.
-      const isOurOwnReply = sentIds.has(raw.name);
+  const processed = await pollSpaces({
+    tag: 'jarvis-chat',
+    spaceIds: Object.keys(registry.spaces || {}),
+    state,
+    listRecentMessages,
+    onMessage: async (raw, spaceId) => {
+      const mapping = lookupSpace(registry, spaceId);
+      const sentIds = sentIdsFor(spaceId);
       const message = {
         ts: raw.createTime,
         space_id: spaceId,
@@ -76,7 +75,7 @@ async function main() {
         message_id: raw.name,
         sender: { id: raw.sender?.name, name: raw.sender?.displayName || raw.sender?.name },
         text: raw.text || '',
-        is_bot: raw.sender?.type === 'BOT' || raw.sender?.name === config.bot_user_id || isOurOwnReply,
+        is_bot: raw.sender?.type === 'BOT' || raw.sender?.name === config.bot_user_id || sentIds.has(raw.name),
         annotations: raw.annotations || [],
       };
 
@@ -97,7 +96,7 @@ async function main() {
         if (decision.newThreadState && decision.newThreadState.status === 'expired') {
           delete threads[message.thread_id];
         }
-        continue;
+        return false;
       }
 
       // action === 'reply'
@@ -149,36 +148,24 @@ async function main() {
           context_sources: projectContext.sources.map(s => s.label),
         });
 
-        processed += 1;
+        return true;
       } catch (err) {
         console.error(`[jarvis-chat] reply pipeline failed: ${err.message}`);
         try {
           await sendReply(spaceId, MESSAGES.errorGeneric, message.thread_id);
         } catch { /* swallow */ }
+        return false;
       }
-    }
-
-    if (messages.length > 0) {
-      const latest = messages[messages.length - 1];
-      if (!state.spaces_state) state.spaces_state = {};
+    },
+    onSpaceDone: (spaceId, baseEntry, messages) => {
+      const sentIds = sentIdsBySpace.get(spaceId);
+      if (messages.length === 0 && (!sentIds || sentIds.size === 0)) return null;
       // Keep only the most recent 100 sent ids to bound state growth.
-      const trimmedSent = [...sentIds].slice(-100);
-      state.spaces_state[spaceId] = {
-        last_message_ts: latest.createTime,
-        sent_ids: trimmedSent,
-      };
-    } else if (sentIds.size > 0) {
-      if (!state.spaces_state) state.spaces_state = {};
-      const existing = state.spaces_state[spaceId] || {};
-      state.spaces_state[spaceId] = {
-        ...existing,
-        sent_ids: [...sentIds].slice(-100),
-      };
-    }
-  }
+      return { ...baseEntry, sent_ids: [...(sentIds || [])].slice(-100) };
+    },
+  });
 
   saveThreads(THREADS_PATH, threads);
-  state.last_poll = nowIso;
   saveJson(STATE_PATH, state);
   console.log(`[jarvis-chat] poll done; processed ${processed} replies`);
 }

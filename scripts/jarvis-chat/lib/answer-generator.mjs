@@ -1,4 +1,4 @@
-import { spawn } from 'child_process';
+import { runClaudePrint } from '../../lib/chat-bot/claude-print.mjs';
 
 const SYSTEM_PROMPT = `Você é o JARVIS, assistente do Pedro e do time Strokmatic.
 Responda SEMPRE em português brasileiro, mesmo que a pergunta venha em outro idioma.
@@ -37,23 +37,7 @@ function buildUserPrompt({ question, projectContext, facts, projectCode, spaceLa
 export async function generateAnswer({ question, projectContext, facts, projectCode, spaceLabel, model }) {
   const userPrompt = buildUserPrompt({ question, projectContext, facts, projectCode, spaceLabel });
   const fullPrompt = `${SYSTEM_PROMPT}\n\n${userPrompt}`;
-  return new Promise((resolve, reject) => {
-    const proc = spawn('claude', [
-      '--print',
-      '--model', model || 'claude-sonnet-4-6',
-      '--max-turns', '1',
-    ], { env: { ...process.env }, stdio: ['pipe', 'pipe', 'pipe'] });
-    let stdout = '';
-    let stderr = '';
-    proc.stdout.on('data', d => { stdout += d.toString(); });
-    proc.stderr.on('data', d => { stderr += d.toString(); });
-    proc.on('close', code => {
-      if (code !== 0) reject(new Error(`claude --print exited ${code}: ${stderr}`));
-      else resolve(stdout.trim());
-    });
-    proc.stdin.write(fullPrompt);
-    proc.stdin.end();
-  });
+  return runClaudePrint(fullPrompt, { model: model || 'claude-sonnet-4-6' });
 }
 
 export { buildUserPrompt };

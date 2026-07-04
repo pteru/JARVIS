@@ -4,6 +4,7 @@ import { join } from 'path';
 import { searchKB } from './lib/kb-search.mjs';
 import { generateAnswer } from './lib/answer-generator.mjs';
 import { logQA } from './lib/qa-logger.mjs';
+import { pollSpaces } from '../lib/chat-bot/poll-harness.mjs';
 import { listRecentMessages, sendReply, listSpaces } from '../helpers/chat-client.mjs';
 
 const ORCHESTRATOR_HOME = process.env.ORCHESTRATOR_HOME || `${process.env.HOME}/JARVIS`;
@@ -30,20 +31,19 @@ async function main() {
     spaces = allSpaces.map(s => s.name);
   }
 
-  let processed = 0;
-
-  for (const spaceName of spaces) {
-    const lastTimestamp = state.spaces_state?.[spaceName]?.last_message_time || null;
-    const messages = await listRecentMessages(spaceName, lastTimestamp);
-
-    for (const msg of messages) {
+  const processed = await pollSpaces({
+    tag: 'kb-chat',
+    spaceIds: spaces,
+    state,
+    listRecentMessages,
+    onMessage: async (msg, spaceName) => {
       // Check if message mentions JARVIS
       const text = msg.text || '';
-      if (!text.toLowerCase().includes(config.mention_trigger.toLowerCase())) continue;
+      if (!text.toLowerCase().includes(config.mention_trigger.toLowerCase())) return false;
 
       // Extract the question (remove the @JARVIS mention)
       const question = text.replace(/@?jarvis/gi, '').trim();
-      if (!question) continue;
+      if (!question) return false;
 
       console.log(`[kb-chat] Question from ${msg.sender?.displayName || 'unknown'}: ${question.substring(0, 80)}`);
 
@@ -82,21 +82,11 @@ async function main() {
         isGap
       });
 
-      processed++;
-    }
+      return true;
+    },
+  });
 
-    // Update state with latest message timestamp
-    if (messages.length > 0) {
-      const latestTime = messages[messages.length - 1].createTime;
-      if (!state.spaces_state) state.spaces_state = {};
-      state.spaces_state[spaceName] = { last_message_time: latestTime };
-    }
-  }
-
-  // Save state
-  state.last_poll = new Date().toISOString();
   writeFileSync(STATE_PATH, JSON.stringify(state, null, 2));
-
   console.log(`[kb-chat] Done. Processed ${processed} questions.`);
 }
 
