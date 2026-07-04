@@ -1,0 +1,29 @@
+{
+  "product": "sf",
+  "deployment": "lab",
+  "name": "SpotFusion Lab (192.168.15.84)",
+  "data_root": "data/sf-health",
+  "reports_root": "reports/sf-health",
+  "assembler": "scripts/health/assemblers/sf.py",
+  "claude_model": "claude-opus-4-6",
+  "rabbitmq_user": "guest",
+  "nodes": {
+    "lab01": {"host": "192.168.15.84", "user": "strokmatic", "ssh_port": 22}
+  },
+  "connectivity": {
+    "label": "SpotFusion lab server",
+    "nodes": ["192.168.15.84"]
+  },
+  "secrets": {
+    "ssh": "~/.secrets/sf-ssh-password",
+    "rabbit": "~/.secrets/sf-rabbit-password"
+  },
+  "checks": [
+    {"field": "node.lab01.disk.root.pct", "direction": "high", "warn": 75, "crit": 90, "label": "lab root disk"},
+    {"field": "node.lab01.ram.pct", "direction": "high", "warn": 85, "crit": 95, "label": "lab RAM"}
+  ],
+  "throttle_minutes": 240,
+  "alert_cooldown_minutes": 60,
+  "heartbeat_interval_minutes": 60,
+  "enabled": true
+}
