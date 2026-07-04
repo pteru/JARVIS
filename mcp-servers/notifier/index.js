@@ -7,10 +7,7 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import fs from "fs/promises";
 import path from "path";
-
-const ORCHESTRATOR_HOME =
-  process.env.ORCHESTRATOR_HOME ||
-  path.join(process.env.HOME, "JARVIS");
+import { ORCHESTRATOR_HOME } from "../lib/config-loader.js";
 
 class NotifierServer {
   constructor() {
@@ -480,16 +477,25 @@ class NotifierServer {
       return { text: null, error: "Voice transcription disabled" };
     }
 
-    const apiKeyEnv = inbound.voice_transcription.api_key_env || "GROQ_API_KEY";
-    const apiKey = process.env[apiKeyEnv];
-    if (!apiKey) {
-      return { text: null, error: `Missing env var ${apiKeyEnv}` };
+    // Resolve API key: try api_key_file first, then env var
+    let apiKey;
+    const keyFile = inbound.voice_transcription.api_key_file;
+    if (keyFile) {
+      try {
+        const resolved = keyFile.startsWith("~") ? keyFile.replace("~", process.env.HOME) : keyFile;
+        apiKey = (await fs.readFile(resolved, "utf8")).trim();
+      } catch (e) {
+        return { text: null, error: `Cannot read api_key_file ${keyFile}: ${e.message}` };
+      }
+    } else {
+      const apiKeyEnv = inbound.voice_transcription.api_key_env || "GROQ_API_KEY";
+      apiKey = process.env[apiKeyEnv];
+      if (!apiKey) {
+        return { text: null, error: `Missing env var ${apiKeyEnv}` };
+      }
     }
 
     const provider = inbound.voice_transcription.provider || "groq";
-    const baseUrl = provider === "openai"
-      ? "https://api.openai.com/v1"
-      : "https://api.groq.com/openai/v1";
 
     try {
       // Get file path from Telegram
@@ -505,7 +511,42 @@ class NotifierServer {
       const audioRes = await fetch(downloadUrl, { signal: AbortSignal.timeout(30000) });
       const audioBuffer = Buffer.from(await audioRes.arrayBuffer());
 
-      // Transcribe via Whisper API
+      if (provider === "deepgram") {
+        // Deepgram pre-recorded transcription REST API
+        const dgModel = inbound.voice_transcription.model || "nova-2";
+        const dgLang = inbound.voice_transcription.language || "multi";
+        const params = new URLSearchParams({
+          model: dgModel,
+          language: dgLang,
+          smart_format: "true",
+          detect_language: "true",
+        });
+        // Detect mime type from file extension, fallback to auto-detect
+        const ext = (fileData.result.file_path || "").split(".").pop()?.toLowerCase();
+        const mimeMap = { ogg: "audio/ogg", oga: "audio/ogg", opus: "audio/opus", mp3: "audio/mpeg", m4a: "audio/mp4", wav: "audio/wav", mp4: "audio/mp4" };
+        const contentType = mimeMap[ext] || "application/octet-stream";
+        const dgRes = await fetch(`https://api.deepgram.com/v1/listen?${params}`, {
+          method: "POST",
+          headers: {
+            Authorization: `Token ${apiKey}`,
+            "Content-Type": contentType,
+          },
+          body: audioBuffer,
+          signal: AbortSignal.timeout(60000),
+        });
+        const dgData = await dgRes.json();
+        const transcript = dgData.results?.channels?.[0]?.alternatives?.[0]?.transcript;
+        const dgError = dgData.err_msg || dgData.error || (dgData.err_code ? `Deepgram error ${dgData.err_code}` : null);
+        if (!transcript && !dgError) {
+          return { text: null, error: `Empty transcript. File: ${fileData.result.file_path} (${contentType}, ${audioBuffer.length} bytes)` };
+        }
+        return { text: transcript || null, error: dgError };
+      }
+
+      // Groq / OpenAI Whisper-compatible API
+      const baseUrl = provider === "openai"
+        ? "https://api.openai.com/v1"
+        : "https://api.groq.com/openai/v1";
       const boundary = `----FormBoundary${Date.now()}`;
       const filename = fileData.result.file_path.split("/").pop() || "voice.ogg";
       const whisperModel = provider === "openai" ? "whisper-1" : "whisper-large-v3";
@@ -600,10 +641,11 @@ class NotifierServer {
         let text = msg.text || "";
         let originalType = "text";
 
-        // Voice message handling
-        if (msg.voice) {
-          originalType = "voice";
-          const result = await this.transcribeVoice(msg.voice.file_id, inboundRoute.bot_token, config);
+        // Voice/audio message handling (voice = recorded in Telegram, audio = forwarded files)
+        const audioObj = msg.voice || msg.audio;
+        if (audioObj) {
+          originalType = msg.voice ? "voice" : "audio";
+          const result = await this.transcribeVoice(audioObj.file_id, inboundRoute.bot_token, config);
           if (result.text) {
             text = result.text;
           } else {

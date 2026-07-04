@@ -6,8 +6,12 @@
  */
 import { google } from "googleapis";
 import fs from "fs/promises";
+import path from "path";
 
-const CREDS = "/home/teruel/JARVIS/config/credentials/gcp-service-account.json";
+const CREDS = path.join(
+  process.env.ORCHESTRATOR_HOME || path.join(process.env.HOME, "JARVIS"),
+  "config/credentials/gcp-service-account.json",
+);
 const OUT = "/tmp/sf-audit";
 
 const DRIVES = [

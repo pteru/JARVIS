@@ -10,8 +10,9 @@ import { promisify } from "util";
 import fs from "fs/promises";
 import path from "path";
 
+import { ORCHESTRATOR_HOME } from "../lib/config-loader.js";
+
 const execAsync = promisify(exec);
-const ORCHESTRATOR_HOME = process.env.ORCHESTRATOR_HOME;
 
 class WorkspaceAnalyzerServer {
   constructor() {
@@ -456,6 +457,10 @@ ${techStack.map(t => `- ${t}`).join("\n")}
 ## Related Workspaces
 <!-- Other workspaces this one depends on or interacts with -->
 - (none yet -- add related workspaces here)
+
+## Knowledge
+
+- Root OKF catalog: ~/JARVIS/knowledge/index.md — search: python3 ~/JARVIS/scripts/okf/okf.py search <terms>
 `;
 
     await fs.mkdir(contextDir, { recursive: true });

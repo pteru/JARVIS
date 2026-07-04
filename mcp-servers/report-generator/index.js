@@ -7,8 +7,7 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import fs from "fs/promises";
 import path from "path";
-
-const ORCHESTRATOR_HOME = process.env.ORCHESTRATOR_HOME;
+import { ORCHESTRATOR_HOME } from "../lib/config-loader.js";
 
 class ReportGeneratorServer {
   constructor() {

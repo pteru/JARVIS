@@ -12,10 +12,12 @@ If the argument is "latest" or empty, read and display the latest analysis repor
 3. Also read `/home/teruel/JARVIS/reports/vk-health/03002/improvements.md` and show the last 5 improvement entries
 
 If the argument is "run" or "collect", execute a fresh health check:
-1. Ensure VPN is active (try SSH to vk01): `sshpass -e ssh -p 8050 -o ConnectTimeout=5 vk01@10.244.70.26 "echo ok"`
-2. If VPN is not active, inform the user and stop
-3. Run: `VK_SSH_PASSWORD="$VK_SSH_PASSWORD" VK_RABBIT_PASSWORD="$VK_RABBIT_PASSWORD" /home/teruel/JARVIS/scripts/vk-health/run.sh 03002`
-4. Display the generated report
+1. Run: `/home/teruel/JARVIS/scripts/health/health.sh vk 03002 run` (secrets are
+   read from the deployment config; use deployment `bench` when the machines are
+   on the bench instead of at the plant)
+2. If the collector reports all nodes unreachable, inform the user (no VPN/plant
+   access) and stop
+3. Display the generated report
 
 If the argument is "trends", show the latest trend data:
 1. Find the most recent trends.json in `data/vk-health/03002/`

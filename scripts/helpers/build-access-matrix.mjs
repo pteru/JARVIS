@@ -1,4 +1,8 @@
 import { readFileSync, writeFileSync } from 'fs';
+import { join } from 'path';
+
+const ORCHESTRATOR_HOME =
+  process.env.ORCHESTRATOR_HOME || join(process.env.HOME, 'JARVIS');
 
 // Load access data
 const lines = readFileSync('/tmp/gh-access-data.tsv', 'utf-8').trim().split('\n');
@@ -93,6 +97,6 @@ for (const repo of repoList) {
   md += '| ' + repo + ' | ' + protCell + ' | ' + cells.join(' | ') + ' |\n';
 }
 
-writeFileSync('/home/teruel/JARVIS/reports/github-access-matrix.md', md);
+writeFileSync(join(ORCHESTRATOR_HOME, 'reports/github-access-matrix.md'), md);
 console.log(`Users: ${userList.length}, Repos: ${repoList.length}, Entries: ${lines.length}`);
 console.log(`Protected: ${protectedRepos.length}, Partial: ${partialRepos.length}, Unprotected: ${unprotectedService.length}`);

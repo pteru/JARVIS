@@ -332,7 +332,7 @@ Each project has: PMO folder (`workspaces/strokmatic/pmo/<code>/`), email index,
 | Project codes config | `config/orchestrator/project-codes.json` | Drive folder mappings, project metadata |
 | ClickUp navigator skill | `.claude/skills/clickup-navigator/SKILL.md` | Full workspace hierarchy and IDs |
 | Migration plan | `reports/clickup-sprint-migration-plan.md` | Task reorganization details |
-| Workflow plan | `docs/plans/integrated-workflow-clickup-github-drive.md` | ClickUp/GitHub/Drive integration |
+| Workflow plan | `docs/superpowers/plans/2026-04-04-integrated-workflow-clickup-github-drive.md` | ClickUp/GitHub/Drive integration |
 
 ---
 

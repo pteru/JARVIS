@@ -1,7 +1,4 @@
-import { spawn } from 'child_process';
-import { readFileSync } from 'fs';
-
-const ORCHESTRATOR_HOME = process.env.ORCHESTRATOR_HOME || `${process.env.HOME}/JARVIS`;
+import { runClaudePrint } from '../../lib/chat-bot/claude-print.mjs';
 
 /**
  * Generate an answer using claude --print with KB context
@@ -36,31 +33,5 @@ ${question}
 - Use markdown para formatacao
 - Inclua referencia a pagina da KB quando relevante (ex: "Ver: produtos/visionking/arquitetura.md")`;
 
-  return new Promise((resolve, reject) => {
-    const proc = spawn('claude', [
-      '--print',
-      '--model', config.model || 'sonnet',
-      '--max-turns', '1'
-    ], {
-      env: { ...process.env },
-      stdio: ['pipe', 'pipe', 'pipe']
-    });
-
-    let stdout = '';
-    let stderr = '';
-
-    proc.stdout.on('data', data => { stdout += data.toString(); });
-    proc.stderr.on('data', data => { stderr += data.toString(); });
-
-    proc.on('close', code => {
-      if (code !== 0) {
-        reject(new Error(`claude --print failed (code ${code}): ${stderr}`));
-      } else {
-        resolve(stdout.trim());
-      }
-    });
-
-    proc.stdin.write(prompt);
-    proc.stdin.end();
-  });
+  return runClaudePrint(prompt, { model: config.model || 'sonnet' });
 }

@@ -83,32 +83,19 @@ Keep it under 800 characters total." 2>>"$LOG_DIR/cron-morning.log") || {
 echo "$REPORT" > "$REPORT_DIR/morning-${DATE}.txt"
 log "Report saved to $REPORT_DIR/morning-${DATE}.txt"
 
-# Send via Telegram
+# Send via Telegram — single sender: scripts/lib/telegram-router.sh
 ROUTER_PATH="$ORCHESTRATOR_HOME/scripts/lib/telegram-router.sh"
 if [[ -f "$ROUTER_PATH" ]]; then
   source "$ROUTER_PATH"
-  resolve_telegram_route "morning-report"
-  BOT_TOKEN="$RESOLVED_BOT_TOKEN"
-  CHAT_ID="$RESOLVED_CHAT_ID"
-else
-  # Legacy fallback: inline node-based resolution
-  BOT_TOKEN=$(node -e "const c=JSON.parse(require('fs').readFileSync('$CONFIG','utf-8'));const tg=c.backends.telegram;if(tg.bot_token){console.log(tg.bot_token)}else if(tg.bot_token_file){console.log(require('fs').readFileSync(tg.bot_token_file.replace(/^~/,process.env.HOME),'utf-8').trim())}" 2>/dev/null)
-  CHAT_ID=$(node -e "const c=JSON.parse(require('fs').readFileSync('$CONFIG','utf-8'));console.log(c.backends.telegram.chat_id)" 2>/dev/null)
-fi
-
-if [[ -n "$BOT_TOKEN" && -n "$CHAT_ID" ]]; then
-  HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
-    -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
-    -H "Content-Type: application/json" \
-    -d "$(node -e "console.log(JSON.stringify({chat_id:'$CHAT_ID',text:require('fs').readFileSync('/dev/stdin','utf-8').slice(0,4000)}))" <<< "$REPORT")")
+  HTTP_CODE=$(send_telegram_routed "morning-report" "$REPORT")
 
   if [[ "$HTTP_CODE" == "200" ]]; then
     log "Telegram notification sent successfully"
   else
-    log "ERROR: Telegram send failed with HTTP $HTTP_CODE"
+    log "ERROR: Telegram send failed with HTTP ${HTTP_CODE:-n/a}"
   fi
 else
-  log "ERROR: Could not read Telegram config from $CONFIG"
+  log "ERROR: telegram-router.sh not found at $ROUTER_PATH — report saved but not sent"
 fi
 
 log "Morning report complete"

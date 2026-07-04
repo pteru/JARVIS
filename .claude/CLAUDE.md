@@ -54,6 +54,15 @@ Before marking any task as complete:
 - **task-dispatcher**: Dispatch tasks with model selection
 - **report-generator**: Generate daily/weekly activity reports
 
+## Knowledge (OKF)
+
+Knowledge pages carry OKF v0.1 YAML frontmatter — required `type`, plus `title`,
+`description`, `tags`, `timestamp`, and extensions `project` (quoted 5-digit code),
+`product`, `language`, `status`. Root catalog: `knowledge/index.md`. New specs,
+plans, KB pages, and PMO knowledge pages must conform. Check with
+`python3 scripts/okf/okf.py lint`; search with `okf.py search <terms>`.
+Spec: `docs/superpowers/specs/2026-07-04-okf-adoption-design.md`.
+
 ## Session Directives
 
 - At the end of each session, add meaningful lessons learned to **MEMORY.md** (organized by topic) and append session logs to `docs/lessons-learned.md`

@@ -11,7 +11,7 @@ Run the automated system health check and display the results:
 bash /home/teruel/JARVIS/scripts/system-health-check.sh
 ```
 
-The script runs 12 checks and produces a scored report (0-100):
+The script runs 14 checks and produces a scored report (0-100):
 
 | Check | What it verifies |
 |-------|-----------------|
@@ -27,6 +27,8 @@ The script runs 12 checks and produces a scored report (0-100):
 | CHECK_10 MEMORY_HEALTH | CLAUDE.md under 100 lines |
 | CHECK_11 CONSOLIDATION_LAG | VK consolidation is current (no files >7 days old) |
 | CHECK_12 HOOK_MATCHERS | All hook matchers reference valid MCP servers |
+| CHECK_13 CRON_DRIFT | Live crontab matches committed template (`config/cron/orchestrator.cron`) |
+| CHECK_14 OKF_CONFORMANCE | Knowledge bundles ≥80% OKF frontmatter coverage (`okf lint --pct-only`) |
 
 ## Reports
 
@@ -51,7 +53,7 @@ bash /home/teruel/JARVIS/scripts/system-health-check.sh --quiet
 Review the report. For any FAIL or WARN items, the report includes specific remediation commands. Common fixes:
 
 - **Stale paths**: `grep -rl 'claude-orchestrator' scripts/ mcp-servers/` then update
-- **Report accumulation**: `scripts/vk-health/cleanup-reports.sh`
+- **Report accumulation**: `scripts/health/health.sh vk 03002 cleanup-reports`
 - **Context stubs**: `node scripts/populate-workspace-metadata.mjs`
 - **Workspace types**: `node scripts/populate-workspace-metadata.mjs`
 - **CLAUDE.md bloat**: Extract to MEMORY.md and `docs/lessons-learned.md`

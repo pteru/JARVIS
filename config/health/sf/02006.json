@@ -1,0 +1,30 @@
+{
+  "product": "sf",
+  "deployment": "02006",
+  "name": "SpotFusion Hyundai (02006)",
+  "data_root": "data/sf-health",
+  "reports_root": "reports/sf-health",
+  "assembler": "scripts/health/assemblers/sf.py",
+  "claude_model": "claude-opus-4-6",
+  "rabbitmq_user": "guest",
+  "nodes": {
+    "sf01": {"host": "192.168.100.1", "user": "spotfusion", "ssh_port": 22}
+  },
+  "connectivity": {
+    "label": "SpotFusion Hyundai server",
+    "nodes": ["192.168.100.1"]
+  },
+  "secrets": {
+    "ssh": "~/.secrets/sf-ssh-password",
+    "rabbit": "~/.secrets/sf-rabbit-password"
+  },
+  "checks": [
+    {"field": "node.sf01.disk.root.pct", "direction": "high", "warn": 75, "crit": 90, "label": "sf01 root disk"},
+    {"field": "node.sf01.ram.pct", "direction": "high", "warn": 85, "crit": 95, "label": "sf01 RAM"},
+    {"field": "node.sf01.queue.messages.total", "direction": "high", "warn": 5000, "crit": 10000, "label": "sf01 RabbitMQ backlog"}
+  ],
+  "throttle_minutes": 240,
+  "alert_cooldown_minutes": 60,
+  "heartbeat_interval_minutes": 60,
+  "enabled": true
+}

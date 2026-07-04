@@ -8,7 +8,9 @@
   "claude_model": "claude-opus-4-6",
   "connectivity": {
     "label": "SpotFusion server",
-    "nodes": ["sf01"]
+    "nodes": [
+      "sf01"
+    ]
   },
   "secrets": {
     "ssh": "~/.secrets/sf-ssh-password",
@@ -18,5 +20,12 @@
   "throttle_minutes": 240,
   "alert_cooldown_minutes": 60,
   "heartbeat_interval_minutes": 60,
-  "enabled": true
+  "enabled": true,
+  "nodes": {
+    "sf01": {
+      "host": "192.168.100.1",
+      "user": "spotfusion",
+      "ssh_port": 22
+    }
+  }
 }

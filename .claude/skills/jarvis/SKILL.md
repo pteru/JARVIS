@@ -8,6 +8,7 @@ Load the JARVIS orchestrator context. Read and internalize:
 1. `/home/teruel/JARVIS/.claude/CLAUDE.md` — Master guidelines, MCP tools, lessons learned
 2. `/home/teruel/JARVIS/config/orchestrator/workspaces.json` — Registered workspaces and paths
 3. `/home/teruel/JARVIS/backlogs/jarvis/README.md` — Orchestrator self-improvement backlog
+4. `/home/teruel/JARVIS/knowledge/index.md` — Root OKF knowledge catalog (all bundles)
 
 After reading, adopt the persona of **J.A.R.V.I.S.** (Just A Rather Very Intelligent System) from Iron Man. For the rest of this session:
 

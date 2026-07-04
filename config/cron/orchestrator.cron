@@ -1,30 +1,77 @@
+# Claude Orchestrator — Automated Schedules
+# SNAPSHOT of the live crontab (regenerated 2026-07-04, health-monitor Phase 3 cutover).
+# Restore on this machine:   crontab config/cron/orchestrator.cron
+# Provision another host:    sed "s|/home/teruel|$HOME|g" then review secrets in ~/.secrets/.
+# Drift is checked weekly by scripts/system-health-check.sh (CHECK_13).
+
 # Claude Orchestrator - Automated Schedules
-# Install with: crontab -l | cat - orchestrator.cron | crontab -
-
-# Daily: Process backlogs at 9:00 AM
-0 9 * * * ORCHESTRATOR_HOME={{ORCHESTRATOR_HOME}} {{ORCHESTRATOR_HOME}}/scripts/orchestrator.sh process-backlogs >> {{ORCHESTRATOR_HOME}}/logs/cron-daily.log 2>&1
-
-# Daily: Generate daily report at 5:00 PM
-0 17 * * * ORCHESTRATOR_HOME={{ORCHESTRATOR_HOME}} {{ORCHESTRATOR_HOME}}/scripts/orchestrator.sh daily-report >> {{ORCHESTRATOR_HOME}}/logs/cron-report.log 2>&1
-
-# Weekly: Generate weekly report on Friday at 4:00 PM
-0 16 * * 5 ORCHESTRATOR_HOME={{ORCHESTRATOR_HOME}} {{ORCHESTRATOR_HOME}}/scripts/orchestrator.sh weekly-report >> {{ORCHESTRATOR_HOME}}/logs/cron-weekly.log 2>&1
-
-# Daily: Fetch all remotes at 7:30 AM (before backlog processing)
-30 7 * * * ORCHESTRATOR_HOME={{ORCHESTRATOR_HOME}} {{ORCHESTRATOR_HOME}}/scripts/orchestrator.sh fetch-remotes >> {{ORCHESTRATOR_HOME}}/logs/cron-fetch.log 2>&1
 
 # Daily: Update GitHub access matrix at 6:00 AM
-0 6 * * * ORCHESTRATOR_HOME={{ORCHESTRATOR_HOME}} {{ORCHESTRATOR_HOME}}/scripts/orchestrator.sh update-access >> {{ORCHESTRATOR_HOME}}/logs/cron-access.log 2>&1
+0 6 * * * ORCHESTRATOR_HOME=/home/teruel/JARVIS /home/teruel/JARVIS/scripts/orchestrator.sh update-access >> /home/teruel/JARVIS/logs/cron-access.log 2>&1
+
+# Daily: Fetch all remotes at 7:30 AM (before backlog processing)
+30 7 * * * ORCHESTRATOR_HOME=/home/teruel/JARVIS /home/teruel/JARVIS/scripts/orchestrator.sh fetch-remotes >> /home/teruel/JARVIS/logs/cron-fetch.log 2>&1
+
+# Daily: JARVIS morning briefing at 7:45 AM
+45 7 * * * ORCHESTRATOR_HOME=/home/teruel/JARVIS /home/teruel/JARVIS/scripts/morning-report.sh >> /home/teruel/JARVIS/logs/cron-morning.log 2>&1
 
 # Weekly: Suggest weekly goals on Monday at 8:00 AM
-0 8 * * 1 ORCHESTRATOR_HOME={{ORCHESTRATOR_HOME}} {{ORCHESTRATOR_HOME}}/scripts/orchestrator.sh suggest-goals >> {{ORCHESTRATOR_HOME}}/logs/cron-goals.log 2>&1
+0 8 * * 1 ORCHESTRATOR_HOME=/home/teruel/JARVIS /home/teruel/JARVIS/scripts/orchestrator.sh suggest-goals >> /home/teruel/JARVIS/logs/cron-goals.log 2>&1
 
-# KB Auto-Update
-0 8 * * * cd $HOME/JARVIS && bash scripts/kb-update/feed-git-monitor.sh >> logs/cron-kb-update.log 2>&1
-0 22 * * 5 cd $HOME/JARVIS && bash scripts/kb-update/staleness-report.sh >> logs/cron-kb-update.log 2>&1
+# Daily: Process backlogs at 9:00 AM
+0 9 * * * ORCHESTRATOR_HOME=/home/teruel/JARVIS /home/teruel/JARVIS/scripts/orchestrator.sh refresh-backlog-cache >> /home/teruel/JARVIS/logs/cron-daily.log 2>&1
 
-# KB Chat Bot (Phase 3) — poll Google Chat for @JARVIS mentions every 2 minutes
-*/2 * * * * cd $HOME/JARVIS && node scripts/kb-chat/poll-and-reply.mjs >> logs/cron-kb-chat.log 2>&1
+# Every 30min: PR inbox — fetch open PRs then review unreviewed ones (parallel, max 3)
+# */30 * * * * ORCHESTRATOR_HOME=/home/teruel/JARVIS /home/teruel/JARVIS/scripts/fetch-open-prs.sh >> /home/teruel/JARVIS/logs/cron-pr-inbox.log 2>&1 && ORCHESTRATOR_HOME=/home/teruel/JARVIS /home/teruel/JARVIS/scripts/review-pr.sh --all --parallel 3 >> /home/teruel/JARVIS/logs/cron-pr-inbox.log 2>&1
 
-# KB Q&A log commit — push accumulated Q&A logs to KB repo daily at midnight
-0 0 * * * cd $HOME/JARVIS && bash scripts/kb-chat/commit-qa-logs.sh >> logs/cron-kb-chat.log 2>&1
+# Daily: Archive merged/closed PR reviews at 11:00 PM
+# 0 23 * * * ORCHESTRATOR_HOME=/home/teruel/JARVIS /home/teruel/JARVIS/scripts/helpers/archive-merged-reviews.sh >> /home/teruel/JARVIS/logs/cron-pr-inbox.log 2>&1
+
+# Daily: Generate daily report at 5:00 PM
+0 17 * * * ORCHESTRATOR_HOME=/home/teruel/JARVIS /home/teruel/JARVIS/scripts/orchestrator.sh daily-report >> /home/teruel/JARVIS/logs/cron-report.log 2>&1
+
+# Weekly: Generate weekly report on Friday at 4:00 PM
+0 16 * * 5 ORCHESTRATOR_HOME=/home/teruel/JARVIS /home/teruel/JARVIS/scripts/orchestrator.sh weekly-report >> /home/teruel/JARVIS/logs/cron-weekly.log 2>&1
+
+# Hourly: Fetch, classify, and parse new project emails
+# DISABLED 2026-06-15 (script removed, no replacement wired): 0 * * * * ORCHESTRATOR_HOME=/home/teruel/JARVIS /home/teruel/JARVIS/scripts/email-ingest.sh >> /home/teruel/JARVIS/logs/cron-email.log 2>&1
+
+# VK health check — every 15 min (collect + AI analyze + alert)
+# DISABLED 2026-07-04 (legacy retired — use scripts/health/health.sh vk <deployment> run manually): */15 * * * * VK_SSH_PASSWORD="$(cat ~/.secrets/vk-ssh-password)" VK_RABBIT_PASSWORD="$(cat ~/.secrets/vk-rabbit-password)" ORCHESTRATOR_HOME=/home/teruel/JARVIS /home/teruel/JARVIS/scripts/vk-health/run.sh 03002 >> /home/teruel/JARVIS/logs/cron-vk-health.log 2>&1
+
+# VK daily trend aggregation — 11:30 PM
+# DISABLED 2026-07-04 (legacy retired — use scripts/health/health.sh vk <deployment> run manually): 30 23 * * * ORCHESTRATOR_HOME=/home/teruel/JARVIS /home/teruel/JARVIS/scripts/vk-health/trends.sh 03002 >> /home/teruel/JARVIS/logs/cron-vk-health.log 2>&1
+
+# JARVIS weekly system health check — Sunday 21:00
+0 21 * * 0 ORCHESTRATOR_HOME=/home/teruel/JARVIS bash /home/teruel/JARVIS/scripts/system-health-check.sh --quiet >> /home/teruel/JARVIS/logs/cron-system-health.log 2>&1
+
+# JARVIS weekly self-improvement analysis — Sunday 22:00
+0 22 * * 0 ORCHESTRATOR_HOME=/home/teruel/JARVIS bash /home/teruel/JARVIS/scripts/weekly-self-improvement.sh >> /home/teruel/JARVIS/logs/cron-self-improvement.log 2>&1
+
+# JARVIS VK health report cleanup — daily 04:00
+# DISABLED 2026-07-04 (legacy retired — use scripts/health/health.sh vk <deployment> run manually): 0 4 * * * ORCHESTRATOR_HOME=/home/teruel/JARVIS bash /home/teruel/JARVIS/scripts/vk-health/cleanup-reports.sh >> /home/teruel/JARVIS/logs/cron-vk-cleanup.log 2>&1
+
+# Monthly VK health consolidation — 1st of month at 06:00
+# DISABLED 2026-07-04 (legacy retired — use scripts/health/health.sh vk <deployment> run manually): 0 6 1 * * ORCHESTRATOR_HOME=/home/teruel/JARVIS /home/teruel/JARVIS/scripts/vk-health/monthly-consolidate.sh 03002 >> /home/teruel/JARVIS/logs/cron-vk-health.log 2>&1
+
+# =====================================================================
+# Unified health monitor (scripts/health) — STAGED FOR CUTOVER (commented).
+# To enable: (1) ensure Phase-3 collector exists (scripts/health/collectors/<product>.sh),
+#            (2) uncomment the lines below for that product,
+#            (3) comment out the matching legacy vk-health line(s) above.
+# Secrets are read from the deployment JSON (~/.secrets); `claude` is pinned on
+# PATH for the analyze/monthly stages (cron's default PATH omits ~/.local/bin).
+# --- VK 03002 (replaces the 4 vk-health lines above) ---
+# */15 * * * * PATH=/home/teruel/.local/bin:/usr/bin:/bin ORCHESTRATOR_HOME=/home/teruel/JARVIS /home/teruel/JARVIS/scripts/health/health.sh vk 03002 run >> /home/teruel/JARVIS/logs/cron-health-vk-03002.log 2>&1
+# 30 23 * * * ORCHESTRATOR_HOME=/home/teruel/JARVIS /home/teruel/JARVIS/scripts/health/health.sh vk 03002 trends >> /home/teruel/JARVIS/logs/cron-health-vk-03002.log 2>&1
+# 0 4 * * * ORCHESTRATOR_HOME=/home/teruel/JARVIS /home/teruel/JARVIS/scripts/health/health.sh vk 03002 cleanup-reports >> /home/teruel/JARVIS/logs/cron-health-vk-03002.log 2>&1
+# 0 6 1 * * PATH=/home/teruel/.local/bin:/usr/bin:/bin ORCHESTRATOR_HOME=/home/teruel/JARVIS /home/teruel/JARVIS/scripts/health/health.sh vk 03002 monthly-consolidate >> /home/teruel/JARVIS/logs/cron-health-vk-03002.log 2>&1
+# --- SF 02006 (template; SF not currently cronned on this host) ---
+# */15 * * * * PATH=/home/teruel/.local/bin:/usr/bin:/bin ORCHESTRATOR_HOME=/home/teruel/JARVIS /home/teruel/JARVIS/scripts/health/health.sh sf 02006 run >> /home/teruel/JARVIS/logs/cron-health-sf-02006.log 2>&1
+# 30 23 * * * ORCHESTRATOR_HOME=/home/teruel/JARVIS /home/teruel/JARVIS/scripts/health/health.sh sf 02006 trends >> /home/teruel/JARVIS/logs/cron-health-sf-02006.log 2>&1
+# 0 4 * * * ORCHESTRATOR_HOME=/home/teruel/JARVIS /home/teruel/JARVIS/scripts/health/health.sh sf 02006 cleanup-reports >> /home/teruel/JARVIS/logs/cron-health-sf-02006.log 2>&1
+# 0 6 1 * * PATH=/home/teruel/.local/bin:/usr/bin:/bin ORCHESTRATOR_HOME=/home/teruel/JARVIS /home/teruel/JARVIS/scripts/health/health.sh sf 02006 monthly-consolidate >> /home/teruel/JARVIS/logs/cron-health-sf-02006.log 2>&1
+# =====================================================================
+
+# JARVIS log rotation — daily 03:30 (10MB threshold, 4 compressed generations)
+30 3 * * * /usr/sbin/logrotate --state /home/teruel/JARVIS/logs/.logrotate.state /home/teruel/JARVIS/config/logrotate/jarvis.conf >> /home/teruel/JARVIS/logs/cron-logrotate.log 2>&1

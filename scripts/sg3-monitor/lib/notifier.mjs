@@ -1,3 +1,9 @@
+// NOTE: this is the one intentional Node-side Telegram sender. All BASH
+// senders route through scripts/lib/telegram-router.sh (the canonical
+// sender with per-domain bot routing); shelling out from Node to a bash
+// router would trade duplication for fragility, so this file stays.
+// If the router's config schema changes, update the token/chat resolution
+// here to match.
 import { existsSync, readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { resolve } from 'node:path';

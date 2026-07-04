@@ -9,6 +9,13 @@ read_hook_input
 
 workspace="$(get_input_field '.tool_input.workspace')"
 
+# Guardrail environment check: a missing config must not silently disable validation
+if [[ -n "$workspace" ]] && [[ ! -f "$WORKSPACES_CONFIG" ]]; then
+  echo "{\"decision\":\"allow\",\"systemMessage\":\"⚠️ HOOK DEGRADED: ${WORKSPACES_CONFIG} not found — dispatch to '${workspace}' was NOT validated. Fix ORCHESTRATOR_HOME or restore workspaces.json.\"}"
+  echo "WARN: workspaces.json not found, dispatch validation skipped" >&2
+  exit 0
+fi
+
 # Validate workspace exists in config
 if [[ -n "$workspace" ]] && [[ -f "$WORKSPACES_CONFIG" ]]; then
   ws_path="$(jq -r --arg ws "$workspace" '.workspaces[$ws].path // empty' "$WORKSPACES_CONFIG" 2>/dev/null || true)"
