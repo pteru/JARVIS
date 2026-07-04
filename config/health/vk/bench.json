@@ -1,0 +1,33 @@
+{
+  "product": "vk",
+  "deployment": "bench",
+  "name": "Bench — 03002 vk01/vk02 in-office maintenance",
+  "data_root": "data/vk-health",
+  "reports_root": "reports/vk-health",
+  "assembler": "scripts/health/assemblers/vk.py",
+  "claude_model": "claude-opus-4-6",
+  "nodes": {
+    "vk01": {"host": "10.179.112.82", "user": "vk01", "ssh_port": 8050},
+    "vk02": {"host": "10.179.112.83", "user": "vk02", "ssh_port": 8050}
+  },
+  "connectivity": {
+    "label": "VisionKing bench nodes",
+    "nodes": ["10.179.112.82", "10.179.112.83"]
+  },
+  "secrets": {
+    "ssh": "~/.secrets/vk-ssh-password",
+    "rabbit": "~/.secrets/vk-rabbit-password"
+  },
+  "checks": [
+    {"field": "node.vk01.disk.root.pct", "direction": "high", "warn": 90, "crit": 95, "label": "vk01 root disk"},
+    {"field": "node.vk02.disk.root.pct", "direction": "high", "warn": 90, "crit": 95, "label": "vk02 root disk"},
+    {"field": "node.vk01.disk.img_saved.pct", "direction": "high", "warn": 75, "crit": 90, "label": "vk01 img_saved disk"},
+    {"field": "node.vk02.disk.img_saved.pct", "direction": "high", "warn": 75, "crit": 90, "label": "vk02 img_saved disk"},
+    {"field": "node.vk01.gpu.0.mem.pct", "direction": "high", "warn": 90, "crit": 95, "label": "vk01 GPU memory"},
+    {"field": "node.vk02.gpu.0.mem.pct", "direction": "high", "warn": 90, "crit": 95, "label": "vk02 GPU memory"}
+  ],
+  "throttle_minutes": 240,
+  "alert_cooldown_minutes": 60,
+  "heartbeat_interval_minutes": 60,
+  "enabled": true
+}

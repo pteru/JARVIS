@@ -1,5 +1,5 @@
 # Claude Orchestrator — Automated Schedules
-# SNAPSHOT of the live crontab (regenerated 2026-07-04 by the structure-audit B5 task).
+# SNAPSHOT of the live crontab (regenerated 2026-07-04, health-monitor Phase 3 cutover).
 # Restore on this machine:   crontab config/cron/orchestrator.cron
 # Provision another host:    sed "s|/home/teruel|$HOME|g" then review secrets in ~/.secrets/.
 # Drift is checked weekly by scripts/system-health-check.sh (CHECK_13).
@@ -37,10 +37,10 @@
 # DISABLED 2026-06-15 (script removed, no replacement wired): 0 * * * * ORCHESTRATOR_HOME=/home/teruel/JARVIS /home/teruel/JARVIS/scripts/email-ingest.sh >> /home/teruel/JARVIS/logs/cron-email.log 2>&1
 
 # VK health check — every 15 min (collect + AI analyze + alert)
-*/15 * * * * VK_SSH_PASSWORD="$(cat ~/.secrets/vk-ssh-password)" VK_RABBIT_PASSWORD="$(cat ~/.secrets/vk-rabbit-password)" ORCHESTRATOR_HOME=/home/teruel/JARVIS /home/teruel/JARVIS/scripts/vk-health/run.sh 03002 >> /home/teruel/JARVIS/logs/cron-vk-health.log 2>&1
+# DISABLED 2026-07-04 (legacy retired — use scripts/health/health.sh vk <deployment> run manually): */15 * * * * VK_SSH_PASSWORD="$(cat ~/.secrets/vk-ssh-password)" VK_RABBIT_PASSWORD="$(cat ~/.secrets/vk-rabbit-password)" ORCHESTRATOR_HOME=/home/teruel/JARVIS /home/teruel/JARVIS/scripts/vk-health/run.sh 03002 >> /home/teruel/JARVIS/logs/cron-vk-health.log 2>&1
 
 # VK daily trend aggregation — 11:30 PM
-30 23 * * * ORCHESTRATOR_HOME=/home/teruel/JARVIS /home/teruel/JARVIS/scripts/vk-health/trends.sh 03002 >> /home/teruel/JARVIS/logs/cron-vk-health.log 2>&1
+# DISABLED 2026-07-04 (legacy retired — use scripts/health/health.sh vk <deployment> run manually): 30 23 * * * ORCHESTRATOR_HOME=/home/teruel/JARVIS /home/teruel/JARVIS/scripts/vk-health/trends.sh 03002 >> /home/teruel/JARVIS/logs/cron-vk-health.log 2>&1
 
 # JARVIS weekly system health check — Sunday 21:00
 0 21 * * 0 ORCHESTRATOR_HOME=/home/teruel/JARVIS bash /home/teruel/JARVIS/scripts/system-health-check.sh --quiet >> /home/teruel/JARVIS/logs/cron-system-health.log 2>&1
@@ -49,10 +49,10 @@
 0 22 * * 0 ORCHESTRATOR_HOME=/home/teruel/JARVIS bash /home/teruel/JARVIS/scripts/weekly-self-improvement.sh >> /home/teruel/JARVIS/logs/cron-self-improvement.log 2>&1
 
 # JARVIS VK health report cleanup — daily 04:00
-0 4 * * * ORCHESTRATOR_HOME=/home/teruel/JARVIS bash /home/teruel/JARVIS/scripts/vk-health/cleanup-reports.sh >> /home/teruel/JARVIS/logs/cron-vk-cleanup.log 2>&1
+# DISABLED 2026-07-04 (legacy retired — use scripts/health/health.sh vk <deployment> run manually): 0 4 * * * ORCHESTRATOR_HOME=/home/teruel/JARVIS bash /home/teruel/JARVIS/scripts/vk-health/cleanup-reports.sh >> /home/teruel/JARVIS/logs/cron-vk-cleanup.log 2>&1
 
 # Monthly VK health consolidation — 1st of month at 06:00
-0 6 1 * * ORCHESTRATOR_HOME=/home/teruel/JARVIS /home/teruel/JARVIS/scripts/vk-health/monthly-consolidate.sh 03002 >> /home/teruel/JARVIS/logs/cron-vk-health.log 2>&1
+# DISABLED 2026-07-04 (legacy retired — use scripts/health/health.sh vk <deployment> run manually): 0 6 1 * * ORCHESTRATOR_HOME=/home/teruel/JARVIS /home/teruel/JARVIS/scripts/vk-health/monthly-consolidate.sh 03002 >> /home/teruel/JARVIS/logs/cron-vk-health.log 2>&1
 
 # =====================================================================
 # Unified health monitor (scripts/health) — STAGED FOR CUTOVER (commented).
