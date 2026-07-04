@@ -8,7 +8,10 @@ import { google } from "googleapis";
 import fs from "fs/promises";
 import path from "path";
 
-const CREDS_PATH = "/home/teruel/JARVIS/config/credentials/gcp-service-account.json";
+const CREDS_PATH = path.join(
+  process.env.ORCHESTRATOR_HOME || path.join(process.env.HOME, "JARVIS"),
+  "config/credentials/gcp-service-account.json",
+);
 const OUTPUT_PATH = "/tmp/sf-drive-audit-results.json";
 
 // All SpotFusion drives to audit

@@ -8,10 +8,7 @@ import {
 import fs from "fs/promises";
 import path from "path";
 import { google } from "googleapis";
-
-const ORCHESTRATOR_HOME =
-  process.env.ORCHESTRATOR_HOME ||
-  path.join(process.env.HOME, "JARVIS");
+import { ORCHESTRATOR_HOME } from "../lib/config-loader.js";
 
 const CREDENTIALS_DIR = path.join(ORCHESTRATOR_HOME, "config", "credentials");
 const SERVICE_ACCOUNT_PATH = path.join(CREDENTIALS_DIR, "gcp-service-account.json");

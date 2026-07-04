@@ -108,9 +108,9 @@ class TaskDispatcherServer {
     if (!product) return null;
 
     const productMonorepos = {
-      visionking: "/home/teruel/JARVIS/workspaces/strokmatic/visionking",
-      spotfusion: "/home/teruel/JARVIS/workspaces/strokmatic/spotfusion",
-      diemaster: "/home/teruel/JARVIS/workspaces/strokmatic/diemaster",
+      visionking: path.join(ORCHESTRATOR_HOME, "workspaces/strokmatic/visionking"),
+      spotfusion: path.join(ORCHESTRATOR_HOME, "workspaces/strokmatic/spotfusion"),
+      diemaster: path.join(ORCHESTRATOR_HOME, "workspaces/strokmatic/diemaster"),
     };
 
     const monorepoPath = productMonorepos[product];
@@ -1060,7 +1060,7 @@ class TaskDispatcherServer {
     dispatches.push(batchRecord);
     await this.saveDispatches(dispatches);
 
-    const executeCommand = `node /home/teruel/JARVIS/scripts/execute-batch.mjs ${batchId}`;
+    const executeCommand = `node ${path.join(ORCHESTRATOR_HOME, "scripts/execute-batch.mjs")} ${batchId}`;
 
     return {
       content: [

@@ -7,9 +7,10 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import fs from "fs/promises";
 import path from "path";
+import { ORCHESTRATOR_HOME } from "../lib/config-loader.js";
 
-const JARVIS_HOME =
-  process.env.JARVIS_HOME || path.join(process.env.HOME, "JARVIS");
+// JARVIS_HOME kept as a legacy override; canonical root comes from config-loader
+const JARVIS_HOME = process.env.JARVIS_HOME || ORCHESTRATOR_HOME;
 
 function getProjectCodesPath() {
   return path.join(JARVIS_HOME, "config", "project-codes.json");
@@ -28,20 +29,7 @@ async function loadProjectCodes() {
   }
 }
 
-async function loadParsedEmails(code) {
-  const parsedDir = path.join(getPmoPath(code), "emails", "parsed");
-  try {
-    const files = await fs.readdir(parsedDir);
-    const emails = [];
-    for (const f of files.filter((f) => f.endsWith(".json"))) {
-      const data = await fs.readFile(path.join(parsedDir, f), "utf-8");
-      emails.push(JSON.parse(data));
-    }
-    return emails.sort((a, b) => (a.date || "").localeCompare(b.date || ""));
-  } catch {
-    return [];
-  }
-}
+// loadParsedEmails removed — all reads now go through loadIndex()
 
 async function loadIndex(code) {
   const indexPath = path.join(getPmoPath(code), "emails", "index.json");
@@ -106,7 +94,7 @@ class EmailAnalyzerServer {
         {
           name: "extract_entities",
           description:
-            "Extract structured entities from an email: dates, action items, participants, decisions, technical references. Updates the parsed JSON file with extracted data.",
+            "Extract structured entities from an email: dates, action items, participants, decisions, technical references. Updates the index.json file with extracted data.",
           inputSchema: {
             type: "object",
             properties: {
@@ -116,7 +104,7 @@ class EmailAnalyzerServer {
               },
               email_hash: {
                 type: "string",
-                description: "Email hash to extract from",
+                description: "Email hash or gmail_id to identify the email",
               },
               entities: {
                 type: "object",
@@ -298,45 +286,37 @@ class EmailAnalyzerServer {
 
   async extractEntities(args) {
     const { project_code, email_hash, entities, category } = args;
-    const parsedDir = path.join(
-      getPmoPath(project_code),
-      "emails",
-      "parsed",
+    const index = await loadIndex(project_code);
+
+    // Find entry by hash or gmail_id
+    const entry = index.find(
+      (e) =>
+        e.hash === email_hash ||
+        e.hash?.startsWith(email_hash) ||
+        e.gmail_id === email_hash,
     );
 
-    // Find and update the parsed JSON file
-    const files = await fs.readdir(parsedDir);
-    let updated = false;
-    for (const f of files.filter((f) => f.endsWith(".json"))) {
-      const filePath = path.join(parsedDir, f);
-      const data = JSON.parse(await fs.readFile(filePath, "utf-8"));
-      if (data.hash === email_hash || data.hash?.startsWith(email_hash)) {
-        data.entities = entities;
-        data.category = category;
-        await fs.writeFile(filePath, JSON.stringify(data, null, 2));
-        updated = true;
-
-        // Also update index
-        const index = await loadIndex(project_code);
-        const entry = index.find(
-          (e) => e.hash === data.hash || e.hash?.startsWith(email_hash),
-        );
-        if (entry) {
-          entry.category = category;
-          entry.entities = entities;
-          await saveIndex(project_code, index);
-        }
-        break;
-      }
+    if (!entry) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Email ${email_hash} not found in project ${project_code}`,
+          },
+        ],
+      };
     }
+
+    entry.category = category;
+    entry.analysis = { ...entry.analysis, ...entities, category };
+    entry.analyzed_at = new Date().toISOString();
+    await saveIndex(project_code, index);
 
     return {
       content: [
         {
           type: "text",
-          text: updated
-            ? `Updated entities and category for email ${email_hash} in project ${project_code}`
-            : `Email ${email_hash} not found in project ${project_code}`,
+          text: `Updated entities and category for email ${email_hash} in project ${project_code}`,
         },
       ],
     };
@@ -408,24 +388,25 @@ class EmailAnalyzerServer {
 
   async getProjectEmails(args) {
     const { project_code, include_body, unanalyzed_only } = args;
-    let emails = await loadParsedEmails(project_code);
+    let emails = await loadIndex(project_code);
 
     if (unanalyzed_only) {
       emails = emails.filter((e) => !e.category);
     }
 
     const result = emails.map((e) => ({
-      hash: e.hash,
+      gmail_id: e.gmail_id || null,
+      hash: e.hash || null,
       subject: e.subject,
+      sender_name: e.sender_name || "",
       sender_email: e.sender_email,
       date: e.date,
       category: e.category || null,
-      attachments: (e.attachments || []).map((a) => a.filename),
-      heuristics: e.heuristics || {},
+      attachments: (e.attachments || []).map((a) => a.filename || a),
       body_preview: include_body
-        ? e.body_text
-        : (e.body_text || "").slice(0, 500),
-      entities: e.entities || null,
+        ? (e.snippet || "") + (e.gmail_id ? `\n\n[Full body available via read_email MCP tool — gmail_id: ${e.gmail_id}]` : "")
+        : (e.snippet || "").slice(0, 500),
+      analysis: e.analysis || null,
     }));
 
     return {
