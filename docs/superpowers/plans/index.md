@@ -60,3 +60,11 @@ timestamp: 2026-07-04
 - [2026-06-17-health-monitor-unification](2026-06-17-health-monitor-unification.md)
 - [2026-06-25-kb-generator-overview-protection-handoff](2026-06-25-kb-generator-overview-protection-handoff.md)
 - [OKF Adoption — Federated Knowledge Bundles](2026-07-04-okf-adoption.md) — Task-by-task plan implementing the OKF adoption spec — root catalog, okf CLI, KB migration, 03002 pilot, concepts layer, consumer integration.
+- [2026-02-27-voice-pipeline](2026-02-27-voice-pipeline.md)
+- [2026-03-11-git-graph-viewer](2026-03-11-git-graph-viewer.md)
+- [2026-03-23-jarvis-restructuring](2026-03-23-jarvis-restructuring.md)
+- [2026-04-04-document-templates-plugin](2026-04-04-document-templates-plugin.md)
+- [2026-04-04-integrated-workflow-clickup-github-drive](2026-04-04-integrated-workflow-clickup-github-drive.md)
+- [2026-04-04-pr-review-v2](2026-04-04-pr-review-v2.md)
+- [2026-04-04-strokmatic-roadmap-2026](2026-04-04-strokmatic-roadmap-2026.md)
+- [2026-06-15-information-flow-jarvis-kb](2026-06-15-information-flow-jarvis-kb.md)
