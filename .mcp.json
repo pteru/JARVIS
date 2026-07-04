@@ -1,0 +1,73 @@
+{
+  "mcpServers": {
+    "backlog-manager": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["mcp-servers/backlog-manager/index.js"],
+      "env": { "ORCHESTRATOR_HOME": "${HOME}/JARVIS" }
+    },
+    "changelog-writer": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["mcp-servers/changelog-writer/index.js"],
+      "env": { "ORCHESTRATOR_HOME": "${HOME}/JARVIS" }
+    },
+    "changelog-reviewer": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["mcp-servers/changelog-reviewer/index.js"],
+      "env": { "ORCHESTRATOR_HOME": "${HOME}/JARVIS" }
+    },
+    "workspace-analyzer": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["mcp-servers/workspace-analyzer/index.js"],
+      "env": { "ORCHESTRATOR_HOME": "${HOME}/JARVIS" }
+    },
+    "task-dispatcher": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["mcp-servers/task-dispatcher/index.js"],
+      "env": { "ORCHESTRATOR_HOME": "${HOME}/JARVIS" }
+    },
+    "report-generator": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["mcp-servers/report-generator/index.js"],
+      "env": { "ORCHESTRATOR_HOME": "${HOME}/JARVIS" }
+    },
+    "model-learning-analyzer": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["mcp-servers/model-learning-analyzer/index.js"],
+      "env": { "ORCHESTRATOR_HOME": "${HOME}/JARVIS" }
+    },
+    "self-improvement-miner": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["mcp-servers/self-improvement-miner/index.js"],
+      "env": { "ORCHESTRATOR_HOME": "${HOME}/JARVIS" }
+    },
+    "email-analyzer": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["mcp-servers/email-analyzer/index.js"],
+      "env": { "ORCHESTRATOR_HOME": "${HOME}/JARVIS" }
+    },
+    "notifier": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["mcp-servers/notifier/index.js"],
+      "env": { "ORCHESTRATOR_HOME": "${HOME}/JARVIS" }
+    },
+    "google-workspace": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["mcp-servers/google-workspace/index.js"],
+      "env": {
+        "ORCHESTRATOR_HOME": "${HOME}/JARVIS",
+        "GOOGLE_APPLICATION_CREDENTIALS": "${HOME}/JARVIS/config/credentials/gcp-service-account.json"
+      }
+    }
+  }
+}
