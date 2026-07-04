@@ -576,5 +576,5 @@ Already fixed: `ORCHESTRATOR_HOME` default updated from `claude-orchestrator` to
 ## Related Specs
 
 - [google-workspace-connector.md](google-workspace-connector.md) — MCP server spec (Done)
-- [pmo-dashboard.md](pmo-dashboard.md) — PMO Dashboard (Planned — will display Drive index data)
+- [pmo-dashboard.md](2026-02-18-pmo-dashboard.md) — PMO Dashboard (Planned — will display Drive index data)
 - [email-organizer](completed/email-organizer.md) — Email ingestion (Done — parallel data source)

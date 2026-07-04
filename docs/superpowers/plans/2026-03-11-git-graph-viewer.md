@@ -8,7 +8,7 @@
 
 **Tech Stack:** Node.js/Express (existing), D3.js v7 (CDN), Tailwind CSS (CDN), vanilla JS
 
-**Design doc:** `docs/plans/2026-03-11-git-graph-viewer-design.md`
+**Design doc:** `docs/superpowers/specs/2026-03-11-git-graph-viewer-design.md`
 
 ---
 

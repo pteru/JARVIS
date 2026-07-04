@@ -45,7 +45,7 @@
 | [visionking-pipeline-v2.md](../../docs/superpowers/specs/2026-03-21-stroke-based-processing-pipeline-v2-design.md) | Stroke-based processing pipeline v2 |
 | [visionking-healthchecks.md](../../docs/superpowers/specs/2026-03-23-vk-docker-healthchecks-design.md) | Docker healthchecks design |
 | [visionking-data-pipeline-fixes.md](../../docs/superpowers/specs/2026-03-24-data-pipeline-debug-fixes-design.md) | Data pipeline debug/fixes |
-| [visionking-sparktest-profile.md](../../docs/plans/2026-03-04-sparktest-deployment-profile-design.md) | SparkTest deployment profile |
+| [visionking-sparktest-profile.md](../../docs/superpowers/specs/2026-03-04-sparktest-deployment-profile-design.md) | SparkTest deployment profile |
 
 ### SDK
 | Plan | Status |

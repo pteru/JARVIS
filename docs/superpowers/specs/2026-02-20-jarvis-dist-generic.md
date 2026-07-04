@@ -6,7 +6,7 @@ Generate a fully sanitized JARVIS distribution that removes all Strokmatic-speci
 
 ## Problem Statement
 
-The Strokmatic JARVIS distribution (see `jarvis-dist-strokmatic.md`) strips personal data but retains product-specific context (DieMaster, SpotFusion, VisionKing). For broader distribution:
+The Strokmatic JARVIS distribution (see `2026-02-20-jarvis-dist-strokmatic.md`) strips personal data but retains product-specific context (DieMaster, SpotFusion, VisionKing). For broader distribution:
 
 1. **Product names and contexts** must be replaced with generic examples
 2. **Project codes** (01xxx, 02xxx, 03xxx) need generic equivalents
@@ -195,6 +195,6 @@ The generic edition needs proper documentation since users won't have institutio
 
 ## References
 
-- Depends on: `jarvis-dist-strokmatic.md` (must complete first)
+- Depends on: `2026-02-20-jarvis-dist-strokmatic.md` (must complete first)
 - Existing release dir: `releases/` (has `JARVIS-strokmatic/` placeholder)
 - Sanitization audit: 100+ company references, 50+ personal paths, 25 skills to review
