@@ -310,6 +310,56 @@ def cmd_index(args):
     return 0
 
 
+def search_pages(bundles, terms, type_=None, tag=None, project=None, product=None):
+    """Search across pages in bundles, scoring by term frequency.
+
+    Returns list of (score, bundle, rel_posix, meta_dict) tuples sorted by score desc.
+    Filters by type, tag, project, product if provided.
+    """
+    terms = [t.lower() for t in terms]
+    hits = []
+    for bundle in bundles:
+        for path, rel in iter_pages(bundle):
+            text = path.read_text(encoding="utf-8")
+            meta, body = parse_frontmatter(text)
+            meta = meta or {}
+            tags = [str(t).lower() for t in (meta.get("tags") or [])]
+            if type_ and str(meta.get("type", "")).lower() != type_.lower():
+                continue
+            if tag and tag.lower() not in tags:
+                continue
+            if project and str(meta.get("project", "")) != project:
+                continue
+            if product and str(meta.get("product", "")).lower() != product.lower():
+                continue
+            header = " ".join([str(meta.get("title", "")),
+                               str(meta.get("description", "")),
+                               " ".join(tags)]).lower()
+            lower_body = (body if meta else text).lower()
+            score = sum(3 * header.count(t) + lower_body.count(t) for t in terms)
+            if score > 0:
+                hits.append((score, bundle, rel, meta))
+    hits.sort(key=lambda h: -h[0])
+    return hits
+
+
+def cmd_search(args):
+    """Keyword search across bundles, printing top 20 results."""
+    bundles = load_catalog(args.catalog)
+    if args.bundle:
+        bundles = [b for b in bundles if b.name == args.bundle]
+    hits = search_pages(bundles, args.terms, type_=args.type, tag=args.tag,
+                        project=args.project, product=args.product)
+    for score, bundle, rel, meta in hits[:20]:
+        title = meta.get("title", Path(rel).stem)
+        desc = meta.get("description", "")
+        print(f"{score:4d}  {bundle.name}:{rel}  [{meta.get('type', '?')}] "
+              f"{title}{' — ' + desc if desc else ''}")
+    if not hits:
+        print("no results")
+    return 0
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(prog="okf", description=__doc__)
     parser.add_argument("--catalog", default=None, help="path to root catalog index.md")
@@ -321,6 +371,13 @@ def main(argv=None):
     p_lint.add_argument("--strict", action="store_true")
     p_index = sub.add_parser("index", help="regenerate a directory index.md")
     p_index.add_argument("directory")
+    p_search = sub.add_parser("search", help="keyword search across bundles")
+    p_search.add_argument("terms", nargs="+")
+    p_search.add_argument("--type", default=None)
+    p_search.add_argument("--tag", default=None)
+    p_search.add_argument("--project", default=None)
+    p_search.add_argument("--product", default=None)
+    p_search.add_argument("--bundle", default=None)
     args = parser.parse_args(argv)
     if args.command == "catalog":
         return cmd_catalog(args)
@@ -328,6 +385,8 @@ def main(argv=None):
         return cmd_lint(args)
     if args.command == "index":
         return cmd_index(args)
+    if args.command == "search":
+        return cmd_search(args)
     return 2
 
 

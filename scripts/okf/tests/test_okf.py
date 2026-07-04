@@ -243,3 +243,23 @@ def test_regenerate_index_preserves_sections_between_entries(tmp_path):
     assert "- [New](new.md) — Nova." in text
     assert result["added"] == ["new.md"]
     assert text.index("(r1.md)") < text.index("(new.md)")  # appended after last entry
+
+
+def test_search_scores_and_filters(tmp_path):
+    from okf import load_catalog, search_pages
+    catalog = make_catalog(tmp_path)
+    a = tmp_path / "alpha"
+    (a / "cam.md").write_text(
+        "---\ntype: Lesson Learned\ntitle: Câmeras GigE\n"
+        "description: Uplink de câmeras.\ntags: [visionking, cameras]\n"
+        'project: "03002"\n---\n\ncameras cameras cameras\n', encoding="utf-8")
+    (a / "plc.md").write_text(
+        "---\ntype: Reference\ntitle: PLC Siemens\ntags: [plc]\n---\n\nprofinet\n",
+        encoding="utf-8")
+    bundles = load_catalog(catalog)
+    hits = search_pages(bundles, ["cameras"])
+    assert hits and hits[0][2] == "cam.md"
+    assert search_pages(bundles, ["cameras"], project="03002")
+    assert not search_pages(bundles, ["cameras"], project="03008")
+    assert not search_pages(bundles, ["profinet"], tag="cameras")
+    assert search_pages(bundles, ["profinet"], type_="Reference")
