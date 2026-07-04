@@ -72,3 +72,6 @@
 # 0 4 * * * ORCHESTRATOR_HOME=/home/teruel/JARVIS /home/teruel/JARVIS/scripts/health/health.sh sf 02006 cleanup-reports >> /home/teruel/JARVIS/logs/cron-health-sf-02006.log 2>&1
 # 0 6 1 * * PATH=/home/teruel/.local/bin:/usr/bin:/bin ORCHESTRATOR_HOME=/home/teruel/JARVIS /home/teruel/JARVIS/scripts/health/health.sh sf 02006 monthly-consolidate >> /home/teruel/JARVIS/logs/cron-health-sf-02006.log 2>&1
 # =====================================================================
+
+# JARVIS log rotation — daily 03:30 (10MB threshold, 4 compressed generations)
+30 3 * * * /usr/sbin/logrotate --state /home/teruel/JARVIS/logs/.logrotate.state /home/teruel/JARVIS/config/logrotate/jarvis.conf >> /home/teruel/JARVIS/logs/cron-logrotate.log 2>&1

@@ -6,6 +6,8 @@ Session ID *.txt
 
 # Logs
 logs/*.log
+logs/*.log.[0-9]*
+logs/.logrotate.state
 logs/crontab-backup-*.txt
 !logs/.gitkeep
 
