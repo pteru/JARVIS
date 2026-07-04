@@ -96,3 +96,33 @@ def test_cmd_catalog_prints_table(tmp_path, capsys):
     main(["--catalog", str(make_catalog(tmp_path)), "catalog"])
     out = capsys.readouterr().out
     assert "alpha" in out and "beta" in out and "Alpha bundle" in out
+
+
+def test_iter_pages_skip_dirs_relative_only(tmp_path):
+    """A bundle whose ABSOLUTE path contains a skip-dir name (e.g. memory
+    under ~/.claude/) must not self-exclude; skip-dirs apply only INSIDE."""
+    from okf import Bundle, iter_pages
+    root = tmp_path / ".claude" / "memory-bundle"
+    (root / "cache").mkdir(parents=True)
+    (root / "fact.md").write_text("---\ntype: Reference\n---\nx\n", encoding="utf-8")
+    (root / "cache" / "skipped.md").write_text("---\ntype: R\n---\nx\n", encoding="utf-8")
+    (root / "MEMORY.md").write_text("index\n", encoding="utf-8")
+    b = Bundle(name="m", path=root, remote="(local only)", entry="MEMORY.md",
+               scope=["**"], description="")
+    rels = [rel for _, rel in iter_pages(b)]
+    assert rels == ["fact.md"]  # cache/ skipped, MEMORY.md reserved, root not self-excluded
+
+
+def test_iter_pages_reserved_and_scope(tmp_path):
+    from okf import Bundle, iter_pages
+    root = tmp_path / "pmo"
+    (root / "projects" / "03002" / "knowledge").mkdir(parents=True)
+    (root / "index.md").write_text("root index\n", encoding="utf-8")
+    (root / "projects" / "03002" / "knowledge" / "index.md").write_text("i\n", encoding="utf-8")
+    (root / "projects" / "03002" / "knowledge" / "contexto.md").write_text(
+        "---\ntype: Project Context\n---\nx\n", encoding="utf-8")
+    (root / "projects" / "03002" / "notas.md").write_text("raw\n", encoding="utf-8")
+    b = Bundle(name="pmo", path=root, remote="r", entry="index.md",
+               scope=["projects/*/knowledge/**"], description="")
+    rels = [rel for _, rel in iter_pages(b)]
+    assert rels == ["projects/03002/knowledge/contexto.md"]

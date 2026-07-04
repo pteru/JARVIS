@@ -16,7 +16,7 @@ also the mapping agents use to resolve cross-bundle GitHub links to local paths.
 
 | Bundle | Local path | Remote | Entry point | Lint scope | Description |
 |--------|-----------|--------|-------------|------------|-------------|
-| pmo | ~/JARVIS/workspaces/strokmatic/pmo | https://github.com/teruelskm/pmo | index.md | index.md,projects/*/knowledge/** | Projetos PMO (um por código de 5 dígitos); camada curada em projects/<code>/knowledge/ |
+| pmo | ~/JARVIS/workspaces/strokmatic/pmo | https://github.com/teruelskm/pmo | index.md | projects/*/knowledge/** | Projetos PMO (um por código de 5 dígitos); camada curada em projects/<code>/knowledge/ |
 | knowledge-base | ~/JARVIS/workspaces/strokmatic/knowledge-base | https://github.com/teruelskm/knowledge-base | index.md | ** | Base de conhecimento PT-BR (produtos, plataforma, operações); concepts/ liga temas entre projetos |
 | engineering-docs | ~/JARVIS/docs/superpowers | https://github.com/pteru/JARVIS | specs/index.md | ** | Design specs e implementation plans datados (SSOT de engenharia) |
 | memory | ~/.claude/projects/-home-teruel-JARVIS/memory | (local only) | MEMORY.md | ** | Memória de sessão do Claude. Privada — nunca criar links PARA este bundle a partir dos públicos. |

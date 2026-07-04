@@ -118,13 +118,18 @@ def load_catalog(catalog_path=None):
 
 
 def iter_pages(bundle):
-    """Yield (abs_path, rel_posix) for non-reserved .md files in lint scope."""
+    """Yield (abs_path, rel_posix) for non-reserved .md files in lint scope.
+
+    SKIP_DIRS is checked against BUNDLE-RELATIVE path parts (the memory
+    bundle lives under ~/.claude/, which must not self-exclude).
+    """
     for p in sorted(bundle.path.rglob("*.md")):
-        if any(part in SKIP_DIRS for part in p.parts):
+        rel_parts = p.relative_to(bundle.path).parts
+        if any(part in SKIP_DIRS for part in rel_parts):
             continue
         if p.name in RESERVED:
             continue
-        rel = p.relative_to(bundle.path).as_posix()
+        rel = "/".join(rel_parts)
         if any(fnmatch(rel, pat) for pat in bundle.scope):
             yield p, rel
 
