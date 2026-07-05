@@ -81,3 +81,5 @@ timestamp: 2026-07-04
 - [2026-03-05-gmail-api-migration](2026-03-05-gmail-api-migration.md)
 - [2026-03-05-sdk-reorganization](2026-03-05-sdk-reorganization.md)
 - [2026-03-11-git-graph-viewer-design](2026-03-11-git-graph-viewer-design.md)
+- [PMO Local↔Drive Governance](2026-07-04-pmo-drive-governance-design.md) — Audience-based placement policy for PMO project files, per-project audit/execution workflow, and registration of the convention in the OKF knowledge system.
+- [2026-07-04-sealer-provisioning-centerline-v3-migration-design](2026-07-04-sealer-provisioning-centerline-v3-migration-design.md)

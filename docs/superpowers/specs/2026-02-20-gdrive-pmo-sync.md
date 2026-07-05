@@ -5,6 +5,8 @@
 **Estimated complexity:** Medium
 **Dependencies:** Google Workspace MCP server (Done), email-organizer (Done), project-codes.json (Done)
 
+> **Extended by:** [2026-07-04-pmo-drive-governance-design.md](2026-07-04-pmo-drive-governance-design.md) — audience-based placement policy and per-project audit workflow.
+
 ---
 
 ## Objective
