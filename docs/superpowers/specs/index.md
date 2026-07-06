@@ -83,3 +83,4 @@ timestamp: 2026-07-04
 - [2026-03-11-git-graph-viewer-design](2026-03-11-git-graph-viewer-design.md)
 - [PMO Local↔Drive Governance](2026-07-04-pmo-drive-governance-design.md) — Audience-based placement policy for PMO project files, per-project audit/execution workflow, and registration of the convention in the OKF knowledge system.
 - [2026-07-04-sealer-provisioning-centerline-v3-migration-design](2026-07-04-sealer-provisioning-centerline-v3-migration-design.md)
+- [Sealer Provisioning Phase C — Correction GUI + Mirror Two-Pass](2026-07-05-sealer-phase-c-correction-gui-design.md) — Per-bead desktop correction app (Electron + Three.js, forked from the SDK inspection-grouping-optimizer) for caps/grouping/centerline overrides + node-drag, plus the extract_model mirror two-pass (fidelity 227/227).
