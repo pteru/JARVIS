@@ -68,3 +68,4 @@ timestamp: 2026-07-04
 - [2026-04-04-pr-review-v2](2026-04-04-pr-review-v2.md)
 - [2026-04-04-strokmatic-roadmap-2026](2026-04-04-strokmatic-roadmap-2026.md)
 - [2026-06-15-information-flow-jarvis-kb](2026-06-15-information-flow-jarvis-kb.md)
+- [Sealer Phase 0 — Engine (mirror two-pass + extract_beads + manual_points)](2026-07-06-sealer-phase-0-engine.md) — TDD plan for the sealer-provisioning engine changes that unblock Phase C: three-pass extract_beads, mirror two-pass (227/227), manual_points override, per-subset re-runs.
