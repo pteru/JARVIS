@@ -41,10 +41,15 @@ def extract(path):
             rec = json.loads(line)
         except json.JSONDecodeError:
             continue
+        if not isinstance(rec, dict):
+            continue
         if rec.get("isMeta"):
             continue
         kind = rec.get("type")
-        text = _text_of((rec.get("message") or {}).get("content"))
+        msg = rec.get("message")
+        if not isinstance(msg, dict):
+            continue
+        text = _text_of(msg.get("content"))
         if kind == "user":
             if _is_noise(text):
                 continue

@@ -71,3 +71,14 @@ def test_cli_total_cap(tmp_path, capsys):
     assert se.main([str(p), "--max-total", "400"]) == 0
     out = capsys.readouterr().out
     assert "[truncado" in out
+
+
+def test_skips_valid_json_that_is_not_a_dict_record(tmp_path):
+    p = tmp_path / "s.jsonl"
+    p.write_text(
+        "[1, 2, 3]\n42\n"
+        + json.dumps({"type": "user", "message": "not-a-dict"}) + "\n"
+        + json.dumps(_user("oi")),
+        encoding="utf-8",
+    )
+    assert se.extract(p) == [("user", "oi")]
