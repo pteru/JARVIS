@@ -85,6 +85,7 @@ rsync -a --quiet \
     --exclude='data/' \
     --exclude='logs/*.log' \
     --exclude='workspaces/' \
+    --exclude='journal/' \
     --exclude='releases/' \
     --exclude='config/credentials/' \
     --exclude='references/' \

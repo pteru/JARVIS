@@ -20,6 +20,7 @@ also the mapping agents use to resolve cross-bundle GitHub links to local paths.
 | knowledge-base | ~/JARVIS/workspaces/strokmatic/knowledge-base | https://github.com/teruelskm/knowledge-base | index.md | ** | Base de conhecimento PT-BR (produtos, plataforma, operações); concepts/ liga temas entre projetos |
 | engineering-docs | ~/JARVIS/docs/superpowers | https://github.com/pteru/JARVIS | specs/index.md | ** | Design specs e implementation plans datados (SSOT de engenharia) |
 | memory | ~/.claude/projects/-home-teruel-JARVIS/memory | (local only) | MEMORY.md | ** | Memória de sessão do Claude. Privada — nunca criar links PARA este bundle a partir dos públicos. |
+| journal | ~/JARVIS/journal | https://github.com/pteru/JARVIS | index.md | ** | Diário de trabalho por sessão/tópico — substrato de memória dos especialistas OKF. Repo privado; inclui tópicos pessoais. |
 
 Tooling: `python3 scripts/okf/okf.py {catalog|lint|search|index}` (stdlib only).
 Convention: every knowledge page carries YAML frontmatter with a required `type`.
