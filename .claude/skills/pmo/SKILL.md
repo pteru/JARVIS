@@ -70,3 +70,12 @@ Provide a brief project status summary including:
 - Google Drive status (if configured): number of linked folders, total files, index freshness
 
 Confirm you are ready to work on this project. Use the project's preferred language for all subsequent outputs unless instructed otherwise.
+
+## Boot OKF (especialista pmo)
+
+Antes de trabalhar, rehidrate contexto recente (convenção `~/JARVIS/journal/BOOT.md`):
+`python3 ~/JARVIS/scripts/okf/okf.py search pmo processos sprints governanca drive --tag pmo`,
+leia as 2–3 entradas mais recentes de `~/JARVIS/journal/` do tópico e as páginas
+que elas linkam. Ao final do bloco, escreva `journal/YYYY-MM-DD-pmo.md`
+(Feito · Decisões · Pendências · Links; **nunca segredos**) e rode
+`python3 ~/JARVIS/scripts/okf/okf.py index journal`.

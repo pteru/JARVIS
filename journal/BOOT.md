@@ -37,4 +37,25 @@ segredos ou credenciais.** Depois rode
 ## Roster
 
 | Slug | Classe | Termos de busca | Tags |
-|------|--------|-----------------|------|
+| --- | --- | --- | --- |
+| sealer | project | sealer centerline provisioning 03008 | sealer,03008,visionking,automacao |
+| iris-scds | project | iris scds camera 03007 | iris-scds,03007,visionking,automacao |
+| stellantis | project | stellantis goiana paint 03010 | stellantis,03010,visionking |
+| arcelor | project | arcelormittal producao 03002 03009 | arcelor,03002,03009,visionking |
+| sparktest | project | sparktest fagulhamento 03011 | sparktest,03011,visionking |
+| mercedes-vk | project | mercedes jdf tetos 03904 | mercedes-vk,03904,visionking |
+| smartdie | project | diemaster smartdie sjc 01001 | smartdie,01001,diemaster |
+| magna | project | magna prospeccao spot | magna,prospeccao |
+| nissan-smyrna | project | nissan smyrna smartcam 02008 | nissan-smyrna,02008,spotfusion |
+| eip | project | ethernet-ip opener cip strokmatic-eip | eip,strokmatic-eip |
+| automacao | field | servo drive plc profinet ethercat gsdml | automacao |
+| vk-producao | field | producao monitoramento troubleshoot vk-health burnin | vk-producao,arcelor |
+| dados-producao | field | backup migracao dumps imagens das gcs | dados-producao,arcelor |
+| blender | field | blender sdk-blender-tools 3d render | blender |
+| gm | field | gm supplypower normas general motors | gm |
+| pmo | field | pmo processos sprints governanca drive | pmo |
+| okf | field | okf knowledge bundle catalog journal | okf |
+| jarvis | field | orchestrator jarvis skills mcp dispatch | jarvis |
+| administrativo | field | administrativo rh contratos financeiro | administrativo |
+| propriedade-intelectual | field | patente ip inpi claims 03000 02000 | propriedade-intelectual |
+| pessoal | field | pessoal aeroporto arrendamento amendoim | pessoal |
