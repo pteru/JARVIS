@@ -340,13 +340,13 @@ OKF_PCT=$(python3 "${ORCHESTRATOR_HOME}/scripts/okf/okf.py" lint --pct-only 2>/d
 if [[ "$OKF_PCT" == "ERR" ]]; then
   warn "CHECK_14 OKF_CONFORMANCE: okf lint failed to run" \
     "Run: \`python3 scripts/okf/okf.py lint\` and inspect the error"
-elif [[ "$OKF_PCT" -ge 80 ]]; then
+elif [[ "$OKF_PCT" -ge 100 ]]; then
   pass "CHECK_14 OKF_CONFORMANCE: ${OKF_PCT}% of knowledge pages conformant"
-elif [[ "$OKF_PCT" -ge 40 ]]; then
-  warn "CHECK_14 OKF_CONFORMANCE: ${OKF_PCT}% conformant (ratchet target: 80%)" \
+elif [[ "$OKF_PCT" -ge 80 ]]; then
+  warn "CHECK_14 OKF_CONFORMANCE: ${OKF_PCT}% conformant (target: 100%, reached 2026-07-09)" \
     "Run: \`python3 scripts/okf/okf.py lint\` and add frontmatter to reported files"
 else
-  fail "CHECK_14 OKF_CONFORMANCE: ${OKF_PCT}% conformant (ratchet target: 80%)" \
+  fail "CHECK_14 OKF_CONFORMANCE: ${OKF_PCT}% conformant (target: 100%, reached 2026-07-09)" \
     "Run: \`python3 scripts/okf/okf.py lint\` and add frontmatter to reported files"
 fi
 
