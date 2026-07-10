@@ -56,6 +56,7 @@ timestamp: 2026-07-04
 - [2026-06-21-vk-camera-watchdog-l4-power-cycle](2026-06-21-vk-camera-watchdog-l4-power-cycle.md)
 - [2026-06-22-vk-system-hub-design](2026-06-22-vk-system-hub-design.md)
 - [2026-07-03-03008-sealer-axis-plc-integration-design](2026-07-03-03008-sealer-axis-plc-integration-design.md)
+- [EIP stack composta — adapter + tag-client + Redis](2026-07-09-eip-stack-design.md) — Stack docker-compose de 3 serviços no strokmatic-eip (issue #4): tag-client genérico pylogix + contrato de chaves Redis hot/cold/cmd/audit.
 - [OKF Adoption — Federated Knowledge Bundles](2026-07-04-okf-adoption-design.md) — Adopt the Open Knowledge Format (OKF v0.1) across all four JARVIS knowledge stores, federated as independent bundles under a single root catalog.
 - [2026-02-18-pmo-dashboard](2026-02-18-pmo-dashboard.md)
 - [2026-02-19-voice-interface](2026-02-19-voice-interface.md)
