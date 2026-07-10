@@ -42,8 +42,10 @@ language: pt-BR
 
 ## Pendências
 
-- **Merge do PR #6** — decisão do Pedro (merge de PR é sempre dele; classifier
-  bloqueia self-merge, corretamente).
+- ~~Merge do PR #6~~ — **MERGED 2026-07-10 17:14Z** após auto-review APPROVE
+  WITH COMMENTS (4 pontos endereçados: scanner PASS já postado; .gitmodules
+  section rename; nota no .travis.yml; comentário stale do IP corrigido em vez
+  de issue — CT20-6 já tinha resolvido o hardcode).
 - Gotchas ambientais a tocar depois: default image tag do `run_scanner_test.sh`
   aponta p/ imagem de maio (`strokmatic-eip:fixup`); `build/` untracked da raiz
   ficou órfão (stale caches — deletar); Docker cria dir root-owned quando
