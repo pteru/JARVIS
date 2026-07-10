@@ -1,3 +1,10 @@
+---
+type: Implementation Plan
+title: JARVIS Voice Pipeline Implementation Plan
+description: 1. Picovoice Console signup → AccessKey → save to `~/.secrets/picovoice-access-key` 2. Train custom 'JARVIS' keyword at console.picovoice.ai → download `.ppn` file 3. ElevenLabs signup → API key →...
+timestamp: 2026-02-27
+---
+
 # JARVIS Voice Pipeline Implementation Plan
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.

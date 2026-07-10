@@ -1,3 +1,10 @@
+---
+type: Implementation Plan
+title: Health Monitor Unification Implementation Plan
+description: Flat `metrics` keys are fully qualified. Per-node metrics carry a `node.<name>.` prefix; booleans are encoded `0|1`. A config check's `field` is the **suffix after the node prefix**; the engine mat...
+timestamp: 2026-06-17
+---
+
 # Health Monitor Unification Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

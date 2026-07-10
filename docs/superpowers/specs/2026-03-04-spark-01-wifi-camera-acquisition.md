@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: SPARK-01: WiFi Camera Acquisition Service
+description: Create a Python service at `workspaces/strokmatic/visionking/services/wifi-camera-acquisition/` that connects to RTSP streams from WiFi cameras (DJI Osmo Action 4 or similar) and writes frames to R...
+timestamp: 2026-03-04
+---
+
 # SPARK-01: WiFi Camera Acquisition Service
 
 ## Goal

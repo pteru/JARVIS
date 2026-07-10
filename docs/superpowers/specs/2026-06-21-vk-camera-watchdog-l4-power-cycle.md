@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: vk-camera-watchdog — L4 remote power-cycle (24VDC)
+description: Today, 2026-06-21, the second incident in 24h reproduced the same firmware deadlock on the 4× Hikrobot MV-CS020-10UM USB3 cameras at 03002:
+timestamp: 2026-06-21
+---
+
 # vk-camera-watchdog — L4 remote power-cycle (24VDC)
 
 **Status:** Draft

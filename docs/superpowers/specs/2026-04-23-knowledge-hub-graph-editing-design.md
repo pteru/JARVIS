@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: Knowledge Hub — Manual Graph Editing Design
+description: Let a human curate the knowledge-hub graph through the dashboard UI. Three connected capabilities:
+timestamp: 2026-04-23
+---
+
 # Knowledge Hub — Manual Graph Editing Design
 
 **Date:** 2026-04-23

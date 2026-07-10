@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: plc-comm-ops v1.1 — Dashboard, Tags, Trendlines, Inject
+description: Replace v1's two-page UI (`/` list + `/plugin/{p}/{i}` detail) with a single-page operator/debug console at `/` that shows every plugin instance simultaneously, surfaces live decoded lane values, d...
+timestamp: 2026-05-13
+---
+
 # plc-comm-ops v1.1 — Dashboard, Tags, Trendlines, Inject
 
 **Status:** Draft, pending user review.

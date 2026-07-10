@@ -1,3 +1,10 @@
+---
+type: Implementation Plan
+title: SG3 Compliance Monitor Implementation Plan
+description: If EXISTS, read it and add the new scripts/deps without removing anything. If MISSING, create the file shown below.
+timestamp: 2026-05-05
+---
+
 # SG3 Compliance Monitor Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: VisionKing — Docker Healthchecks for All Services
+description: Add Docker healthchecks to all VisionKing services in the root `docker-compose.yml`. No code changes inside service repositories. The deployment runner already copies healthcheck blocks from root c...
+timestamp: 2026-03-23
+---
+
 # VisionKing — Docker Healthchecks for All Services
 
 **Date:** 2026-03-23

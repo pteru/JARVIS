@@ -1,3 +1,10 @@
+---
+type: Implementation Plan
+title: Sprint Agents Implementation Plan
+description: Content of `services/sprint-agents/.gitignore`:
+timestamp: 2026-04-17
+---
+
 # Sprint Agents Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

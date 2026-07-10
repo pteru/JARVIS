@@ -1,3 +1,10 @@
+---
+type: Implementation Plan
+title: KB Auto-Update (Phase 2) Implementation Plan
+description: Map workspace path prefixes to KB page paths. When a git merge touches files under a prefix, the corresponding KB page is flagged.
+timestamp: 2026-04-03
+---
+
 # KB Auto-Update (Phase 2) Implementation Plan
 
 > **For agentic workers:** REQUIRED: Use superpowers:subagent-driven-development (if subagents available) or superpowers:executing-plans to implement this plan. Steps use checkbox (`- [ ]`) syntax for tracking.

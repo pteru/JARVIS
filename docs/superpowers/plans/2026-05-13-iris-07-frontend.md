@@ -1,3 +1,10 @@
+---
+type: Implementation Plan
+title: IRIS-07 frontend-iris — Implementation Plan
+description: Expected: instalação limpa de dependências.
+timestamp: 2026-05-13
+---
+
 # IRIS-07 frontend-iris — Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:subagent-driven-development` (recommended) or `superpowers:executing-plans` to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

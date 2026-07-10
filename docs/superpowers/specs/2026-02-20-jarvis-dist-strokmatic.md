@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: JARVIS Distribution — Strokmatic Edition
+description: Generate a non-personal, Strokmatic-branded JARVIS distribution for colleagues. Strip all personal data (teruel-specific paths, personal emails, personal session history) while preserving the full...
+timestamp: 2026-02-20
+---
+
 # JARVIS Distribution — Strokmatic Edition
 
 ## Summary

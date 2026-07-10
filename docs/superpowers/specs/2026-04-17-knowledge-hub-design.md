@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: Knowledge Hub — Design Spec
+description: Each source has a dedicated parser following a common interface:
+timestamp: 2026-04-17
+---
+
 # Knowledge Hub — Design Spec
 
 > Evolution of the `context-refresh` service into a centralized knowledge engine for Strokmatic.

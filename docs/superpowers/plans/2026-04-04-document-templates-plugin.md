@@ -1,3 +1,10 @@
+---
+type: Implementation Plan
+title: Plugin Spec: `document-templates`
+description: Centralizar os templates de documentos da Strokmatic em um plugin reutilizável, eliminando CSS duplicado e padronizando a identidade visual dos documentos gerados por qualquer workspace (JARVIS, Vi...
+timestamp: 2026-04-04
+---
+
 # Plugin Spec: `document-templates`
 
 > Strokmatic Marketplace Plugin — biblioteca de templates para geração de documentos profissionais

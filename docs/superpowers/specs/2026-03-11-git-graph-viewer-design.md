@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: Git Graph Viewer — Design Document
+description: An interactive, multi-workspace git visualization tool integrated into the JARVIS orchestrator dashboard. Provides a comprehensive view of branch states, commit history, merge topology, sync status...
+timestamp: 2026-03-11
+---
+
 # Git Graph Viewer — Design Document
 
 **Date:** 2026-03-11

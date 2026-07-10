@@ -1,3 +1,10 @@
+---
+type: Implementation Plan
+title: Git Graph Viewer — Implementation Plan
+description: This is the core data layer. All git operations go through this module.
+timestamp: 2026-03-11
+---
+
 # Git Graph Viewer — Implementation Plan
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.

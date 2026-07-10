@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: meeting-index — Design Spec
+description: Serviço daily que organiza as notas de reunião geradas automaticamente pelo Gemini. Atualmente os arquivos ficam em `Meu Drive / Meet Recordings`, misturados com reuniões ad-hoc, reuniões com clien...
+timestamp: 2026-04-15
+---
+
 # meeting-index — Design Spec
 
 **Status:** Draft

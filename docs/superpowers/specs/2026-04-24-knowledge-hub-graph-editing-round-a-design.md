@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: Knowledge Hub — Manual Graph Editing, Round A
+description: Second round of manual-graph-editing features, addressing gaps discovered in the Round 1 implementation and user feedback. Four connected capabilities:
+timestamp: 2026-04-24
+---
+
 # Knowledge Hub — Manual Graph Editing, Round A
 
 **Date:** 2026-04-24

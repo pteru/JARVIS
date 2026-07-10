@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: Sandbox Development Environment — Autonomous Task Execution
+description: A Docker-based sandboxed development environment that allows Claude Code to work autonomously on backlog tasks without per-command permission prompts and without risk to the host system. Uses a pre...
+timestamp: 2026-02-20
+---
+
 # Sandbox Development Environment — Autonomous Task Execution
 
 ## Summary

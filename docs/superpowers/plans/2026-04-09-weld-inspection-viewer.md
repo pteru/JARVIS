@@ -1,3 +1,10 @@
+---
+type: Implementation Plan
+title: Weld Inspection Grouping Viewer — Implementation Plan
+description: Run: `cd viewer && npm install && npm run dev` Expected: Vite dev server at http://localhost:5173, dark page with 'Inspection Grouping Viewer' header
+timestamp: 2026-04-09
+---
+
 # Weld Inspection Grouping Viewer — Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

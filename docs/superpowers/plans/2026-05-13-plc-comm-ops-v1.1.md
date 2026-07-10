@@ -1,3 +1,10 @@
+---
+type: Implementation Plan
+title: plc-comm-ops v1.1 Implementation Plan
+description: Expected: existing tests still pass (43/43 from v0.2.0 baseline).
+timestamp: 2026-05-13
+---
+
 # plc-comm-ops v1.1 Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

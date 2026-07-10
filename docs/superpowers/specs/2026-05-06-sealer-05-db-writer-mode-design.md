@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: [4.10] Sealer DB Writer Topology — Design Spec
+description: This is **zero new Python code** — only topology configuration and stored procedures.
+timestamp: 2026-05-06
+---
+
 # [4.10] Sealer DB Writer Topology — Design Spec
 
 > **Profile**: `vk-sealer`

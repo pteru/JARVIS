@@ -1,3 +1,10 @@
+---
+type: Implementation Plan
+title: Correção da inferência VK01 — troca p/ modelo detection + mapeamento de classes
+description: Esperado (antes da correção): `ultima_hora = 0` e `ultimo` ≈ `2026-04-24 09:10`. Anote os valores — servem de comparação na Fase 5.
+timestamp: 2026-05-15
+---
+
 # Correção da inferência VK01 — troca p/ modelo detection + mapeamento de classes
 
 > **Para executores:** plano de **operação em produção** (vk01, projeto 03002). Não é um plano de código com TDD — cada tarefa tem um **gate de verificação** baseado em evidência (saída de comando / query). Execute fase a fase; **pare e confirme com o Pedro entre fases**. Use checkboxes (`- [ ]`) para acompanhar.

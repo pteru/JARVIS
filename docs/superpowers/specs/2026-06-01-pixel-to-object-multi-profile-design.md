@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: pixel-to-object — serviço multi-profile (body + sealer)
+description: Um único serviço `visionking/services/pixel-to-object` que atende dois produtos via **profile**:
+timestamp: 2026-06-01
+---
+
 # pixel-to-object — serviço multi-profile (body + sealer)
 
 **Status:** Draft, pending user review.

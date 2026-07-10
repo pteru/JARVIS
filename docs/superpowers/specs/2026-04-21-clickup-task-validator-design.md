@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: ClickUp Task Validator — Design Spec
+description: Done tasks remaining in a sprint as **secondary** location is the **correct** behavior — it records which sprint the task was closed in. This is not a violation.
+timestamp: 2026-04-21
+---
+
 # ClickUp Task Validator — Design Spec
 
 > Periodic validation service for ClickUp tasks across DieMaster, SpotFusion, and VisionKing. Detects organizational, metadata, status, and cross-system issues; proposes auto-fixes reviewed via dashboard.

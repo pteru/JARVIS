@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: kb-generator — Design Spec
+description: Serviço diário que detecta projetos com atividade recente, gera/atualiza 4 reports por projeto (overview, status, sprint, context.md) via LLM, e commita no PMO repo. Opera como **editor cirúrgico**...
+timestamp: 2026-04-16
+---
+
 # kb-generator — Design Spec
 
 **Status:** Draft

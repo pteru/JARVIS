@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: [4.8] Sealer DB Adoption via sql-vk-common — Design Spec
+description: This is **stage 1 of a 3-stage path** to a unified schema (target = 'Caminho A'):
+timestamp: 2026-05-06
+---
+
 # [4.8] Sealer DB Adoption via sql-vk-common — Design Spec
 
 > **Profile**: `vk-sealer`

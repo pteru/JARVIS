@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: Google Workspace Tools — Distributable Package
+description: Package the Google Workspace MCP server, associated Claude Code skills (`/gdoc`, `/gsheet`, `/gslides`, `/gdrive`, `/gdrive-setup`), and configuration templates into a self-contained, distributable...
+timestamp: 2026-02-20
+---
+
 # Google Workspace Tools — Distributable Package
 
 ## Summary

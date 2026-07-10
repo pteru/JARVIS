@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: IRIS-05 — database schema deploy
+description: Provisionar o banco de dados do IRIS GM SCDS como **um deploy novo do schema `sql-vk-body` em uma instância Postgres dedicada** (greenfield, sem migração) e popular as tabelas de catálogo (`types`,...
+timestamp: 2026-05-13
+---
+
 # IRIS-05 — database schema deploy
 
 **Status:** Draft, pending user review.

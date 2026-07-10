@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: SPARK-02: Spark Test Controller Service
+description: Create a Python/FastAPI service at `workspaces/strokmatic/visionking/services/spark-test-controller/` that orchestrates each spark test cycle. It manages the test lifecycle, coordinates camera star...
+timestamp: 2026-03-04
+---
+
 # SPARK-02: Spark Test Controller Service
 
 ## Goal

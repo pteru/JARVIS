@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: `/cleanup` Skill — Post-Task Cleanup Ritual
+description: A Claude Code skill invoked as `/cleanup` after completing a task. It performs a standardized end-of-task ritual: checks the git worktree and branch state, prepares and stages changes for commit, u...
+timestamp: 2026-02-20
+---
+
 # `/cleanup` Skill — Post-Task Cleanup Ritual
 
 ## Summary

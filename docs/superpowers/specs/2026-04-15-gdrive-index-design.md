@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: gdrive-index — Design Spec
+description: Formaliza o indexador de pastas Drive que hoje existe como script ad-hoc no JARVIS host (`scripts/gdrive-index.sh`), transformando-o num service padrão do infra. O service roda diariamente em `192....
+timestamp: 2026-04-15
+---
+
 # gdrive-index — Design Spec
 
 **Status:** Draft

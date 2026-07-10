@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: JARVIS Voice Pipeline — Design Document
+description: Python-based voice pipeline for the JARVIS assistant. Listens for a 'JARVIS' wake word via Porcupine, transcribes speech with Deepgram Nova-2 streaming STT, generates responses through `claude --pr...
+timestamp: 2026-02-27
+---
+
 # JARVIS Voice Pipeline — Design Document
 
 **Date:** 2026-02-27

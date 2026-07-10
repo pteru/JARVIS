@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: SparkTest — VisionKing Deployment Profile Design
+description: Portable steel alloy identification via spark testing. An operator grinds a steel sample while wearing a helmet-mounted WiFi action camera (DJI Osmo Action 4 or similar). The camera streams RTSP vi...
+timestamp: 2026-03-04
+---
+
 # SparkTest — VisionKing Deployment Profile Design
 
 **Date:** 2026-03-04<br>

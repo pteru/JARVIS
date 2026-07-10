@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: Knowledge Base — Design Spec
+description: Criar uma base de conhecimento completa e detalhada que substitua o Pedro Teruel como fonte de informação para a equipe Strokmatic. Quando um engenheiro ou gestor de projetos precisar saber 'como X...
+timestamp: 2026-04-03
+---
+
 # Knowledge Base — Design Spec
 
 > **Data:** 2026-04-03

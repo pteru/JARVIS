@@ -1,3 +1,10 @@
+---
+type: Audit
+title: Phase 0 Audit — strokmatic-opener legacy fork archaeology
+description: This audit originally recommended `upstream OpENer v2.3` as the fresh-fork base. **That recommendation is wrong** — discovered during Phase 2 execution:
+timestamp: 2026-05-07
+---
+
 # Phase 0 Audit — strokmatic-opener legacy fork archaeology
 
 **Date:** 2026-05-07

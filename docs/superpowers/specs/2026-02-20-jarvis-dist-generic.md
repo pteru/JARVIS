@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: JARVIS Distribution — Generic Edition
+description: Generate a fully sanitized JARVIS distribution that removes all Strokmatic-specific details, suitable for public or community distribution. Provides the orchestration framework, skill templates, MC...
+timestamp: 2026-02-20
+---
+
 # JARVIS Distribution — Generic Edition
 
 ## Summary

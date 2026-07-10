@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: VK system-hub — Fase 0 Design
+description: Em 22/06/2026 vk01 perdeu acesso de rede durante um swap físico de câmera USB. A hipótese mais provável é kernel hang/panic concorrente com a manipulação física. O ponto cego operacional foi: quand...
+timestamp: 2026-06-22
+---
+
 # VK system-hub — Fase 0 Design
 
 **Data**: 2026-06-22

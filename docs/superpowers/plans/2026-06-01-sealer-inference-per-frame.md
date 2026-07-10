@@ -1,3 +1,10 @@
+---
+type: Implementation Plan
+title: Plan — vk-inference profile `sealer-per-frame`
+description: Total: ~6 dias de William.
+timestamp: 2026-06-01
+---
+
 # Plan — vk-inference profile `sealer-per-frame`
 
 **Spec:** `docs/superpowers/specs/2026-06-01-sealer-inference-per-frame-design.md`.

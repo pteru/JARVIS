@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: IRIS-07 — frontend-iris
+description: Habilitar o `visionking/services/frontend-ds` (Angular 19) para servir o IRIS GM SCDS aproveitando o trabalho da POC Stellantis 03010 (mesmo produto VK Body) e os mockups já desenhados no Figma `ZD...
+timestamp: 2026-05-13
+---
+
 # IRIS-07 — frontend-iris
 
 **Status:** Draft, pending user review.

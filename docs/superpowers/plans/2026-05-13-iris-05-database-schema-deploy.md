@@ -1,3 +1,10 @@
+---
+type: Implementation Plan
+title: IRIS-05 database-schema-deploy — Implementation Plan
+description: Expected: arquivos `schema_body.sql` + diretórios `functions/` e `triggers/` visíveis.
+timestamp: 2026-05-13
+---
+
 # IRIS-05 database-schema-deploy — Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:executing-plans` para tocar este plano. Steps usam checkbox (`- [ ]`) para tracking. Este é um runbook de deploy + validação — não há desenvolvimento de software além de scripts de seed e smoke test.

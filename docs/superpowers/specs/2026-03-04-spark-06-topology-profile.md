@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: SPARK-06: SparkTest Topology Profile
+description: Create the SparkTest deployment profile for VisionKing's topology tools. This includes a new topology YAML template, service catalog entries for new SparkTest services, and a docker-compose referen...
+timestamp: 2026-03-04
+---
+
 # SPARK-06: SparkTest Topology Profile
 
 ## Goal

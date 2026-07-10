@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: IRIS-02 — pipeline-trigger-sync
+description: Adaptar o serviço C++ `visionking/services/camera-acquisition` para o uso na linha IRIS (GM SCDS Paint). O serviço atual já entrega o ciclo {HW trigger → frame → join com metadados PLC do Redis → p...
+timestamp: 2026-05-13
+---
+
 # IRIS-02 — pipeline-trigger-sync
 
 **Status:** Draft, pending user review.

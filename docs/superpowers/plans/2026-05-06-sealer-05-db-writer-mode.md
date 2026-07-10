@@ -1,3 +1,10 @@
+---
+type: Implementation Plan
+title: [4.10] Sealer DB Writer Topology — Implementation Plan
+description: Replace the existing `result-writer` block with two:
+timestamp: 2026-05-06
+---
+
 # [4.10] Sealer DB Writer Topology — Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: `superpowers:subagent-driven-development` or `superpowers:executing-plans`. Steps use `- [ ]` checkbox tracking.

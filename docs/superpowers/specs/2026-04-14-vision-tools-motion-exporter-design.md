@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: Strokmatic Vision Tools — Motion Curve Exporter (v1.2.0)
+description: When a vehicle moves longitudinally through a VisionKing inspection portal, several supporting components must move on programmed paths to keep cameras and emitters aligned with the surfaces being...
+timestamp: 2026-04-14
+---
+
 # Strokmatic Vision Tools — Motion Curve Exporter (v1.2.0)
 
 **Date:** 2026-04-14

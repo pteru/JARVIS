@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: Stroke-Based Processing Pipeline v2
+description: The current data-processing pipeline processes each sensor message independently as it arrives from `pd-queue`. This prevents cross-sensor analysis at the phase-transition level — each DRAWIN senso...
+timestamp: 2026-03-21
+---
+
 # Stroke-Based Processing Pipeline v2
 
 **Date:** 2026-03-21

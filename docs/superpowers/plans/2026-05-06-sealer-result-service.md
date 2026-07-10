@@ -1,3 +1,10 @@
+---
+type: Implementation Plan
+title: [4.12] sealer-result Service — Implementation Plan
+description: Mirrors `services/result/` (visionking-result) one-for-one. Same filenames at the same logical positions to enable Phase 2 generalization.
+timestamp: 2026-05-06
+---
+
 # [4.12] sealer-result Service — Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: `superpowers:subagent-driven-development` or `superpowers:executing-plans`. Steps use `- [ ]` checkbox tracking.

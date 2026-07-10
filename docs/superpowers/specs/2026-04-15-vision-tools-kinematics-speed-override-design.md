@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: Strokmatic Vision Tools — Kinematics + Adjustable Car Speed (v1.3.0)
+description: The v1.2.0 motion exporter captures per-component body-local positions but delivers only spatial data. Engineering also needs:
+timestamp: 2026-04-15
+---
+
 # Strokmatic Vision Tools — Kinematics + Adjustable Car Speed (v1.3.0)
 
 **Date:** 2026-04-15

@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: Design: PMO Local ↔ Drive Folder Structure
+description: Standardize the local PMO project folder structure and its relationship with remote Google Drive project folders. Adopt a cloud-first, hybrid approach: Drive and Gmail are the source of truth for a...
+timestamp: 2026-04-06
+---
+
 # Design: PMO Local ↔ Drive Folder Structure
 
 **Date:** 2026-04-06

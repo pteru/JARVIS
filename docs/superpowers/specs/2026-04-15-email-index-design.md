@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: email-index — Design Spec
+description: Serviço hourly que sincroniza emails por projeto do Gmail via service account, produzindo `projects/{code}/emails/index.json` no repo PMO (transport via git). Preserva o núcleo maduro do `scripts/e...
+timestamp: 2026-04-15
+---
+
 # email-index — Design Spec
 
 **Status:** Draft

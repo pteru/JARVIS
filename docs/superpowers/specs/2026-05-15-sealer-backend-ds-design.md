@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: SEALER backend-ds — profile `vk-sealer`
+description: Habilitar o repositório `visionking/services/backend-ds` (NestJS + raw `pg`) a servir o produto **SEALER** como um **profile `vk-sealer`**, irmão do produto Body que o repo serve hoje. O `backend-d...
+timestamp: 2026-05-15
+---
+
 # SEALER backend-ds — profile `vk-sealer`
 
 **Status:** Draft, pending user review.

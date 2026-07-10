@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: JARVIS Voice Interface
+description: Voice-activated conversational interface for JARVIS with Paul Bettany's JARVIS voice and a reactive visual identity (energy orb).
+timestamp: 2026-02-19
+---
+
 # JARVIS Voice Interface
 
 ## Overview

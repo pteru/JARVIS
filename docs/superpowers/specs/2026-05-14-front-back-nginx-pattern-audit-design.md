@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: Auditoria do padrão front + back + nginx — Strokmatic
+description: A spec IRIS-06/07 (`docs/superpowers/specs/2026-05-13-iris-0{6,7}-*-design.md`) consolidou um padrão de exposição de rede para o conjunto front + back de um produto. Esse padrão não é universal ent...
+timestamp: 2026-05-14
+---
+
 # Auditoria do padrão front + back + nginx — Strokmatic
 
 **Status:** Draft para revisão interna (Pedro). Não distribuir antes de revisão.

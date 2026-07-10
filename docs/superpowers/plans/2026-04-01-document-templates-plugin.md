@@ -1,3 +1,10 @@
+---
+type: Implementation Plan
+title: Document Templates Plugin — Implementation Plan
+description: Expected: plugin.json (59 bytes), 4 asset files (colors.json + 3 logos)
+timestamp: 2026-04-01
+---
+
 # Document Templates Plugin — Implementation Plan
 
 > **For agentic workers:** REQUIRED: Use superpowers:subagent-driven-development (if subagents available) or superpowers:executing-plans to implement this plan. Steps use checkbox (`- [ ]`) syntax for tracking.

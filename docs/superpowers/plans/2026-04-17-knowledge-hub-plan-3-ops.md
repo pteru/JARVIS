@@ -1,3 +1,10 @@
+---
+type: Implementation Plan
+title: Knowledge Hub — Plan 3: Ops, Lint & Consumer Integration
+description: All work happens in the knowledge-hub service directory within the infra worktree. Consumer changes happen in their respective worktrees.
+timestamp: 2026-04-17
+---
+
 # Knowledge Hub — Plan 3: Ops, Lint & Consumer Integration
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

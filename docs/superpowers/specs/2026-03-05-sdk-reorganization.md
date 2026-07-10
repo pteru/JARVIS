@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: SDK Monorepo Reorganization — Comprehensive Plan
+description: Restructure the flat Strokmatic SDK monorepo (`workspaces/strokmatic/sdk/`) into a categorized, submodule-based architecture. Consolidate duplicate tools from product toolkits (VisionKing, SpotFusi...
+timestamp: 2026-03-05
+---
+
 # SDK Monorepo Reorganization — Comprehensive Plan
 
 ## Summary

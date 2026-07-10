@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: vk-camera-watchdog — Design Spec
+description: On 2026-06-20, the vk01 capture pipeline stalled for **~3h10min** (16:18 → 19:27) after a cascade triggered by a manual `docker restart database-server` that hit SIGTERM timeout. Final cause was th...
+timestamp: 2026-06-20
+---
+
 # vk-camera-watchdog — Design Spec
 
 **Issue:** [strokmatic/visionking#115](https://github.com/strokmatic/visionking/issues/115)

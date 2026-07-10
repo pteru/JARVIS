@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: Strokmatic Vision Tools v1.1.1 — Performance and Correctness Fixes
+description: v1.1.0 field testing on real vehicle geometry (2.2M-vertex STL) revealed three critical correctness bugs and severe performance problems that make the tools unusable at production scale:
+timestamp: 2026-04-14
+---
+
 # Strokmatic Vision Tools v1.1.1 — Performance and Correctness Fixes
 
 **Date:** 2026-04-14

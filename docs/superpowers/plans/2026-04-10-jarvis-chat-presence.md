@@ -1,3 +1,10 @@
+---
+type: Implementation Plan
+title: JARVIS Chat Presence Implementation Plan
+description: Sets up directory structure, config files, gitignore, and verifies Node test runner works. One task.
+timestamp: 2026-04-10
+---
+
 # JARVIS Chat Presence Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

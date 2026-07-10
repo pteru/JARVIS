@@ -1,3 +1,10 @@
+---
+type: Implementation Plan
+title: Motion Curve Exporter Implementation Plan
+description: Same pattern as v1.0–v1.1.x:
+timestamp: 2026-04-14
+---
+
 # Motion Curve Exporter Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: GitHub Issues as Backlog Source of Truth — Design
+description: Phase 1 migrated every open backlog task into GitHub Issues and reduced the seven local task-list files to pointer stubs (zero `- [ ]` lines). The orchestrator's backlog consumers still *read and w...
+timestamp: 2026-06-16
+---
+
 # GitHub Issues as Backlog Source of Truth — Design
 
 > **Date:** 2026-06-16

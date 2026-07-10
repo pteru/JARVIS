@@ -1,3 +1,10 @@
+---
+type: Implementation Plan
+title: strokmatic-eip Phase 1 — Comm SDK + Camera Plugin v2 — Implementation Plan
+description: Local clone target: `/home/teruel/JARVIS/workspaces/strokmatic/sdk/strokmatic-comm-sdk/`
+timestamp: 2026-05-07
+---
+
 # strokmatic-eip Phase 1 — Comm SDK + Camera Plugin v2 — Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:subagent-driven-development` (recommended) or `superpowers:executing-plans` to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

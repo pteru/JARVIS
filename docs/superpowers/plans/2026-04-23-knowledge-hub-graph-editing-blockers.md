@@ -1,3 +1,10 @@
+---
+type: Implementation Plan
+title: KH Graph-Editing — Overnight Run Status (2026-04-24)
+description: The feature branch needs to be merged to `master` on `strokmatic/infra` and deployed to `strokmatic@192.168.15.2`. Both are shared-infra changes that require your explicit consent — I did not proce...
+timestamp: 2026-04-23
+---
+
 # KH Graph-Editing — Overnight Run Status (2026-04-24)
 
 ## Summary

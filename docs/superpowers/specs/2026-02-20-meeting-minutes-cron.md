@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: Meeting Minutes Cron — GDrive Auto-Organizer
+description: Automated cron job that uses the Google Workspace MCP server to discover meeting minutes, recordings, and transcripts from Google Calendar/Drive, classify them by PMO project, organize them into th...
+timestamp: 2026-02-20
+---
+
 # Meeting Minutes Cron — GDrive Auto-Organizer
 
 ## Summary

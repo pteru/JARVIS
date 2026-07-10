@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: IRIS-06 — backend-iris
+description: Habilitar o serviço `visionking/services/backend-ds` (NestJS + raw `pg`) para o IRIS GM SCDS aproveitando a POC já feita para o demo Stellantis 03010 (mesmo produto VK Body). IRIS-06 é, na prática,...
+timestamp: 2026-05-13
+---
+
 # IRIS-06 — backend-iris
 
 **Status:** Draft, pending user review.

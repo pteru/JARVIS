@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: Dashboard Modular Sidenav — Restructured Orchestrator Dashboard
+description: Restructure the current single-page orchestrator dashboard (`dashboard/`) into a modular layout with a sidenav containing separate tabs for each tool/domain. A General tab provides a summarized ove...
+timestamp: 2026-02-20
+---
+
 # Dashboard Modular Sidenav — Restructured Orchestrator Dashboard
 
 ## Summary

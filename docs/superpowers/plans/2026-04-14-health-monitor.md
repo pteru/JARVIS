@@ -1,3 +1,10 @@
+---
+type: Implementation Plan
+title: health-monitor Implementation Plan
+description: Creates the service skeleton. No logic yet.
+timestamp: 2026-04-14
+---
+
 # health-monitor Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

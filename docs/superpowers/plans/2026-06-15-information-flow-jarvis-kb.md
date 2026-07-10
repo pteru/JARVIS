@@ -1,3 +1,10 @@
+---
+type: Implementation Plan
+title: Fluxo Integrado de Informação — Strokmatic
+description: 1. **Drive é a fonte de verdade** para todos os artefatos de projeto — CAD, especificações, cotações, relatórios, atas. O repositório PMO local armazena índices e conhecimento gerado, não cópias.
+timestamp: 2026-06-15
+---
+
 # Fluxo Integrado de Informação — Strokmatic
 
 > Como a informação flui das fontes externas, passa pelo repositório PMO, e chega aos consumidores finais (engenheiros, Pedro, bots). Cobre Lane 1 (Software) e Lane 2 (Engenharia), e como agentes com contexto de projeto potencializam ambas.

@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: JARVIS Chat Presence — Design Spec
+description: A second Google Chat bot, parallel to the existing `kb-chat`, that lives inside Strokmatic project spaces alongside humans. Two responsibilities:
+timestamp: 2026-04-10
+---
+
 # JARVIS Chat Presence — Design Spec
 
 **Status:** Draft

@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: SEALER-01: Point Cloud Processor — Design Spec
+description: The `point-cloud-processor` is a **multi-frame aggregator with 3D processing** for the VisionKing sealer pipeline. A Hikrobot MV-DLS1400M-15 galvanometric laser camera mounted on a 2.5 m linear axi...
+timestamp: 2026-04-13
+---
+
 # SEALER-01: Point Cloud Processor — Design Spec
 
 > **Profile**: `vk-sealer` — 3D point cloud sealer bead inspection

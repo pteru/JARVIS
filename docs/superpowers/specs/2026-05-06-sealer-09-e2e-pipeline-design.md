@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: [4.13] SEALER-09 E2E Pipeline → DB Tests — Design Spec
+description: End-to-end integration tests covering the **full sealer capture-to-DB pipeline** post the 2026-06-01 architectural pivot:
+timestamp: 2026-05-06
+---
+
 # [4.13] SEALER-09 E2E Pipeline → DB Tests — Design Spec
 
 > **Profile**: `vk-sealer`

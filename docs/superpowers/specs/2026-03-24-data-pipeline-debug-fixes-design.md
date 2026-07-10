@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: DieMaster Data Pipeline Debug Fixes — Design Spec
+description: Two bugs discovered during physical testing block ~100% of data flow through the processing pipeline:
+timestamp: 2026-03-24
+---
+
 # DieMaster Data Pipeline Debug Fixes — Design Spec
 
 **Date:** 2026-03-24

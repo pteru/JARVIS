@@ -1,3 +1,10 @@
+---
+type: Implementation Plan
+title: JARVIS Restructuring & Strokmatic Marketplace Plan
+description: JARVIS has grown organically to ~28K LOC across 41 skills, 11 MCP servers (144 tools), 3 dashboards, and extensive shell/Python tooling. Analysis reveals:
+timestamp: 2026-03-23
+---
+
 # JARVIS Restructuring & Strokmatic Marketplace Plan
 
 **Date:** 2026-03-23

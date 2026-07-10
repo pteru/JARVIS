@@ -1,3 +1,10 @@
+---
+type: Implementation Plan
+title: PMO Local ↔ Drive Folder Structure — Implementation Plan
+description: Use `cp` first, verify, then remove original.
+timestamp: 2026-04-06
+---
+
 # PMO Local ↔ Drive Folder Structure — Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

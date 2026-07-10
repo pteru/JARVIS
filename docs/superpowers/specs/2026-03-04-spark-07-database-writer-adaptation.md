@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: SPARK-07: Database Writer SparkTest Adaptation
+description: Create a SparkTest-specific database-writer configuration at `workspaces/strokmatic/visionking/services/spark-database-writer/`. This is a lightweight Python service that consumes spark test infere...
+timestamp: 2026-03-04
+---
+
 # SPARK-07: Database Writer SparkTest Adaptation
 
 ## Goal

@@ -1,3 +1,10 @@
+---
+type: Implementation Plan
+title: ClickUp Task Validator Implementation Plan
+description: All Phase A tasks live in worktree `/home/teruel/worktrees/infra-clickup-validator` off branch `feature/clickup-task-validator` (created from `origin/master`).
+timestamp: 2026-04-21
+---
+
 # ClickUp Task Validator Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

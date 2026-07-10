@@ -1,3 +1,9 @@
+---
+type: Implementation Plan
+title: Plan — pixel-to-object multi-profile (body + sealer)
+timestamp: 2026-06-01
+---
+
 # Plan — pixel-to-object multi-profile (body + sealer)
 
 **Spec:** `docs/superpowers/specs/2026-06-01-pixel-to-object-multi-profile-design.md`

@@ -1,3 +1,10 @@
+---
+type: Implementation Plan
+title: Vision Tools v1.3.0 — Kinematics + Adjustable Car Speed Implementation Plan
+description: Same pattern as v1.2.0:
+timestamp: 2026-04-15
+---
+
 # Vision Tools v1.3.0 — Kinematics + Adjustable Car Speed Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

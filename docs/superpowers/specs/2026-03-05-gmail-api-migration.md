@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: Gmail API Migration — Google Workspace MCP Server
+description: Add Gmail tools to the existing Google Workspace MCP server and migrate the email fetching pipeline from raw IMAP (`imaplib`) to Gmail API. This consolidates authentication (service account already...
+timestamp: 2026-03-05
+---
+
 # Gmail API Migration — Google Workspace MCP Server
 
 **Status:** Planned

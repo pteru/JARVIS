@@ -1,3 +1,10 @@
+---
+type: Implementation Plan
+title: meeting-index Implementation Plan
+description: All provisioned by the gdrive-index plan (`docs/superpowers/plans/2026-04-15-gdrive-index.md`) Phases 1-2 and Phase 9.1.
+timestamp: 2026-04-15
+---
+
 # meeting-index Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

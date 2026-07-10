@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: Multi-User Network Interface for Claude Code / JARVIS
+description: A web-based gateway that allows multiple people on the local network to access and use Claude Code and JARVIS from their own computers, as if it were running locally. Provides user authentication,...
+timestamp: 2026-02-20
+---
+
 # Multi-User Network Interface for Claude Code / JARVIS
 
 ## Summary

@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: Meeting Assistant Enhancements
+description: Future improvements to the Meeting Assistant MCP server beyond the core Phases 1-3.
+timestamp: 2026-02-22
+---
+
 # Meeting Assistant Enhancements
 
 **Status:** Planned

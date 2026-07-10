@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: Design: `strokmatic/infra` Standalone Repository
+description: Transform `workspaces/strokmatic/infra/` from a JARVIS sub-checkout into a standalone `strokmatic/infra` GitHub repository. Consolidate all on-premise infrastructure assets — equipment documentatio...
+timestamp: 2026-04-06
+---
+
 # Design: `strokmatic/infra` Standalone Repository
 
 **Date:** 2026-04-06

@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: plc-result-v2 — Design Spec
+description: Replace `spotfusion/services/plc-result/` (pylogix Class 1 + monolithic try/except over ~10 env-var-named PLC tags) with an SDK-based Python plugin that sits behind the certified `strokmatic-eip` a...
+timestamp: 2026-05-08
+---
+
 # plc-result-v2 — Design Spec
 
 **Date:** 2026-05-08

@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: Google Drive ↔ PMO Integration — Implementation Plan
+description: Cloud-first integration between shared Google Drive folders and PMO projects. Each PMO project can be linked to one or more shared Drive folders (e.g., a customer shares a folder with drawings, spe...
+timestamp: 2026-02-20
+---
+
 # Google Drive ↔ PMO Integration — Implementation Plan
 
 **Status:** Planned

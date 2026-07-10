@@ -1,3 +1,10 @@
+---
+type: Implementation Plan
+title: Strokmatic Roadmap & Workflow Integration Plan — 2026
+description: Based on current sprint focus, backlog analysis, and deployment pipeline, the roadmap organizes into 4 streams across 3 time horizons.
+timestamp: 2026-04-04
+---
+
 # Strokmatic Roadmap & Workflow Integration Plan — 2026
 
 **Date:** 2026-03-26

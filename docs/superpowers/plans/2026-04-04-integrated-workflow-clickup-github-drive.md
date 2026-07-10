@@ -1,3 +1,10 @@
+---
+type: Implementation Plan
+title: Strokmatic Integrated Workflow: ClickUp + GitHub + Google Drive + Claude
+description: This document describes a unified workflow that integrates four systems for Strokmatic's software engineering, data science, and industrial automation/engineering work.
+timestamp: 2026-04-04
+---
+
 # Strokmatic Integrated Workflow: ClickUp + GitHub + Google Drive + Claude
 
 **Date:** 2026-03-24

@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: SG3 Compliance Monitor — Design (Fase 1: GM)
+description: A Strokmatic precisa monitorar prazos de vencimento de documentos de integração da equipe nos clientes que usam a plataforma SG3 (GM e Hyundai). Falhas de compliance bloqueiam acesso à planta e par...
+timestamp: 2026-05-05
+---
+
 # SG3 Compliance Monitor — Design (Fase 1: GM)
 
 **Data:** 2026-05-05

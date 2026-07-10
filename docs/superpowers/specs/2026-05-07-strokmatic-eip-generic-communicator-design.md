@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: strokmatic-eip — Generic Certified EtherNet/IP Communication Layer
+description: Replace today's three entangled PLC-comm stacks (pylogix Class 1 fork, pylogix Class 3, OpENer C with embedded camera-acquisition logic) with a clean two-layer architecture:
+timestamp: 2026-05-07
+---
+
 # strokmatic-eip — Generic Certified EtherNet/IP Communication Layer
 
 **Date:** 2026-05-07

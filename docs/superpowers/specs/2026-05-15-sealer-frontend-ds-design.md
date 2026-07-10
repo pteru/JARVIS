@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: SEALER frontend-ds — profile `vk-sealer`
+description: Habilitar o repositório `visionking/services/frontend-ds` (Angular 19) a servir o produto **SEALER** como um **profile `vk-sealer`**, irmão do produto Body que o repo serve hoje. Diferente do IRIS...
+timestamp: 2026-05-15
+---
+
 # SEALER frontend-ds — profile `vk-sealer`
 
 **Status:** Draft, pending user review.

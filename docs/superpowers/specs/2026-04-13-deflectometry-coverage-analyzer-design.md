@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: Deflectometry Coverage Analyzer — Design Spec
+description: VisionKing Body uses deflectometry to detect surface defects on car bodies. Infrared emitters form a portal around the car. As the car moves longitudinally through the portal, emitter reflections s...
+timestamp: 2026-04-13
+---
+
 # Deflectometry Coverage Analyzer — Design Spec
 
 **Date:** 2026-04-13

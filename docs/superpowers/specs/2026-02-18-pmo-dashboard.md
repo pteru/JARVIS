@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: PMO Dashboard — Project Management Web UI
+description: A web-based project management dashboard that provides a unified UI on top of the existing PMO folder structure. It centralizes project tracking for the design/procurement/quoting phases, managing...
+timestamp: 2026-02-18
+---
+
 # PMO Dashboard — Project Management Web UI
 
 ## Overview

@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: Telegram Bot Manager — Multi-Bot Notification Routing
+description: Replace the current single-bot, single-chat Telegram notification setup with a multi-bot manager that routes notifications to separate bots/channels based on their source domain. Each domain (healt...
+timestamp: 2026-02-22
+---
+
 # Telegram Bot Manager — Multi-Bot Notification Routing
 
 **Status:** Done (2026-02-22)

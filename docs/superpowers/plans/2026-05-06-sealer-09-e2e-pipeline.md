@@ -1,3 +1,10 @@
+---
+type: Implementation Plan
+title: [4.13] SEALER-09 E2E Pipeline → DB Tests — Implementation Plan
+description: (similar for narrow_bead, gap, offset, no_centerline, reinspection, partial_frames.)
+timestamp: 2026-05-06
+---
+
 # [4.13] SEALER-09 E2E Pipeline → DB Tests — Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: `superpowers:subagent-driven-development` or `superpowers:executing-plans`. Steps use `- [ ]` checkbox tracking.

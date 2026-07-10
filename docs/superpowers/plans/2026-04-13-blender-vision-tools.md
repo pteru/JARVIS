@@ -1,3 +1,10 @@
+---
+type: Implementation Plan
+title: Strokmatic Vision Tools — Implementation Plan
+description: Blender add-ons run inside Blender's embedded Python. Standard `pytest` does not work — `import bpy` fails outside Blender. All testing must be done by running scripts inside Blender:
+timestamp: 2026-04-13
+---
+
 # Strokmatic Vision Tools — Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

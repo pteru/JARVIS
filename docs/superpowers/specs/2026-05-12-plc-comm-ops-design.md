@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: plc-comm-ops — Design Spec
+description: Build a tiny FastAPI service that lets operators view and edit each plugin's live-tunable configuration. Lists plugins discovered by scanning `cfg:plc-*:*` Redis keys, renders the JSON Schema each...
+timestamp: 2026-05-12
+---
+
 # plc-comm-ops — Design Spec
 
 **Date:** 2026-05-12

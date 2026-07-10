@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: Strokmatic Vision Tools — Kinematic Windows (v1.4.0)
+description: The Motion Exporter (v1.2.0) and its kinematics extension (v1.3.0) reveal the spatial and dynamic demands of every actuator in an inspection layout. But they do not answer the key engineering quest...
+timestamp: 2026-04-15
+---
+
 # Strokmatic Vision Tools — Kinematic Windows (v1.4.0)
 
 **Date:** 2026-04-15

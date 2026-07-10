@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: SEALER-03: Sealer Bead Measurement — Design Spec
+description: The `sealer-bead-measurement` service consumes the **CAD-aligned merged point cloud** produced by `point-cloud-processor` (SEALER-01) and extracts geometric measurements from sealer beads (width, h...
+timestamp: 2026-05-06
+---
+
 # SEALER-03: Sealer Bead Measurement — Design Spec
 
 > **Profile**: `vk-sealer` — 3D point cloud sealer bead inspection

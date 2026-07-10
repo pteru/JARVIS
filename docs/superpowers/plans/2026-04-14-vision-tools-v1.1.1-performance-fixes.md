@@ -1,3 +1,10 @@
+---
+type: Implementation Plan
+title: Vision Tools v1.1.1 — Performance and Correctness Fixes Implementation Plan
+description: Same pattern as v1.0.0 / v1.1.0:
+timestamp: 2026-04-14
+---
+
 # Vision Tools v1.1.1 — Performance and Correctness Fixes Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

@@ -1,3 +1,10 @@
+---
+type: Implementation Plan
+title: Plan — SEALER-01 per-frame projection update
+description: Total: ~5 dias de William.
+timestamp: 2026-06-01
+---
+
 # Plan — SEALER-01 per-frame projection update
 
 **Spec:** `docs/superpowers/specs/2026-04-13-sealer-01-point-cloud-processor-design.md` (revision 2026-06-01).

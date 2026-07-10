@@ -1,3 +1,10 @@
+---
+type: Implementation Plan
+title: IRIS-02 pipeline-trigger-sync — Implementation Plan
+description: Expected: build limpo + testes atuais passando como baseline.
+timestamp: 2026-05-13
+---
+
 # IRIS-02 pipeline-trigger-sync — Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:subagent-driven-development` (recommended) or `superpowers:executing-plans` to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

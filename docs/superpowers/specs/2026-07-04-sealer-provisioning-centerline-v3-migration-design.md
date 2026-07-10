@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: Sealer Provisioning — Centerline v3 Migration (design)
+description: The proven bead-centerline extraction lives as ad-hoc research scripts in the PMO project (`pmo/projects/03008/analysis/`), not in the product. The `toolkit/sealer-provisioning` package *has* a `ce...
+timestamp: 2026-07-04
+---
+
 # Sealer Provisioning — Centerline v3 Migration (design)
 
 **Project:** 03008 (Hyundai sealer, VisionKing) → VK monorepo `toolkit/sealer-provisioning`<br>

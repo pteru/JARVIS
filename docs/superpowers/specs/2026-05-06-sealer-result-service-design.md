@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: [4.12] sealer-result Service (PLC Return Path) — Design Spec
+description: After the sealer pipeline writes inspection results to PostgreSQL ([4.10] db-writer), the **PLC of the next station** needs to know the pass/fail outcome to actuate downstream blocking (NG conveyor...
+timestamp: 2026-05-06
+---
+
 # [4.12] sealer-result Service (PLC Return Path) — Design Spec
 
 > **Profile**: `vk-sealer`

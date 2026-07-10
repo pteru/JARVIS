@@ -1,3 +1,10 @@
+---
+type: Implementation Plan
+title: IRIS-06 backend-ds — Implementation Plan
+description: Expected: branch `feat/iris-06` criada a partir do tip de `develop`. Confirmar `git branch --show-current` retorna `feat/iris-06`.
+timestamp: 2026-05-13
+---
+
 # IRIS-06 backend-ds — Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:subagent-driven-development` (recomendado) ou `superpowers:executing-plans` para tocar este plano. Steps usam checkbox (`- [ ]`) para tracking.

@@ -1,3 +1,10 @@
+---
+type: Implementation Plan
+title: DieMaster Data Pipeline Debug Fixes — Implementation Plan
+description: Append to class `TestResampleToPhaseDomain` in `tests/test_kinematic_normalization.py`:
+timestamp: 2026-03-24
+---
+
 # DieMaster Data Pipeline Debug Fixes — Implementation Plan
 
 > **For agentic workers:** REQUIRED: Use superpowers:subagent-driven-development (if subagents available) or superpowers:executing-plans to implement this plan. Steps use checkbox (`- [ ]`) syntax for tracking.

@@ -1,3 +1,10 @@
+---
+type: Implementation Plan
+title: Knowledge Hub — Plan 1: Core Backend Engine
+description: Content of `services/knowledge-hub/.gitignore`:
+timestamp: 2026-04-17
+---
+
 # Knowledge Hub — Plan 1: Core Backend Engine
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

@@ -1,3 +1,10 @@
+---
+type: Implementation Plan
+title: KB Chat Bot @JARVIS (Phase 3) Implementation Plan
+description: Searches KB markdown files by keyword relevance. Returns top N pages sorted by match count.
+timestamp: 2026-04-03
+---
+
 # KB Chat Bot @JARVIS (Phase 3) Implementation Plan
 
 > **For agentic workers:** REQUIRED: Use superpowers:subagent-driven-development (if subagents available) or superpowers:executing-plans to implement this plan. Steps use checkbox (`- [ ]`) syntax for tracking.

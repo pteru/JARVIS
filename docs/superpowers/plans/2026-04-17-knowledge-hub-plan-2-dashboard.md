@@ -1,3 +1,10 @@
+---
+type: Implementation Plan
+title: Knowledge Hub — Plan 2: Interactive Dashboard
+description: Entity type colors used throughout the dashboard:
+timestamp: 2026-04-17
+---
+
 # Knowledge Hub — Plan 2: Interactive Dashboard
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

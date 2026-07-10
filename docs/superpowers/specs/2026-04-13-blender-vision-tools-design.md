@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: Strokmatic Vision Tools — Blender Add-on Design Spec
+description: Camera placement validation for machine vision setups (VisionKing Body) currently relies on manual inspection and intuition. There is no automated way to visualize:
+timestamp: 2026-04-13
+---
+
 # Strokmatic Vision Tools — Blender Add-on Design Spec
 
 **Date:** 2026-04-13

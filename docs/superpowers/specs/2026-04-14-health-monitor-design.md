@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: health-monitor — Design Spec
+description: Serviço passivo de observabilidade para a plataforma Strokmatic. Lê heartbeats dos demais serviços do infra server, avalia saúde (healthy/stale/failed/partial/bootstrapping), aplica política de ded...
+timestamp: 2026-04-14
+---
+
 # health-monitor — Design Spec
 
 **Status:** Draft

@@ -1,3 +1,10 @@
+---
+type: Implementation Plan
+title: strokmatic-eip Phase 2 — Generic Certified C OpENer Service Implementation Plan
+description: This plan covers Phase 2 only. Phase 0 (archaeology) is complete. Phases 3 (lab integration with full stack) and 4 (customer cutover) are separate plans.
+timestamp: 2026-05-07
+---
+
 # strokmatic-eip Phase 2 — Generic Certified C OpENer Service Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:subagent-driven-development` (recommended) or `superpowers:executing-plans` to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

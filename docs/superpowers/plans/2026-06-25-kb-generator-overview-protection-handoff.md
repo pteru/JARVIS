@@ -1,3 +1,10 @@
+---
+type: Implementation Plan
+title: Handoff — Proteger overviews curados do kb-generator
+description: O serviço **kb-generator** edita automaticamente `overview.md`/`status.md`/`sprint.md` de cada projeto PMO (via LLM, diariamente) e **sobrescreveu conteúdo curado manualmente**. Precisamos: **(1) p...
+timestamp: 2026-06-25
+---
+
 # Handoff — Proteger overviews curados do kb-generator
 
 **Criado:** 2026-06-25 · **Por:** sessão de organização PMO (03010/03007)

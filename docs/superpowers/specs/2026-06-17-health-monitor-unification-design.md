@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: Health Monitor Unification — Design
+description: `scripts/vk-health/` and `scripts/sf-health/` are two parallel implementations of the same health-monitoring pipeline (collect → analyze → alert → trends → cleanup), diverging only by product. The...
+timestamp: 2026-06-17
+---
+
 # Health Monitor Unification — Design
 
 > **Date:** 2026-06-17

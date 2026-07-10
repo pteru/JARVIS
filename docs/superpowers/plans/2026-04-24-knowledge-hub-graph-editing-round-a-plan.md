@@ -1,3 +1,10 @@
+---
+type: Implementation Plan
+title: Knowledge Hub — Manual Graph Editing Round A — Implementation Plan
+description: Expected: worktree created, `node_modules/` installed.
+timestamp: 2026-04-24
+---
+
 # Knowledge Hub — Manual Graph Editing Round A — Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

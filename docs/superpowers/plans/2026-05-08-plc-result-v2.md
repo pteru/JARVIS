@@ -1,3 +1,10 @@
+---
+type: Implementation Plan
+title: plc-result-v2 Implementation Plan
+description: In scope:
+timestamp: 2026-05-08
+---
+
 # plc-result-v2 Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

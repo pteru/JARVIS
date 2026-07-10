@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: Telegram Command Intake Pipeline
+description: Turn the existing Telegram bot into a command intake channel that captures voice and text messages, classifies intent using an NLP pipeline, and routes commands to action pipelines (starting with `...
+timestamp: 2026-02-22
+---
+
 # Telegram Command Intake Pipeline
 
 **Status:** Planned

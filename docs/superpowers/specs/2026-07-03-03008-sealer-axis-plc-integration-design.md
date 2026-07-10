@@ -1,3 +1,11 @@
+---
+type: Design Spec
+title: 03008 Sealer Inspection Station — Linear Axis ↔ S7-1200 Integration & Scan Sequence (Design)
+description: Bring up the motorized linear axis that sweeps the Hikrobot 3D camera along a car body, driven by a **Siemens S7-1200**, and write the PLC program that runs a **step-and-shoot scan** coordinated wi...
+timestamp: 2026-07-03
+project: "03008"
+---
+
 # 03008 Sealer Inspection Station — Linear Axis ↔ S7-1200 Integration & Scan Sequence (Design)
 
 **Projeto:** 03008 — Estação de Inspeção de Sealer — Hyundai Piracicaba<br>

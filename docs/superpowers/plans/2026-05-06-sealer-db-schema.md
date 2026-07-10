@@ -1,3 +1,10 @@
+---
+type: Implementation Plan
+title: [4.8] Sealer DB Adoption via sql-vk-common — Implementation Plan
+description: Update `sql-vk-steel/README.md`:
+timestamp: 2026-05-06
+---
+
 # [4.8] Sealer DB Adoption via sql-vk-common — Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: `superpowers:subagent-driven-development` or `superpowers:executing-plans`. Steps use `- [ ]` checkbox tracking.

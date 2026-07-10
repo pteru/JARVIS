@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: vk-inference profile `sealer-per-frame` — design spec
+description: Adaptar o serviço `vk-inference` para rodar inferência **por frame** sobre cordões de selante, usando **sampling centerline-driven**: o point-cloud-processor entrega a sequência de pontos da linha...
+timestamp: 2026-06-01
+---
+
 # vk-inference profile `sealer-per-frame` — design spec
 
 **Status:** Draft, pending user review.

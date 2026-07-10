@@ -1,3 +1,10 @@
+---
+type: Design Spec
+title: Android JARVIS App — Voice Command Intake
+description: Native Android app that listens for the 'Jarvis' wake word, captures speech, and sends it to the JARVIS command processing pipeline (built in the Telegram Command Intake spec) for intent classifica...
+timestamp: 2026-02-22
+---
+
 # Android JARVIS App — Voice Command Intake
 
 **Status:** Planned
