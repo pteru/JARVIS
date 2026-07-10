@@ -100,3 +100,27 @@ def test_mark_advances_and_refuses_backwards(root):
 
 def test_unknown_topic_exits_1(root, capsys):
     assert cascade.main(["--root", str(root), "briefing", "nope"]) == 1
+
+
+def test_same_day_suffix_after_base_watermark_is_unabsorbed(root):
+    cascade.main(["--root", str(root), "mark", "sealer",
+                  "2026-07-08-sealer.md", "--date", "2026-07-09"])
+    rows = cascade.load_rows(root / "journal" / "CASCADE.md")
+    entries = cascade.journal_entries(root / "journal")
+    sealer = next(r for r in rows if r["topic"] == "sealer")
+    assert cascade.unabsorbed(sealer, entries) == ["2026-07-08-sealer-2.md"]
+
+
+def test_mark_forward_to_same_day_suffix_accepted(root):
+    cascade.main(["--root", str(root), "mark", "sealer",
+                  "2026-07-08-sealer.md", "--date", "2026-07-09"])
+    assert cascade.main(["--root", str(root), "mark", "sealer",
+                         "2026-07-08-sealer-2.md", "--date", "2026-07-10"]) == 0
+
+
+def test_entry_key_orders_numeric_suffixes(root):
+    names = ["2026-07-08-x-10.md", "2026-07-08-x.md", "2026-07-08-x-2.md",
+             "2026-07-08-x-3.md"]
+    assert sorted(names, key=cascade.entry_key) == [
+        "2026-07-08-x.md", "2026-07-08-x-2.md", "2026-07-08-x-3.md",
+        "2026-07-08-x-10.md"]

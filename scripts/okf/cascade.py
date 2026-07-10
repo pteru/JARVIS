@@ -7,6 +7,7 @@ by frontmatter TAG and compared by FILENAME against the watermark; journal
 entries are never modified. Stdlib only.
 """
 import argparse
+import re
 import sys
 from pathlib import Path
 
@@ -14,6 +15,16 @@ from okf import parse_frontmatter
 
 RESERVED = {"index.md", "BOOT.md", "CASCADE.md", "log.md"}
 NEVER = ("—", "-", "")
+
+_SUFFIX_RE = re.compile(r"^(.*?)(?:-(\d+))?\.md$")
+
+
+def entry_key(name):
+    """Total order for entry filenames: base name, then numeric suffix (base = 1)."""
+    m = _SUFFIX_RE.match(name)
+    if not m:
+        return (name, 0)
+    return (m.group(1), int(m.group(2) or 1))
 
 
 def repo_root():
@@ -38,22 +49,8 @@ def load_rows(path):
 
 def journal_entries(journal_dir):
     """[(filename, [tags])] for Session Log pages, filename-sorted."""
-    import re
-
-    def _sort_key(path):
-        # Sort by base filename first, then by suffix.
-        # Ensures unsuffixed versions (e.g., "foo.md") come before suffixed
-        # versions (e.g., "foo-2.md").
-        name = path.name
-        match = re.match(r'^(.*?)(-\d+)?\.md$', name)
-        if match:
-            base = match.group(1)
-            suffix = match.group(2) or ''
-            return (base, suffix)
-        return (name, '')
-
     out = []
-    for p in sorted(journal_dir.glob("*.md"), key=_sort_key):
+    for p in sorted(journal_dir.glob("*.md"), key=lambda p: entry_key(p.name)):
         if p.name in RESERVED:
             continue
         meta, _ = parse_frontmatter(p.read_text(encoding="utf-8"))
@@ -69,7 +66,7 @@ def journal_entries(journal_dir):
 def unabsorbed(row, entries):
     wm = row["watermark"]
     return [name for name, tags in entries
-            if row["topic"] in tags and (wm in NEVER or name > wm)]
+            if row["topic"] in tags and (wm in NEVER or entry_key(name) > entry_key(wm))]
 
 
 def _find_row(rows, topic):
@@ -120,7 +117,7 @@ def cmd_mark(args, journal_dir):
     if row is None:
         print("unknown topic: {0}".format(args.topic), file=sys.stderr)
         return 1
-    if row["watermark"] not in NEVER and args.entry <= row["watermark"]:
+    if row["watermark"] not in NEVER and entry_key(args.entry) <= entry_key(row["watermark"]):
         print("refusing to move watermark backwards ({0} <= {1})".format(
             args.entry, row["watermark"]), file=sys.stderr)
         return 1
