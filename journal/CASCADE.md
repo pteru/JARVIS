@@ -25,7 +25,7 @@ Nunca editar entradas do journal; o estado vive só aqui.
 | smartdie | — | — | — | camada 01001 ainda não existe |
 | magna | — | — | — | prospecção; journal-only por ora |
 | eip | — | — | — | docs vivem no workspace strokmatic-eip |
-| automacao | workspaces/strokmatic/knowledge-base/concepts/integracao-plc.md | — | — | — |
+| automacao | workspaces/strokmatic/knowledge-base/concepts/integracao-plc.md | 2026-07-09-automacao.md | 2026-07-10 | — |
 | vk-producao | workspaces/strokmatic/knowledge-base/concepts/saude-de-producao.md | — | — | — |
 | dados-producao | — | — | — | candidato: concept novo de dados de produção |
 | blender | — | — | — | candidato: página KB da ferramenta |
