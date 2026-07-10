@@ -64,10 +64,12 @@ Type `Reference`, one table row per topic (seeded from the roster in
   `--pages` starter hint; the gardener may propose adding a page to a
   layer, but adding a target row column entry is the owner's edit.
 - **Última absorvida**: the exact FILENAME of the newest absorbed entry.
-  An entry is unabsorbed iff its filename sorts lexicographically after
-  the watermark (works because names are `YYYY-MM-DD-<topic>[-N].md`;
-  same-day `-2` suffixes sort correctly). `—` means never run: everything
-  with the topic's tag is unabsorbed.
+  An entry is unabsorbed iff its filename orders after the watermark under
+  the canonical key `(base name, numeric suffix)` — plain lexicographic
+  comparison is WRONG for same-day `-N` suffixes (`-` < `.`) and for
+  `-10` vs `-2`; `cascade.py` implements this as `entry_key()`, used at
+  every comparison site. `—` means never run: everything with the topic's
+  tag is unabsorbed.
 - Topic ↔ entry matching is by **tag** (first-class tags on the entry,
   same tags the boot searches), not by filename topic — one entry can feed
   several topics (e.g. a sealer entry tagged `automacao` feeds both).
