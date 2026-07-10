@@ -15,7 +15,7 @@ Nunca editar entradas do journal; o estado vive só aqui.
 
 | Tópico | Alvos (páginas) | Última absorvida | Último run | Notas |
 |--------|-----------------|------------------|------------|-------|
-| sealer | workspaces/strokmatic/pmo/projects/03008/knowledge/index.md | — | — | — |
+| sealer | workspaces/strokmatic/pmo/projects/03008/knowledge/index.md | 2026-07-08-sealer.md | 2026-07-10 | — |
 | iris-scds | workspaces/strokmatic/pmo/projects/03007/knowledge/index.md | — | — | — |
 | stellantis | workspaces/strokmatic/pmo/projects/03010/knowledge/index.md | — | — | — |
 | arcelor | workspaces/strokmatic/pmo/projects/03002/knowledge/index.md | — | — | — |
