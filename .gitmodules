@@ -1,3 +1,0 @@
-[submodule "releases/FORGE"]
-	path = releases/FORGE
-	url = git@github.com:strokmatic/FORGE.git
