@@ -49,10 +49,22 @@ language: pt-BR
 - Classifier bloqueou (corretamente) deploy key e merge de PR próprio — ficam
   com o Pedro.
 
-## Pendências
+## Encerramento do bloco (23h local)
 
-- **Merge do PR #10** (cloudbuild.yaml → develop) — Pedro. Até lá os triggers
-  apontam p/ configs que só existem no branch.
+- Auto-review do PR #10: APPROVE WITH COMMENTS — 7 pontos aplicados (host key
+  do GitHub pinado em vez de ssh-keyscan TOFU; guard de SHA vazio; secret
+  pinado em versions/1; waitFor + serviceAccount explícitos; pytest --tb=short;
+  pip sem --quiet) e as DUAS esteiras revalidadas antes do merge. **PR #10
+  MERGED**; builds orgânicos do push no develop dispararam e passaram (CI viva).
+- **Deploy no 192.168.15.189 (IT5391, VK-Body)** — a máquina da Fase A do
+  William (roda o visionking-plc-monitor-eip): pull direto falhou
+  (deploy-assistant@ sem artifactregistry.reader) → fallback pré-autorizado
+  docker save+gzip+scp (101 MB, LAN). Stack up: eip-redis healthy, eip-adapter
+  e eip-tag-client Up; bundle em ~/eip-stack (.env com senha gerada chmod 600,
+  tags.json = example para o William editar). Tag-client logando "Path segment
+  error" no PLC placeholder — comportamento correto (staleness, sem crash).
+
+## Pendências
 - Follow-ups de CI: release tags automatizadas (trigger por git tag), gate e2e
   em VM própria se um dia precisar, quota p/ máquina maior.
 - Aguardar retorno do William no teste da bancada 03007.
