@@ -7,6 +7,7 @@ by frontmatter TAG and compared by FILENAME against the watermark; journal
 entries are never modified. Stdlib only.
 """
 import argparse
+import datetime as _dt
 import re
 import sys
 from pathlib import Path
@@ -136,6 +137,36 @@ def cmd_mark(args, journal_dir):
     return 0
 
 
+def cmd_entry(args, journal_dir):
+    """Decide EXTEND vs NEW for a session-end journal entry.
+
+    Extending an entry the cascade already absorbed would hide the increment
+    forever (filename <= watermark) — so extension is only offered when the
+    day's latest entry is still unabsorbed for EVERY roster topic its tags
+    carry.
+    """
+    date = args.date or _dt.date.today().isoformat()
+    rows = load_rows(journal_dir / "CASCADE.md")
+    entries = journal_entries(journal_dir)
+    prefix = "{0}-{1}".format(date, args.topic)
+    pat = re.compile(re.escape(prefix) + r"(-\d+)?\.md$")
+    same_day = [(n, t) for n, t in entries if pat.fullmatch(n)]
+    if not same_day:
+        print("NEW journal/{0}.md".format(prefix))
+        return 0
+    last_name, last_tags = max(same_day, key=lambda x: entry_key(x[0]))
+    absorbed = any(
+        r["watermark"] not in NEVER and r["topic"] in last_tags
+        and entry_key(last_name) <= entry_key(r["watermark"])
+        for r in rows)
+    if absorbed:
+        base, suffix = entry_key(last_name)
+        print("NEW journal/{0}-{1}.md".format(base, suffix + 1))
+    else:
+        print("EXTEND journal/{0}".format(last_name))
+    return 0
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--root", default=None)
@@ -148,10 +179,13 @@ def main(argv=None):
     p_mark.add_argument("topic")
     p_mark.add_argument("entry")
     p_mark.add_argument("--date", required=True)
+    p_entry = sub.add_parser("entry")
+    p_entry.add_argument("topic")
+    p_entry.add_argument("--date", default=None, help="default: today")
     args = ap.parse_args(argv)
     journal_dir = (Path(args.root) if args.root else repo_root()) / "journal"
     return {"status": cmd_status, "briefing": cmd_briefing,
-            "mark": cmd_mark}[args.cmd](args, journal_dir)
+            "mark": cmd_mark, "entry": cmd_entry}[args.cmd](args, journal_dir)
 
 
 if __name__ == "__main__":

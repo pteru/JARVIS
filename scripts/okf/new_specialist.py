@@ -32,10 +32,12 @@ Assuma a persona de especialista no tópico **{slug}** (classe: {cls}).
 
 ## Encerramento
 
-Ao final do bloco de trabalho, escreva `~/JARVIS/journal/YYYY-MM-DD-{slug}.md`
-(Feito · Decisões · Pendências · Links; PT-BR; 20–40 linhas; tags
-`[{tags}]`; **NUNCA segredos/credenciais**) e rode
-`python3 ~/JARVIS/scripts/okf/okf.py index journal`.
+Ao final do bloco de trabalho, rode
+`python3 ~/JARVIS/scripts/okf/cascade.py entry {slug}` e obedeça (EXTEND =
+anexe à entrada do dia; NEW = crie o arquivo indicado — nunca edite entrada
+já absorvida pelo cascade). Conteúdo: Feito · Decisões · Pendências · Links;
+PT-BR; 20–40 linhas; tags `[{tags}]`; **NUNCA segredos/credenciais**. Depois
+rode `python3 ~/JARVIS/scripts/okf/okf.py index journal`.
 """
 
 AGENT_TEMPLATE = """---

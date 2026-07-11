@@ -124,3 +124,36 @@ def test_entry_key_orders_numeric_suffixes(root):
     assert sorted(names, key=cascade.entry_key) == [
         "2026-07-08-x.md", "2026-07-08-x-2.md", "2026-07-08-x-3.md",
         "2026-07-08-x-10.md"]
+
+
+def test_entry_new_when_no_same_day_entry(root, capsys):
+    assert cascade.main(["--root", str(root), "entry", "sealer",
+                         "--date", "2026-07-10"]) == 0
+    assert capsys.readouterr().out.strip() == "NEW journal/2026-07-10-sealer.md"
+
+
+def test_entry_extend_when_unabsorbed(root, capsys):
+    assert cascade.main(["--root", str(root), "entry", "sealer",
+                         "--date", "2026-07-08"]) == 0
+    assert capsys.readouterr().out.strip() == "EXTEND journal/2026-07-08-sealer-2.md"
+
+
+def test_entry_new_suffix_when_absorbed(root, capsys):
+    cascade.main(["--root", str(root), "mark", "sealer",
+                  "2026-07-08-sealer-2.md", "--date", "2026-07-09"])
+    capsys.readouterr()
+    assert cascade.main(["--root", str(root), "entry", "sealer",
+                         "--date", "2026-07-08"]) == 0
+    assert capsys.readouterr().out.strip() == "NEW journal/2026-07-08-sealer-3.md"
+
+
+def test_entry_absorbed_via_other_topic_tag(root, capsys):
+    (root / "journal" / "2026-07-08-sealer-2.md").unlink()
+    cascade.main(["--root", str(root), "mark", "automacao",
+                  "2026-07-09-iris.md", "--date", "2026-07-09"])
+    capsys.readouterr()
+    # last same-day sealer entry carries the automacao tag, whose watermark
+    # is already past it -> extending would hide the increment from cascade
+    assert cascade.main(["--root", str(root), "entry", "sealer",
+                         "--date", "2026-07-08"]) == 0
+    assert capsys.readouterr().out.strip() == "NEW journal/2026-07-08-sealer-2.md"

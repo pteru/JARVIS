@@ -66,7 +66,7 @@ Spec: `docs/superpowers/specs/2026-07-04-okf-adoption-design.md`.
 ## Session Directives
 
 - At the end of each session, add meaningful lessons learned to **MEMORY.md** (organized by topic) and append session logs to `docs/lessons-learned.md`
-- After each substantive work block, write a journal entry `journal/YYYY-MM-DD-<topic>.md` following `journal/BOOT.md` (Feito · Decisões · Pendências · Links; PT-BR; 20–40 lines; **never secrets/credentials**), then run `python3 scripts/okf/okf.py index journal`
+- After each substantive work block, write a journal entry `journal/YYYY-MM-DD-<topic>.md` following `journal/BOOT.md` (Feito · Decisões · Pendências · Links; PT-BR; 20–40 lines; **never secrets/credentials**), then run `python3 scripts/okf/okf.py index journal`. Before creating the file, run `python3 scripts/okf/cascade.py entry <topic>` and obey it: `EXTEND` = append to the day's entry; `NEW` = create the named file (never edit an entry the cascade already absorbed)
 - After each session, add any ideas for improving the orchestrator itself (new skills, features, integrations) to `backlogs/jarvis/README.md`
 - Always work within virtual environments (Python `venv`, Node local installs, etc.) — never install dependencies into the global system environment
 

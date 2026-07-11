@@ -26,7 +26,13 @@ Todo especialista (skill `/<slug>` ou agente `<slug>-specialist`) boota assim:
 
 ## Encerramento de bloco de trabalho
 
-Escreva `journal/YYYY-MM-DD-<topic>.md` (sufixo `-2`, `-3` para mesmo
+Antes de criar o arquivo, rode
+`python3 ~/JARVIS/scripts/okf/cascade.py entry <topic>` e obedeça a
+resposta: `EXTEND` = anexe o incremento à entrada indicada (ela ainda não
+foi absorvida pelo cascade); `NEW` = crie o arquivo indicado. **Nunca edite
+uma entrada já absorvida** — o incremento ficaria invisível para o cascade.
+
+Formato de `journal/YYYY-MM-DD-<topic>.md` (sufixo `-2`, `-3` para mesmo
 dia/tópico): frontmatter `type: Session Log` + `session:` + tags (slug do
 tópico primeiro, depois códigos de projeto "NNNNN" e tags de campo); corpo
 PT-BR de 20–40 linhas com **Feito** · **Decisões** · **Pendências** ·
