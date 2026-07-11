@@ -34,6 +34,10 @@ status: done
 - MTU 9000 aplicado nas 4 portas via netplan (`/etc/netplan/01-netcfg.yaml`; backup `.bak-20260710`). `netplan generate` + `apply` OK, sem cabo — MTU não depende de link. Permissões dos YAMLs corrigidas p/ 600.
 - IPs completos nas 4 portas: f0=192.168.10.2/24, f1=192.168.20.2/24, f2=192.168.30.2/24, f3=192.168.40.2/24 (uma subrede /24 por porta de câmera). Profiles NM `netplan-enp4s0fX` gerados; endereço ativa quando a porta ganhar link.
 - **Convenção de endereçamento (decisão do Pedro): câmera = final `.1`, workstation = final `.2`** em cada subrede → câmeras: 192.168.10.1, 192.168.20.1, 192.168.30.1, 192.168.40.1.
+- NIC PCIe extra `enp6s0` (RTL8111/8168, 06:00.0) verificada: driver in-tree `r8169` OK, PHY RTL8211E anexado, sem erro; **sem configuração** (papel indefinido — aguardando decisão; suporta jumbo até 9194).
+- **Hostname renomeado 2026-07-11: `IT5391` → `PRV10IRIS5`** (padrão rede GM), via `hostnamectl` + `/etc/hosts`; sem reboot. Máquina destinada a IRIS @ GM (arquivos `VK_IRIS_GVT` no histórico da máquina).
+- **Interfaces renomeadas 2026-07-11** (netplan match por MAC + set-name, aplicado ao vivo sem reboot; backups `.bak-20260711`): `eth_painel` (onboard, mgmt 192.168.15.189), `eth_gmplant` (PCIe 1-porta, uplink planta GM **124.11.224.165/24, gw 124.11.224.1 com metric 200** — default primário permanece interno via 192.168.15.1 metric 100), `eth_cam10/20/30/40` (SF400T, MTU 9000).
+- Descoberta: `10.179.112.189` (alvo original da sessão) é o IP **ZeroTier** desta máquina (`ztfca4qy4a`) — não é VPN Arcelor. JARVIS host não participa dessa rede ZT (por isso "no route").
 
 ## Links
 - `config/network/local-machines.md` — entrada IT5391
