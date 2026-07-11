@@ -32,6 +32,14 @@ resposta: `EXTEND` = anexe o incremento à entrada indicada (ela ainda não
 foi absorvida pelo cascade); `NEW` = crie o arquivo indicado. **Nunca edite
 uma entrada já absorvida** — o incremento ficaria invisível para o cascade.
 
+Se o `entry` avisar **tópico fora do roster**: use dupla filiação — a tag
+emergente vem PRIMEIRA (vira o marcador de recorrência) e a tag do tópico
+existente mais próximo vem em seguida (dá retrieval hoje, ex.:
+`[autoscaler, vk-producao, ...]`). Apresente ao dono a proposta de criação
+do especialista com o comando pronto — **nunca crie sem aprovação dele**;
+na dúvida, mantenha a dupla filiação e deixe o contador de recorrência do
+okf-watch sugerir a promoção quando o tema acumular entradas.
+
 Formato de `journal/YYYY-MM-DD-<topic>.md` (sufixo `-2`, `-3` para mesmo
 dia/tópico): frontmatter `type: Session Log` + `session:` + tags (slug do
 tópico primeiro, depois códigos de projeto "NNNNN" e tags de campo); corpo

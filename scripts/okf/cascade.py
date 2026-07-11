@@ -137,6 +137,24 @@ def cmd_mark(args, journal_dir):
     return 0
 
 
+def roster_topics(journal_dir):
+    """Specialist slugs from the BOOT.md roster table (4-column rows)."""
+    boot = journal_dir / "BOOT.md"
+    topics = set()
+    if not boot.exists():
+        return topics
+    for line in boot.read_text(encoding="utf-8").splitlines():
+        if not line.strip().startswith("|"):
+            continue
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if len(cells) != 4 or cells[0] == "Slug":
+            continue
+        if all(set(c) <= set("-: ") for c in cells if c):
+            continue
+        topics.add(cells[0])
+    return topics
+
+
 def cmd_entry(args, journal_dir):
     """Decide EXTEND vs NEW for a session-end journal entry.
 
@@ -153,6 +171,7 @@ def cmd_entry(args, journal_dir):
     same_day = [(n, t) for n, t in entries if pat.fullmatch(n)]
     if not same_day:
         print("NEW journal/{0}.md".format(prefix))
+        _advise_if_new_topic(args.topic, rows, journal_dir)
         return 0
     last_name, last_tags = max(same_day, key=lambda x: entry_key(x[0]))
     absorbed = any(
@@ -164,7 +183,18 @@ def cmd_entry(args, journal_dir):
         print("NEW journal/{0}-{1}.md".format(base, suffix + 1))
     else:
         print("EXTEND journal/{0}".format(last_name))
+    _advise_if_new_topic(args.topic, rows, journal_dir)
     return 0
+
+
+def _advise_if_new_topic(topic, rows, journal_dir):
+    known = roster_topics(journal_dir) | {r["topic"] for r in rows}
+    if topic not in known:
+        print("AVISO: tópico '{0}' fora do roster — use dupla filiação "
+              "(primeira tag '{0}' + tag do tópico existente mais próximo) e "
+              "proponha ao dono a criação: python3 scripts/okf/"
+              "new_specialist.py {0} --class project|field --terms \"...\" "
+              "--tags \"{0},...\" (nunca criar sem aprovação)".format(topic))
 
 
 def main(argv=None):

@@ -86,6 +86,25 @@ PYEOF
 if [[ -n "$ORPHANS" ]]; then
     MSG+=$'\n'"🏷️ Entradas de journal órfãs (sem tag de tópico do roster):"$'\n'"${ORPHANS}"$'\n'
 fi
+RECUR=$(python3 - <<'PYEOF' 2>/dev/null || true
+import sys
+sys.path.insert(0, "scripts/okf")
+from collections import Counter
+from pathlib import Path
+import cascade
+j = Path("journal")
+known = cascade.roster_topics(j) | {r["topic"] for r in cascade.load_rows(j / "CASCADE.md")}
+counts = Counter(tags[0] for _, tags in cascade.journal_entries(j)
+                 if tags and tags[0] not in known)
+for tag, n in sorted(counts.items()):
+    if n >= 2:
+        print(f"{tag}: {n} entradas — candidato a especialista "
+              f"(new_specialist.py {tag} --class ... --terms ... --tags \"{tag},...\")")
+PYEOF
+)
+if [[ -n "$RECUR" ]]; then
+    MSG+=$'\n'"🌱 Temas emergentes recorrentes (aprovar criação de especialista?):"$'\n'"${RECUR}"$'\n'
+fi
 
 # --- send --------------------------------------------------------------------
 if [[ -n "$MSG" ]]; then

@@ -157,3 +157,28 @@ def test_entry_absorbed_via_other_topic_tag(root, capsys):
     assert cascade.main(["--root", str(root), "entry", "sealer",
                          "--date", "2026-07-08"]) == 0
     assert capsys.readouterr().out.strip() == "NEW journal/2026-07-08-sealer-2.md"
+
+
+def test_entry_known_topic_no_advisory(root, capsys):
+    cascade.main(["--root", str(root), "entry", "sealer", "--date", "2026-07-10"])
+    out = capsys.readouterr().out
+    assert "AVISO" not in out
+
+
+def test_entry_unknown_topic_prints_advisory(root, capsys):
+    assert cascade.main(["--root", str(root), "entry", "autoscaler",
+                         "--date", "2026-07-10"]) == 0
+    out = capsys.readouterr().out
+    assert "NEW journal/2026-07-10-autoscaler.md" in out
+    assert "AVISO" in out and "'autoscaler' fora do roster" in out
+    assert "new_specialist.py autoscaler" in out
+
+
+def test_roster_topics_reads_boot_table(root):
+    (root / "journal" / "BOOT.md").write_text(
+        "---\ntype: Procedure\n---\n\n# Boot\n\n## Roster\n\n"
+        "| Slug | Classe | Termos de busca | Tags |\n"
+        "|------|--------|-----------------|------|\n"
+        "| blender | field | blender 3d | blender |\n",
+        encoding="utf-8")
+    assert cascade.roster_topics(root / "journal") == {"blender"}
