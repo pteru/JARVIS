@@ -49,3 +49,26 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
   (sentinela invertido proposital); nota: `GMHb_TimeoutScans` deve ser
   derivado do período REAL da task, senão timeout real não será alcançado.
 - Total de testes: 214 passed + 1 xfail (84 novos testes Fase 2).
+
+### Added — Fase 3
+- Bridge Redis via contrato `strokmatic-eip` (tags `/cmd:/audit:/simctl:`) —
+  publica métricas (rpm, posições, status de drives) e consome comandos
+  (jog, homing, modo) em namespace flat editável.
+- Gateway FastAPI+WS (`sim_core/gateway/`) com stream JSON de WSCmd (jog,
+  jog-refresh, homing, mode) e WSState (frame, linecars, binding) pré-
+  serializados; runtime `python -m sim_core.live <profile> --fake :8600`
+  rodando SimSession + bridge embutidos.
+- Painel 3D (Vite+TS+Three.js+Playwright E2E) — renderiza IRIS
+  parametricamente a partir do `binding.json`; cena data-driven (chão, linha,
+  pórtico, caixas-eixo, sensores); HUD de jog com deadman real; spawn de
+  carros; editor de binding com linter. Smoke E2E via Playwright
+  (`panel/tests/e2e/**/*e2e.test.ts`; 5 testes, real WS handshake + jog path
+  validated). Escala: 1 unidade de cena = 100 mm.
+- Ingestão STEP/GLB + binding.json linter (validação de UDT/offset/types);
+  achado: nomes de OCAF em `PROVENANCE.md` (mapeamento render é Fase 5).
+- Novo achado (6): painel WS jog-refresh lento (250 ms) engolia buffer jog —
+  WSCmd_Jog sobrescrito por próxima refresh. Detectado via smoke E2E;
+  solução: jog_buffer é queue (FIFO) + drain, não map. Validação cruzada:
+  twin simula + painel executa + bridge vê transição esperada.
+- Testes: 284 + 1 xfail (70 novos testes: 19 vitest panel + 5 E2E Playwright +
+  46 novos testes sim_core).
