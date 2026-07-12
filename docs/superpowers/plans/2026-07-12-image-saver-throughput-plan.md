@@ -51,7 +51,7 @@ status: draft
 - [ ] 3.3 Burnin `--mode fixed --fps 300` por 2 h: aceite = db0 estável (<5k keys), 0 expiração por TTL, frames/s=300 no Postgres
 - [ ] 3.4 Trocar `command:` para o runner async (F2) no vk02 e repetir 3.3
 - [ ] 3.5 Burnin `--mode saturation` 1 h: aceite = teto medido ≥400 fps
-- [ ] 3.6 Kill-test: `docker restart rabbitmq` durante o fixed — aceite = reconexão automática, sem crash, sem perda (delta frames = delta injetado)
+- [ ] 3.6 Kill-test: `docker restart rabbitmq` durante o fixed — aceite = reconexão automática, sem crash, sem perda (delta frames = delta injetado). Exercitar também o padrão **idle-then-publish** (entry parado no pool > 60s com heartbeat 30 → publish): sem confirms, há janela teórica de perda em socket half-open; se o teste mostrar perda, adotar `confirm_delivery()`
 - [ ] 3.7 Replicar no vk01; soak conjunto ≥12 h
 - [ ] 3.8 Promover async a default (`CMD` do Dockerfile) OU manter override por `command:` — decidir com base em 3.4-3.7
 
