@@ -6,7 +6,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## 2026-07-12
 
-### Added
+### Added — Fases 0–1
 - Fases 0–1 do gêmeo virtual de linha (modo pure-sim), branch `feat/v1`:
   parser L5X (`sim_core/logix/l5x_parser.py`) + tag DB bytes-backed com
   layout de UDT padded (`tagdb.py`, `datatypes.py`) + interpretador RLL+ST
@@ -31,3 +31,21 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
   saída, fora da janela física de 8 bytes que o COP de saída realmente
   envia ao drive — o arm do probe de referência nunca cruza o fio, e o
   homing **não completa na máquina real** com o programa v5 como está.
+
+### Added — Fase 2
+- MainProgram completo do Willer emulado via `SimSession` sob pacote
+  `jobdata` v2 normalizado; LinePlant declarativa com invariantes de contrato
+  (portas automáticas, gating, esteira, carro, barreiras); DSL YAML de
+  cenários (`sim_core/scenarios/`) com poke/run/assert, suportado pelo
+  `sim_core.scenarios.runner` (execução isolada via CLI);
+  modularização I/O (load patches, pré-fatos, AnyBusComm:I/O ↔ jobdata);
+  5 cenários de regressão de linha completa.
+- Dois novos achados (4–5): (4) R020 jobdata sem gate de modo — ciclo
+  automático ativo mesmo em MANUAL (gate real = `R020_MIRROR.0 ∧ R011_STEP.1 ∧ B01`);
+  achado de projeto — requer decisão sobre responsabilidade
+  (inversor vs. Willer); (5) R006 recovery de heartbeat em 1 beat vs.
+  4 beats do contrato §1.3 — propriedade estática, documentada em
+  `tests/scenarios/test_lineplant.py` com cenário `heartbeat-timeout.yaml`
+  (sentinela invertido proposital); nota: `GMHb_TimeoutScans` deve ser
+  derivado do período REAL da task, senão timeout real não será alcançado.
+- Total de testes: 214 passed + 1 xfail (84 novos testes Fase 2).
