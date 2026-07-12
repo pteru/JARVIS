@@ -50,6 +50,38 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
   derivado do período REAL da task, senão timeout real não será alcançado.
 - Total de testes: 214 passed + 1 xfail (84 novos testes Fase 2).
 
+### Added — Fase 4 (HIL software-completa)
+- Golden rig instrução-a-instrução: `scripts/golden/cases.py` (33 casos,
+  26 RLL + 7 ST, fonte única espelhando a semântica do interpretador) +
+  `gen_golden_l5x.py` determinístico gerando `GoldenRig.L5X` (dispatch
+  `G_Select`/`G_Done`), com round-trip obrigatório: o L5X gerado parseia e
+  passa 33/33 no próprio interpretador. ONS/timers/RET/MSG excluídos com
+  rationale documentada.
+- Harness pylogix (`tests/golden/test_golden_vs_plc.py`, `@pytest.mark.golden`,
+  skip limpo sem `L19ER_IP`): escreve inputs → seleciona caso → poll `G_Done`
+  → compara outputs (INT exato, REAL 1e-4), relatório rico de divergência,
+  reset do handshake em `finally`; `select_index()` compartilhado com o
+  gerador + teste CI-safe pinando índices ao L5X commitado.
+- GM-sim para o L19ER físico: `scripts/gm_sim/gen_gm_sim_l5x.py` gera
+  `GMSimBench.L5X` (UDTs extraídos programaticamente dos L5X do perfil,
+  R090 em ST fiel, heartbeat via TONR de 500 ms reais em vez de contador de
+  scans) com guard de proveniência contra drift do R090 e round-trip no
+  Controller.
+- Relay GM→IRIS (`sim_core/relay.py`): re-emite mudanças do hash do
+  tag-client GM como `cmd:<iris_key>` class `config` (dedupe por valor,
+  bootstrap flood deliberado no primeiro ciclo, validação ruidosa do mapa
+  no load); entrypoint `python -m sim_core.relay`.
+- `deploy/hil/`: `gen_configs.py` (bridge.json + hil.json → configs no schema
+  real do tag-client da strokmatic-eip), docker-compose (redis + 2× tag-client
+  + gateway + relay; instalação via cópia p/ /app preservando mount `:ro`,
+  live-tested), `hil.example.json`; `docs/hil-runbook.md` com plano de rede,
+  import dos dois programas (coexistência GoldenProgram/GMSimProgram no mesmo
+  controlador), validação redis-cli e checklist de 8 passos; smoke HIL
+  `test_hil_smoke.py` (heartbeat vivo + liveness do relay, opt-in
+  `HIL_REDIS_URL`).
+- Total: 352 passed + 1 xfail (36 golden deselected por default). Validação
+  física na bancada pendente (única parte que requer hardware).
+
 ### Added — Fase 3
 - Bridge Redis via contrato `strokmatic-eip` (tags `/cmd:/audit:/simctl:`) —
   publica métricas (rpm, posições, status de drives) e consome comandos
