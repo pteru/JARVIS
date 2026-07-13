@@ -25,6 +25,15 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
   da mesh, acompanha o jog). Leitura física documentada: ambas olham para
   dentro; a lateral olha 45° a jusante nos dois lados (prosa do doc
   desambigua a notação ±). 404 py + 28 vitest.
+- **Wiring read-only ao PLC real** (bancada PRV10IRIS5 / 192.168.0.189):
+  camada `hil-map` no gateway (`--hil-map`) compõe os grupos `axes/line/mode`
+  que o painel espera a partir dos hashes reais da stack strokmatic-eip
+  (`hot` do io-decoder = Live List C3 `IF_*`; `proc/panel/status` do
+  tag-client), com parsing dos formatos medidos, transforms `equals/scale`,
+  staleness honesta (min updated_at) e omissão de tags sem fonte real
+  (nunca fabrica). `POST /cmd` retorna 409 em HIL (canal C2/GCCS pendente).
+  Validado ao vivo: painel em :5174 lendo o PLC 192.168.0.20. Senha do
+  redis mascarada no log de startup. 431 py.
 
 ### Added — Migração v5.5
 - Perfil novo `profiles/iris-03007-v55/` (v5 congelado como base de regressão
