@@ -20,6 +20,11 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
   (−1.001,31, tabela §2 medida); o "+11,36 a jusante" do §3 é erro de sinal
   do doc (reportar ao dono). Framing inicial considera a altura do pórtico.
 - Linter de binding valida o schema v2 (v1 intacto). 399 py + 26 vitest.
+- Setas de direção de captura (VV do doc §3) nas câmeras E2 e E4
+  (`view_dirs.pos_y/neg_y` explícitos por lado no binding; ArrowHelper filho
+  da mesh, acompanha o jog). Leitura física documentada: ambas olham para
+  dentro; a lateral olha 45° a jusante nos dois lados (prosa do doc
+  desambigua a notação ±). 404 py + 28 vitest.
 
 ### Added — Migração v5.5
 - Perfil novo `profiles/iris-03007-v55/` (v5 congelado como base de regressão
