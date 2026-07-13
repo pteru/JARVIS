@@ -6,6 +6,21 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## 2026-07-13
 
+### Added — Geometria real do pórtico v9 no painel
+- `parametric_version: 2` no binding do perfil v55 (v5 permanece no schema v1):
+  cena 3D data-driven com a geometria medida do handoff
+  `2026-07-09-v9-coordenadas-overview.md` — 5 estações longitudinais, 4 eixos
+  com curso 1.257,5 mm (E1 res_móvel em Z, E2 par de câmeras espelhado,
+  E4R/E4L par lateral ACOPLADO cortina+câmera com offsets reais),
+  resistências fixas L/−L/Reta, carro nas proporções do tracker (4.179,8 mm,
+  âncora no bico), esteira a z=147,85, barreiras a 2.216,4 mm com âncora
+  provisória simétrica (pendência §6 do doc), mapa afim linha→mundo
+  (exibição; nota de compressão enquanto line.json for provisória).
+- Correção contra o doc: câmera lateral fica a MONTANTE da cortina
+  (−1.001,31, tabela §2 medida); o "+11,36 a jusante" do §3 é erro de sinal
+  do doc (reportar ao dono). Framing inicial considera a altura do pórtico.
+- Linter de binding valida o schema v2 (v1 intacto). 399 py + 26 vitest.
+
 ### Added — Migração v5.5
 - Perfil novo `profiles/iris-03007-v55/` (v5 congelado como base de regressão
   dos achados): programa v5.5 autocontido carrega SEM load patches
