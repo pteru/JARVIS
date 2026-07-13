@@ -4,6 +4,37 @@ All notable changes to the sdk-line-twin workspace.
 
 Format: [Keep a Changelog](https://keepachangelog.com/)
 
+## 2026-07-13
+
+### Added — Migração v5.5
+- Perfil novo `profiles/iris-03007-v55/` (v5 congelado como base de regressão
+  dos achados): programa v5.5 autocontido carrega SEM load patches
+  (jsr_appends/routine_overrides/rung_edits removidos — 17 JSRs nativos no
+  MainRoutine), L5X byte-idênticos ao handoff do pmo, `_Scans` derivados de
+  dt=50ms (`InitClear_Scans=100`, `IRISHb_Scans=10`).
+- Wire layout parametrizado no DriveModel (`plant.json.wire_layout`): default
+  do engine = v5 padded byte-idêntico (xfail-sentinela intacto); perfil v55
+  usa o layout tight per-member dos COPs reais (In @0/2/4/6/7/11/13/17,
+  Out CW@0/Target@2/TPF@6).
+- Tag surface v5.5: bridge/binding espelham a superfície oficial do R052
+  (`WS.Axis1/2/4R/4L_pos`) + `ServoAxisN.RefValid`/`Ramp`; hud do painel
+  binding-driven com fallback legacy; 9 cenários YAML (5 portados + init/
+  heartbeat/first-out/reset); init E2E com R010+R011 no scan chain.
+- Engine (mínimo, testado): lookup de tags case-insensitive fallback-only
+  (v5.5 declara `Iris_fault`, usa `IRIS_Fault`) e `ABS()` em expressões ST.
+
+### Fixed — status dos achados sob v5.5
+- Achado 1 (homing/TPF): **corrigido comprovado na emulação** — probe arma
+  pelo wire real, homing completa (`tests/v55/test_jog_homing.py`); pendência
+  de bancada: alinhamento byte-7-vs-8. Achados 2/3: corrigidos por construção
+  (asserts byte-exatos sobre os 44 COPs). Achado 4: gate formal ativo.
+  Achado 5: **continua aberto** (R006 byte-idêntico, 1-beat reproduzido).
+- Achados NOVOS no v5.5: (7) R010 rung 3 — `DI_BPLiga` preso na entrada de
+  AUTO derruba a máquina p/ DESLIG em 1–2 scans via ONS rung-edge (CONFIRMED
+  real-PLC, teste held+controle); (8) `Alarm_ActiveCount`/`Alarm_HighestSeverity`
+  usadas no R004 e não declaradas no pacote.
+- Total: 393 passed + 1 xfail (36 golden deselected).
+
 ## 2026-07-12
 
 ### Added — Fases 0–1
