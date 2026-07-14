@@ -34,6 +34,16 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
   (nunca fabrica). `POST /cmd` retorna 409 em HIL (canal C2/GCCS pendente).
   Validado ao vivo: painel em :5174 lendo o PLC 192.168.0.20. Senha do
   redis mascarada no log de startup. 431 py.
+- **Painel: I/O físico + telemetria por eixo + highlights 3D**: seção
+  "I/O FÍSICO" na sidebar (grupo `io` novo no bridge, mapeado do R005/R050
+  reais: DI_Barreira_01/02, anticolisão via AxisOK invertido, DO_Camera_N6_L/R
+  e N15_1/2); barras inferiores com posição (mm), modo (PARADO/MOVENDO do
+  enum aterrado do ST) e velocidade (derivada EMA no cliente — sem tag
+  inventada); 3D: anticolisão tinge os móveis dos 4 eixos de vermelho,
+  barreira cortada tinge os postes, trigger de câmera muda a cor da câmera.
+  Binding `io` data-driven (kind/axes/invert); HIL: B01/B02/AxisOK do hash
+  panel, triggers omitidos honestamente. Validado ao vivo em pure-sim
+  (anticolisão visual + B01 cut no WS). 446 py + 56 vitest.
 
 ### Added — Migração v5.5
 - Perfil novo `profiles/iris-03007-v55/` (v5 congelado como base de regressão
