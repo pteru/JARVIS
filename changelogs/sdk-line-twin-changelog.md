@@ -4,6 +4,21 @@ All notable changes to the sdk-line-twin workspace.
 
 Format: [Keep a Changelog](https://keepachangelog.com/)
 
+## 2026-07-14
+
+### Added — Modos de execução sim | hil + robustez
+- Dois modos de primeira classe via `scripts/run.sh sim|hil`: **sim** (ISOLADO
+  — emula os 2 PLCs + LinePlant, `live --fake`), **hil** (LIGADO AO PLC —
+  lê o IRIS real via strokmatic-eip, read-only; senha só em
+  `~/.secrets/iris-bench-redis.env`, params em `deploy/hil/bench.env`).
+  `GET /profile` reporta `mode`/`read_only`/`plc_key`; o painel troca o
+  banner hardcoded "PURE-SIM" por **"SIM · ISOLADO"** / **"HIL · PLC <ip>
+  (somente leitura)"** e desabilita o jog em HIL. Validado ao vivo nos dois.
+- **Degradação graciosa quando o PLC cai**: redis com timeout curto + o
+  gateway emite um frame `plc_unreachable` (WS vivo) em vez de crashar a
+  sessão em loop; o painel mostra "Sem conexão ao PLC — reconectando…"
+  em vez de um sidebar vazio sem explicação. 465 py + 83 vitest.
+
 ## 2026-07-13
 
 ### Added — Geometria real do pórtico v9 no painel
