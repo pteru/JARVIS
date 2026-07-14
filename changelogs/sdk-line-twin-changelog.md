@@ -45,6 +45,28 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
   panel, triggers omitidos honestamente. Validado ao vivo em pure-sim
   (anticolisão visual + B01 cut no WS). 446 py + 56 vitest.
 
+### Added — Carroceria PLC-tracked na cena
+- Carroceria = a visão do PLC sobre o corpo na esteira: spawn na borda de
+  subida da barreira de entrada (B01), modelo por snapshot do `WS.Style` no
+  instante da entrada, mesh REAL do tracker (`tracker-lite.glb`, 8k faces
+  decimadas de tracker.obj via Blender; servido por `GET /profile/asset/{name}`
+  com guard de path traversal) escalado por estilo e tingido pela cor;
+  âncora no bico (front do mesh na posição de mundo). Carros da LinePlant
+  viram fantasmas translúcidos → divergência planta×PLC visível. v2-only.
+- Posição = `ConveyorPosition_Filtered` (integrada DENTRO do IRIS pelo R021,
+  não `GM_LongPosition` do encoder cru): no pure-sim o failsafe do R021
+  integra `GM_In.LongSpeed` (escrito pelo R090/GMSim) → a carroceria anda
+  SOZINHA com GMSim ligado, sem poke; em HIL vem de `hot/IF_Track.0.LongPos`
+  da bancada. Validado ao vivo (mesh do tracker entrando e avançando).
+
+### Fixed — parser: DataValue decorado ignorado (ScanTime_s=0)
+- ACHADO: o `TagDecl` do parser L5X ignora `DataValue` decorado → todo tag
+  Base carrega no zero-do-tipo, não no default declarado no L5X. Sintoma:
+  `ScanTime_s` (default 0.01 no L5X) carregava 0.0 → o failsafe do R021
+  integrava ZERO (carroceria congelada). Workaround: semear `ScanTime_s=0.05`
+  (período de scan do sim) no `config` do profile.json — mesmo mecanismo dos
+  `_Scans`. Limitação do parser documentada p/ conserto futuro. 462 py + 76 vitest.
+
 ### Added — Migração v5.5
 - Perfil novo `profiles/iris-03007-v55/` (v5 congelado como base de regressão
   dos achados): programa v5.5 autocontido carrega SEM load patches
