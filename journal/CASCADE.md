@@ -16,7 +16,7 @@ Nunca editar entradas do journal; o estado vive só aqui.
 | Tópico | Alvos (páginas) | Última absorvida | Último run | Notas |
 |--------|-----------------|------------------|------------|-------|
 | sealer | workspaces/strokmatic/pmo/projects/03008/knowledge/index.md | 2026-07-08-sealer.md | 2026-07-10 | — |
-| iris-scds | workspaces/strokmatic/pmo/projects/03007/knowledge/index.md | 2026-07-08-iris-scds.md | 2026-07-10 | — |
+| iris-scds | workspaces/strokmatic/pmo/projects/03007/knowledge/index.md | 2026-07-16-iris-plc-rewire.md | 2026-07-18 | — |
 | stellantis | workspaces/strokmatic/pmo/projects/03010/knowledge/index.md | 2026-07-08-stellantis.md | 2026-07-10 | — |
 | arcelor | workspaces/strokmatic/pmo/projects/03002/knowledge/index.md | 2026-07-08-arcelor-vpn.md | 2026-07-10 | — |
 | nissan-smyrna | workspaces/strokmatic/pmo/projects/02008/knowledge/index.md | — | — | — |
@@ -25,7 +25,7 @@ Nunca editar entradas do journal; o estado vive só aqui.
 | smartdie | — | — | — | camada 01001 ainda não existe |
 | magna | — | — | — | prospecção; journal-only por ora |
 | eip | — | — | — | docs vivem no workspace strokmatic-eip |
-| automacao | workspaces/strokmatic/knowledge-base/concepts/integracao-plc.md | 2026-07-10-okf.md | 2026-07-10 | — |
+| automacao | workspaces/strokmatic/knowledge-base/concepts/integracao-plc.md | 2026-07-16-iris-plc-rewire.md | 2026-07-18 | — |
 | vk-producao | workspaces/strokmatic/knowledge-base/concepts/saude-de-producao.md | 2026-07-08-arcelor-vpn.md | 2026-07-10 | — |
 | dados-producao | — | — | — | candidato: concept novo de dados de produção |
 | blender | — | — | — | candidato: página KB da ferramenta |
@@ -36,3 +36,4 @@ Nunca editar entradas do journal; o estado vive só aqui.
 | administrativo | — | — | — | journal-only por ora |
 | propriedade-intelectual | — | — | — | journal-only por ora |
 | pessoal | — | — | — | NUNCA cascateia (design) |
+| iris-plc-rewire | — | — | — | conteúdo já cascateia via iris-scds (→03007) e automacao (→concept); só retrieval |

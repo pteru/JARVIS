@@ -73,3 +73,4 @@ segredos ou credenciais.** Depois rode
 | administrativo | field | administrativo rh contratos financeiro | administrativo |
 | propriedade-intelectual | field | patente ip inpi claims 03000 02000 | propriedade-intelectual |
 | pessoal | field | pessoal aeroporto arrendamento amendoim | pessoal |
+| iris-plc-rewire | project | iris plc rewire aoi cia402 servo leadshine el8-ec 03007 | iris-plc-rewire,03007,automacao,visionking |
